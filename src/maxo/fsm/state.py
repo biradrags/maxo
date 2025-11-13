@@ -76,7 +76,7 @@ class StatesGroupMeta(type):
         states = []
         childs = []
 
-        for name, arg in namespace.items():
+        for _, arg in namespace.items():
             if isinstance(arg, State):
                 states.append(arg)
             elif inspect.isclass(arg) and issubclass(arg, StatesGroup):

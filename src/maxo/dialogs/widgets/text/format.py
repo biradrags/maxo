@@ -20,10 +20,7 @@ class _FormatDataStub:
         return _FormatDataStub(f"{self.name}.{item}")
 
     def __format__(self, format_spec):
-        if format_spec:
-            res = f"{self.name}:{format_spec}"
-        else:
-            res = self.name
+        res = f"{self.name}:{format_spec}" if format_spec else self.name
         return f"{{{res}}}"
 
 

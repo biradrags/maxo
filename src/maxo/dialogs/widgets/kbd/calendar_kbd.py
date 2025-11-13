@@ -215,10 +215,7 @@ class CalendarDaysView(CalendarScopeView):
             "date": selected_date,
             "data": data,
         }
-        if selected_date == today:
-            text = self.today_text
-        else:
-            text = self.date_text
+        text = self.today_text if selected_date == today else self.date_text
 
         raw_date = raw_from_date(selected_date)
 
@@ -502,10 +499,7 @@ class CalendarMonthView(CalendarScopeView):
             "date": BEARING_DATE.replace(month=month),
             "data": data,
         }
-        if month == this_month:
-            text = self.this_month_text
-        else:
-            text = self.month_text
+        text = self.this_month_text if month == this_month else self.month_text
 
         return CallbackKeyboardButton(
             text=await text.render_text(
@@ -524,10 +518,7 @@ class CalendarMonthView(CalendarScopeView):
     ) -> list[list[CallbackKeyboardButton]]:
         keyboard = []
         today = get_today(config.timezone)
-        if offset.year == today.year:
-            this_month = today.month
-        else:
-            this_month = -1
+        this_month = today.month if offset.year == today.year else -1
         for row in range(1, 13, config.month_columns):
             keyboard_row = []
             for column in range(config.month_columns):
@@ -661,10 +652,8 @@ class CalendarYearsView(CalendarScopeView):
     ) -> CallbackKeyboardButton:
         if not self._is_year_allowed(config, year):
             return empty_button()
-        if year == this_year:
-            text = self.this_year_text
-        else:
-            text = self.year_text
+
+        text = self.this_year_text if year == this_year else self.year_text
 
         year_data = {
             "year": year,

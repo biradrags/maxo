@@ -24,10 +24,7 @@ class Progress(Text):
         data: dict,
         manager: DialogManager,
     ) -> str:
-        if manager.is_preview():
-            percent = 15
-        else:
-            percent = data.get(self.field)
+        percent = 15 if manager.is_preview() else data.get(self.field)
         done = round((self.width * percent) / 100)
         rest = self.width - done
 

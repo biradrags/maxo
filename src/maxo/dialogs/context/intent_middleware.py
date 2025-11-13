@@ -395,7 +395,7 @@ class IntentErrorMiddleware(BaseMiddleware[ErrorEvent]):
             return False
         if UPDATE_CONTEXT_KEY not in ctx:
             return False
-        if EVENT_FROM_USER_KEY not in ctx:
+        if EVENT_FROM_USER_KEY not in ctx:  # noqa: SIM103
             return False
         return True
 

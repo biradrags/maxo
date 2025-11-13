@@ -30,10 +30,7 @@ class JsonMemoryStorage(BaseStorage):
         key: StorageKey,
         state: StateType = None,
     ) -> None:
-        if isinstance(state, State):
-            state_value = state.state
-        else:
-            state_value = state
+        state_value = state.state if isinstance(state, State) else state
         self.storage[key].state = state_value
 
     async def get_state(self, key: StorageKey) -> Optional[str]:

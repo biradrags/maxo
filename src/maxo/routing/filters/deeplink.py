@@ -32,5 +32,5 @@ class DeeplinkFilter(BaseFilter[BotStarted]):
             try:
                 payload = decode_payload(payload)
             except UnicodeDecodeError as e:
-                raise CommandException(f"Failed to decode Base64: {e}")
+                raise CommandException(f"Failed to decode Base64: {e}") from e
         return payload

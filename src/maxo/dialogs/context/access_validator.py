@@ -22,10 +22,7 @@ class DefaultAccessValidator(StackAccessValidator):
         event: ChatEvent,
         ctx: Ctx,
     ) -> bool:
-        if context:
-            access_settings = context.access_settings
-        else:
-            access_settings = stack.access_settings
+        access_settings = context.access_settings if context else stack.access_settings
 
         # if everything is disabled, it is allowed
         if access_settings is None:
@@ -33,9 +30,8 @@ class DefaultAccessValidator(StackAccessValidator):
         if not (access_settings.user_ids or access_settings.custom):
             return True
 
-        # check user
         user: User = ctx[EVENT_FROM_USER_KEY]
-        if user.id in access_settings.user_ids:
+        if user.id in access_settings.user_ids:  # noqa: SIM103
             return True
 
         return False

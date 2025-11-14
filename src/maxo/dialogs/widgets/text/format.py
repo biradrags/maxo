@@ -47,7 +47,10 @@ class _HtmlSafeDict:
         self._data = data
 
     def __getitem__(self, key: Any) -> str:
-        return html.escape(self._data[key], quote=False)
+        value = self._data[key]
+        if isinstance(value, str):
+            value = html.escape(value, quote=False)
+        return value
 
 
 class HtmlSafeFormat(Text):

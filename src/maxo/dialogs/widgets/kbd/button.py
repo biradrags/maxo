@@ -1,5 +1,5 @@
 from collections.abc import Awaitable, Callable
-from typing import Optional, Union
+from typing import Union
 
 from maxo.dialogs.api.internal import RawKeyboard
 from maxo.dialogs.api.protocols import DialogManager, DialogProtocol

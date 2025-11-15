@@ -5,6 +5,7 @@ from collections.abc import Sequence
 from maxo.bot.method_results.messages.delete_message import DeleteMessageResult
 from maxo.enums import MessageLinkType, TextFormat, UploadType
 from maxo.omit import Omittable, Omitted
+from maxo.types import FileAttachmentRequest
 from maxo.types.inline_keyboard_attachment_request import (
     InlineKeyboardAttachmentRequest,
 )
@@ -106,6 +107,7 @@ class MessageMethodsFacade(BaseMethodsFacade, ABC):
         keyboard: Sequence[Sequence[KeyboardButtons]] | None = None,
         notify: Omittable[bool] = True,
         format: TextFormat | None = None,
+        link: NewMessageLink | None = None,
         disable_link_preview: Omittable[bool] = Omitted(),
     ) -> Message:
         if isinstance(media, InputFile):
@@ -118,7 +120,7 @@ class MessageMethodsFacade(BaseMethodsFacade, ABC):
             format=format,
             keyboard=keyboard,
             disable_link_preview=disable_link_preview,
-            link=self._make_new_message_link(MessageLinkType.REPLY),
+            link=link,
         )
 
     async def edit_message(
@@ -173,6 +175,10 @@ class MessageMethodsFacade(BaseMethodsFacade, ABC):
 
         if media:
             attachments.extend(await self._build_media_attachments(media))
+            # TODO: Костыль
+            # maxo.errors.api.MaxBotBadRequestError:
+            # ('attachment.not.ready', 'Key: errors.process.attachment.file.not.processed')
+            await asyncio.sleep(0.5)
 
         return attachments
 
@@ -182,17 +188,14 @@ class MessageMethodsFacade(BaseMethodsFacade, ABC):
     ) -> Sequence[MediaAttachmentsRequests]:
         attachments: list[MediaAttachmentsRequests] = []
 
-        await asyncio.gather(
-            *[
-                asyncio.create_task(self._upload_media(upload_media))
-                for upload_media in media
-            ]
+        result = await asyncio.gather(
+            *(self._upload_media(upload_media) for upload_media in media)
         )
 
-        # for type, token in result:
-        #     match type:
-        #         case UploadType.IMAGE:
-        #             attachments.append(ImageAttachmentRequest())
+        # TODO: Все типы UploadType
+        for type_, token in result:
+            if type_ == UploadType.FILE:
+                attachments.append(FileAttachmentRequest.factory(token))
 
         return attachments
 

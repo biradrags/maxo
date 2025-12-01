@@ -4,8 +4,29 @@ build-backend = "uv_build"
 
 [project]
 name = "maxo"
-description = "Modern framework for MAX bots"
+description = "Asynchronous framework for MAX.ru bots"
 version = "0.0.1"
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [
+    { name = "K1rL3s - Kirill Lesovoy", email = "kirill.lesovoi@mail.ri" },
+    { name = "Ivan Kirpichnikov" },
+]
+maintainers = [{ name = "K1rL3s - Kirill Lesovoy" }]
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Development Status :: 2 - Pre-Alpha",
+    "Environment :: Console",
+    "Framework :: AsyncIO",
+    "Typing :: Typed",
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Communications :: Chat",
+]
 requires-python = ">=3.12,<3.14"
 dependencies = [
     "anyio~=4.9.0",
@@ -17,7 +38,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-redis = ["redis>=6.0.0,<7.0.0"]
+redis = ["redis[hiredis]>=5.0.1<7.0.0"]
 magic_filter = ["magic_filter>=1.0.0,<2.0.0"]
 dishka = ["dishka>=1.0.0,<2.0.0"]
 tools = [
@@ -36,6 +57,9 @@ lint = [
     "black==25.11.0",
 ]
 
+[project.urls]
+Documentation = "https://maxo.rtfd.io"
+Repository = "https://github.com/K1rL3s/maxo"
 
 [tool.mypy]
 files = ["src", "test", "examples"]
@@ -68,7 +92,6 @@ target-version = "py312"
 select = [
     "ALL",
 ]
-
 ignore = [
     "RUF001", # https://docs.astral.sh/ruff/rules/ambiguous-unicode-character-string/
     "RUF002", # https://docs.astral.sh/ruff/rules/ambiguous-unicode-character-docstring/
@@ -118,7 +141,6 @@ ignore = [
     "N818", # https://docs.astral.sh/ruff/rules/error-suffix-on-exception-name/
     "B008", # https://docs.astral.sh/ruff/rules/function-call-in-default-argument/
     "S311", # https://docs.astral.sh/ruff/rules/suspicious-non-cryptographic-random-usage/#suspicious-non-cryptographic-random-usage-s311
-
 ]
 
 [tool.ruff.lint.per-file-ignores]

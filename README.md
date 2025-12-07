@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://github.com/K1rl3s/maxo">
-    <img width="200px" height="200px" alt="maxo" src="https://github.com/K1rL3s/maxo/blob/master/docs/_static/maxo-logo.png?raw=true">
+    <img width="200px" height="200px" alt="maxo" src="https://raw.githubusercontent.com/K1rL3s/maxo/refs/heads/master/docs/_static/maxo-logo.png">
   </a>
 </p>
 <h1 align="center">

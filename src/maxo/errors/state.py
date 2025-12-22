@@ -1,7 +1,6 @@
-from maxo.errors.base import MaxoError, maxo_error
+from maxo.errors.base import MaxoError
 
 
-@maxo_error
 class StateError(MaxoError):
     message: str
 

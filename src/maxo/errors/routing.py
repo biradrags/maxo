@@ -1,13 +1,12 @@
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
-from maxo.errors.base import MaxoError, maxo_error
+from maxo.errors.base import MaxoError
 
 if TYPE_CHECKING:
     from maxo.routing.interfaces.router import BaseRouter
 
 
-@maxo_error
 class CycleRoutersError(MaxoError):
     routers: Sequence["BaseRouter"]
 

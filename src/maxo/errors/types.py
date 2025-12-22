@@ -1,9 +1,8 @@
 from typing import Any
 
-from maxo.errors.base import MaxoError, maxo_error
+from maxo.errors.base import MaxoError
 
 
-@maxo_error
 class AttributeIsEmptyError(MaxoError):
     obj: Any
     attr: str

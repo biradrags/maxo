@@ -1,19 +1,20 @@
 import json
-from collections.abc import Callable, Sequence
+from collections.abc import Callable
 from datetime import datetime
 from typing import Any
 
-from adaptix import P, Retort, dumper, loader
+from adaptix import name_mapping, P, Retort, dumper, loader
 from aiohttp import ClientSession
 from unihttp.clients.aiohttp import AiohttpAsyncClient
 from unihttp.http import HTTPResponse
 from unihttp.markers import BodyMarker, QueryMarker
 from unihttp.method import BaseMethod
 from unihttp.middlewares import AsyncMiddleware
-from unihttp.serializers.adaptix import DEFAULT_RETORT
+from unihttp.serializers.adaptix import DEFAULT_RETORT, for_marker
 
 from maxo._internal._adaptix.concat_provider import concat_provider
 from maxo._internal._adaptix.has_tag_provider import has_tag_provider
+from maxo.bot.methods.base import MaxoMethod
 from maxo.bot.warming_up import WarmingUpType, warming_up_retort
 from maxo.enums import (
     AttachmentRequestType,
@@ -34,7 +35,6 @@ from maxo.errors import (
     MaxBotUnauthorizedError,
     MaxBotUnknownServerError,
 )
-from maxo.omit import Omittable
 from maxo.routing.updates import (
     BotAddedToChat,
     BotRemovedFromChat,
@@ -200,10 +200,9 @@ class MaxApiClient(AiohttpAsyncClient):
         self._text_format = text_format
 
         if session is None:
-            session = ClientSession()
-
-        if "access_token" not in session._default_headers:
-            session._default_headers.update({"authorization": self._token})
+            # Пока есть этот комментарий, автор не придумал, как лучше прокинуть токен
+            # Если пробрасываете session, пробрасывайте токен в заголовки
+            session = ClientSession(headers={"Authorization": self._token})
 
         request_dumper = self._init_method_dumper()
         response_loader = self._init_response_loader()
@@ -222,14 +221,20 @@ class MaxApiClient(AiohttpAsyncClient):
         retort = DEFAULT_RETORT.extend(
             recipe=[
                 _has_tag_providers,
-                dumper(P[QueryMarker], lambda _: "null"),
-                dumper(P[QueryMarker][bool], lambda item: int(item)),
                 dumper(
-                    P[QueryMarker][Sequence[str] | Sequence[int]],
-                    lambda item: ",".join(item),
+                    for_marker(QueryMarker, P[None]),
+                    lambda _: "null",
                 ),
                 dumper(
-                    P[BodyMarker][Omittable[TextFormat | None]],
+                    for_marker(QueryMarker, P[bool]),
+                    lambda item: int(item),
+                ),
+                dumper(
+                    for_marker(QueryMarker, P[list[str]] | P[list[int]]),
+                    lambda seq: ",".join(str(el) for el in seq),
+                ),
+                dumper(
+                    for_marker(BodyMarker, P[TextFormat] | P[TextFormat | None]),
                     lambda item: item or self._text_format,
                 ),
             ],

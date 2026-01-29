@@ -1,5 +1,3 @@
-from collections.abc import Sequence
-
 from maxo.bot.methods.base import MaxoMethod
 from maxo.bot.methods.markers import Query
 from maxo.omit import Omittable, Omitted
@@ -16,4 +14,4 @@ class GetUpdates(MaxoMethod[UpdateList], MaxoType):
     limit: Query[Omittable[int]] = Omitted()
     marker: Query[Omittable[int | None]] = Omitted()
     timeout: Query[Omittable[int]] = Omitted()
-    types: Query[Omittable[Sequence[str] | None]] = Omitted()
+    types: Query[Omittable[list[str] | None]] = Omitted()

@@ -69,7 +69,6 @@ class LongPolling:
         dispatcher = self._dispatcher
         dispatcher.workflow_data.update(bot=bot, **workflow_data)
 
-        # TODO: Пофиксить на Sequence
         types = list(types or collect_used_updates(self._dispatcher))
 
         async with self._lock:
@@ -113,7 +112,7 @@ class LongPolling:
         timeout: Omittable[int] = 30,
         limit: Omittable[int] = 100,
         marker: Omittable[int | None] = Omitted(),
-        types: Omittable[str] = Omitted(),
+        types: Omittable[list[str]] = Omitted(),
         drop_pending_updates: bool = False,
     ) -> AsyncIterator[MaxoUpdate[Any]]:
         start_time = time.time()

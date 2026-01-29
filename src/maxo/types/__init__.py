@@ -25,11 +25,14 @@ from .contact_attachment_payload import ContactAttachmentPayload
 from .contact_attachment_request import ContactAttachmentRequest
 from .contact_attachment_request_payload import ContactAttachmentRequestPayload
 from .data_attachment import DataAttachment
+from .emphasized_markup import EmphasizedMarkup
 from .file_attachment import FileAttachment
 from .file_attachment_payload import FileAttachmentPayload
 from .file_attachment_request import FileAttachmentRequest
 from .get_pinned_message_result import GetPinnedMessageResult
 from .get_subscriptions_result import GetSubscriptionsResult
+from .heading_markup import HeadingMarkup
+from .highlighted_markup import HighlightedMarkup
 from .image import Image
 from .inline_keyboard_attachment import InlineKeyboardAttachment
 from .inline_keyboard_attachment_request import InlineKeyboardAttachmentRequest
@@ -38,26 +41,17 @@ from .inline_keyboard_attachment_request_payload import (
 )
 from .keyboard import Keyboard
 from .link_button import LinkButton
+from .link_markup import LinkMarkup
 from .linked_message import LinkedMessage
 from .location_attachment import LocationAttachment
 from .location_attachment_request import LocationAttachmentRequest
-from .markup_elements import (
-    EmphasizedMarkupElement,
-    HeadingMarkupElement,
-    HighlightedMarkupElement,
-    LinkMarkupElement,
-    MarkupElements,
-    MonospacedMarkupElements,
-    StrikethroughMarkupElement,
-    StrongMarkupElement,
-    UnderlineMarkupElement,
-    UserMentionMarkupElement,
-)
+from .markup_elements import MarkupElements
 from .media_attachment_payload import MediaAttachmentPayload
 from .message import Message
 from .message_body import MessageBody
 from .message_button import MessageButton
 from .message_list import MessageList
+from .monospaced_markup import MonospacedMarkup
 from .new_message import NewMessage
 from .new_message_body import NewMessageBody
 from .new_message_link import NewMessageLink
@@ -87,11 +81,15 @@ from .sticker_attachment import StickerAttachment
 from .sticker_attachment_payload import StickerAttachmentPayload
 from .sticker_attachment_request import StickerAttachmentRequest
 from .sticker_attachment_request_payload import StickerAttachmentRequestPayload
+from .strikethrough_markup import StrikethroughMarkup
+from .strong_markup import StrongMarkup
 from .subscription import Subscription
+from .underline_markup import UnderlineMarkup
 from .update_context import UpdateContext
 from .update_list import UpdateList
 from .upload_endpoint import UploadEndpoint
 from .user import User
+from .user_mention_markup import UserMentionMarkup
 from .user_with_photo import UserWithPhoto
 from .video_attachment import VideoAttachment
 from .video_attachment_details import VideoAttachmentDetails
@@ -127,14 +125,14 @@ __all__ = (
     "ContactAttachmentRequest",
     "ContactAttachmentRequestPayload",
     "DataAttachment",
-    "EmphasizedMarkupElement",
+    "EmphasizedMarkup",
     "FileAttachment",
     "FileAttachmentPayload",
     "FileAttachmentRequest",
     "GetPinnedMessageResult",
     "GetSubscriptionsResult",
-    "HeadingMarkupElement",
-    "HighlightedMarkupElement",
+    "HeadingMarkup",
+    "HighlightedMarkup",
     "Image",
     "InlineButtons",
     "InlineKeyboardAttachment",
@@ -142,7 +140,7 @@ __all__ = (
     "InlineKeyboardAttachmentRequestPayload",
     "Keyboard",
     "LinkButton",
-    "LinkMarkupElement",
+    "LinkMarkup",
     "LinkedMessage",
     "LocationAttachment",
     "LocationAttachmentRequest",
@@ -154,7 +152,7 @@ __all__ = (
     "MessageBody",
     "MessageButton",
     "MessageList",
-    "MonospacedMarkupElements",
+    "MonospacedMarkup",
     "NewMessage",
     "NewMessageBody",
     "NewMessageLink",
@@ -185,15 +183,15 @@ __all__ = (
     "StickerAttachmentPayload",
     "StickerAttachmentRequest",
     "StickerAttachmentRequestPayload",
-    "StrikethroughMarkupElement",
-    "StrongMarkupElement",
+    "StrikethroughMarkup",
+    "StrongMarkup",
     "Subscription",
-    "UnderlineMarkupElement",
+    "UnderlineMarkup",
     "UpdateContext",
     "UpdateList",
     "UploadEndpoint",
     "User",
-    "UserMentionMarkupElement",
+    "UserMentionMarkup",
     "UserWithPhoto",
     "VideoAttachment",
     "VideoAttachmentDetails",

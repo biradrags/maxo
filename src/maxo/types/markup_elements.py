@@ -1,63 +1,21 @@
-from maxo.omit import Omittable, Omitted
-from maxo.types.base import MaxoType
-
-
-class EmphasizedMarkupElement(MaxoType):
-    from_: int
-    length: int
-
-
-class HeadingMarkupElement(MaxoType):
-    from_: int
-    length: int
-
-
-class HighlightedMarkupElement(MaxoType):
-    from_: int
-    length: int
-
-
-class LinkMarkupElement(MaxoType):
-    from_: int
-    length: int
-    url: Omittable[str] = Omitted()
-
-
-class MonospacedMarkupElements(MaxoType):
-    from_: int
-    length: int
-
-
-class StrikethroughMarkupElement(MaxoType):
-    from_: int
-    length: int
-
-
-class StrongMarkupElement(MaxoType):
-    from_: int
-    length: int
-
-
-class UnderlineMarkupElement(MaxoType):
-    from_: int
-    length: int
-
-
-class UserMentionMarkupElement(MaxoType):
-    from_: int
-    length: int
-    user_link: Omittable[str | None] = Omitted()
-    user_id: Omittable[int | None] = Omitted()
-
+from maxo.types.emphasized_markup import EmphasizedMarkup
+from maxo.types.heading_markup import HeadingMarkup
+from maxo.types.highlighted_markup import HighlightedMarkup
+from maxo.types.link_markup import LinkMarkup
+from maxo.types.monospaced_markup import MonospacedMarkup
+from maxo.types.strikethrough_markup import StrikethroughMarkup
+from maxo.types.strong_markup import StrongMarkup
+from maxo.types.underline_markup import UnderlineMarkup
+from maxo.types.user_mention_markup import UserMentionMarkup
 
 MarkupElements = (
-    EmphasizedMarkupElement
-    | HeadingMarkupElement
-    | HighlightedMarkupElement
-    | LinkMarkupElement
-    | UserMentionMarkupElement
-    | UnderlineMarkupElement
-    | MonospacedMarkupElements
-    | StrongMarkupElement
-    | StrikethroughMarkupElement
+    EmphasizedMarkup
+    | HeadingMarkup
+    | HighlightedMarkup
+    | LinkMarkup
+    | MonospacedMarkup
+    | StrikethroughMarkup
+    | StrongMarkup
+    | UnderlineMarkup
+    | UserMentionMarkup
 )

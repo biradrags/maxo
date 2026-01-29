@@ -23,8 +23,8 @@ from maxo.enums import (
     UpdateType,
 )
 from maxo.enums.text_format import TextFormat
-from maxo.errors import MaxBotApiError
-from maxo.errors.api import (
+from maxo.errors import (
+    MaxBotApiError,
     MaxBotBadRequestError,
     MaxBotForbiddenError,
     MaxBotMethodNotAllowedError,
@@ -36,63 +36,59 @@ from maxo.errors.api import (
 )
 from maxo.omit import Omittable
 from maxo.routing.updates import (
+    BotAddedToChat,
+    BotRemovedFromChat,
+    BotStarted,
     BotStopped,
+    ChatTitleChanged,
     DialogCleared,
     DialogMuted,
     DialogRemoved,
     DialogUnmuted,
+    MessageCallback,
+    MessageChatCreated,
+    MessageCreated,
+    MessageEdited,
+    MessageRemoved,
+    UserAddedToChat,
+    UserRemovedFromChat,
 )
-from maxo.routing.updates.bot_added_to_chat import BotAddedToChat
-from maxo.routing.updates.bot_removed_from_chat import BotRemovedFromChat
-from maxo.routing.updates.bot_started import BotStarted
-from maxo.routing.updates.chat_title_changed import ChatTitleChanged
-from maxo.routing.updates.message_callback import MessageCallback
-from maxo.routing.updates.message_chat_created import MessageChatCreated
-from maxo.routing.updates.message_created import MessageCreated
-from maxo.routing.updates.message_edited import MessageEdited
-from maxo.routing.updates.message_removed import MessageRemoved
-from maxo.routing.updates.user_added_to_chat import UserAddedToChat
-from maxo.routing.updates.user_removed_from_chat import UserRemovedFromChat
 from maxo.types import (
+    AudioAttachment,
+    AudioAttachmentRequest,
+    CallbackButton,
+    ContactAttachment,
+    ContactAttachmentRequest,
     DataAttachment,
+    EmphasizedMarkup,
+    FileAttachment,
+    FileAttachmentRequest,
     InlineKeyboardAttachment,
+    InlineKeyboardAttachmentRequest,
+    LinkButton,
+    LinkMarkup,
+    LocationAttachment,
+    LocationAttachmentRequest,
+    MessageButton,
+    MonospacedMarkup,
+    OpenAppButton,
+    PhotoAttachment,
+    PhotoAttachmentRequest,
     ReplyKeyboardAttachment,
     ReplyKeyboardAttachmentRequest,
+    RequestContactButton,
+    RequestGeoLocationButton,
+    ShareAttachment,
+    ShareAttachmentRequest,
+    StickerAttachment,
+    StickerAttachmentRequest,
+    StrikethroughMarkup,
+    StrongMarkup,
+    UnderlineMarkup,
+    UserMentionMarkup,
+    VideoAttachment,
+    VideoAttachmentRequest,
 )
-from maxo.types.audio_attachment import AudioAttachment
-from maxo.types.audio_attachment_request import AudioAttachmentRequest
-from maxo.types.callback_button import CallbackButton
-from maxo.types.contact_attachment import ContactAttachment
-from maxo.types.contact_attachment_request import ContactAttachmentRequest
-from maxo.types.file_attachment import FileAttachment
-from maxo.types.file_attachment_request import FileAttachmentRequest
-from maxo.types.inline_keyboard_attachment_request import (
-    InlineKeyboardAttachmentRequest,
-)
-from maxo.types.link_button import LinkButton
-from maxo.types.location_attachment import LocationAttachment
-from maxo.types.location_attachment_request import LocationAttachmentRequest
-from maxo.types.markup_elements import (
-    EmphasizedMarkupElement,
-    LinkMarkupElement,
-    MonospacedMarkupElements,
-    StrikethroughMarkupElement,
-    StrongMarkupElement,
-    UnderlineMarkupElement,
-    UserMentionMarkupElement,
-)
-from maxo.types.message_button import MessageButton
-from maxo.types.open_app_button import OpenAppButton
-from maxo.types.photo_attachment import PhotoAttachment
-from maxo.types.photo_attachment_request import PhotoAttachmentRequest
-from maxo.types.request_contact_button import RequestContactButton
-from maxo.types.request_geo_location_button import RequestGeoLocationButton
-from maxo.types.share_attachment import ShareAttachment
-from maxo.types.share_attachment_request import ShareAttachmentRequest
-from maxo.types.sticker_attachment import StickerAttachment
-from maxo.types.sticker_attachment_request import StickerAttachmentRequest
-from maxo.types.video_attachment import VideoAttachment
-from maxo.types.video_attachment_request import VideoAttachmentRequest
 
 _has_tag_providers = concat_provider(
     # ---> UpdateType <---
@@ -129,19 +125,19 @@ _has_tag_providers = concat_provider(
     has_tag_provider(VideoAttachment, "type", AttachmentType.VIDEO),
     has_tag_provider(DataAttachment, "type", AttachmentType.DATA),
     # ---> MarkupElementType <---
-    has_tag_provider(EmphasizedMarkupElement, "type", MarkupElementType.EMPHASIZED),
+    has_tag_provider(EmphasizedMarkup, "type", MarkupElementType.EMPHASIZED),
     # has_tag_provider(HeadingMarkupElement, "type", MarkupElementType.HEADING),
     # has_tag_provider(HighlightedMarkupElement, "type", MarkupElementType.HIGHLIGHTED),
-    has_tag_provider(LinkMarkupElement, "type", MarkupElementType.LINK),
-    has_tag_provider(MonospacedMarkupElements, "type", MarkupElementType.MONOSPACED),
+    has_tag_provider(LinkMarkup, "type", MarkupElementType.LINK),
+    has_tag_provider(MonospacedMarkup, "type", MarkupElementType.MONOSPACED),
     has_tag_provider(
-        StrikethroughMarkupElement,
+        StrikethroughMarkup,
         "type",
         MarkupElementType.STRIKETHROUGH,
     ),
-    has_tag_provider(StrongMarkupElement, "type", MarkupElementType.STRONG),
-    has_tag_provider(UnderlineMarkupElement, "type", MarkupElementType.UNDERLINE),
-    has_tag_provider(UserMentionMarkupElement, "type", MarkupElementType.USER_MENTION),
+    has_tag_provider(StrongMarkup, "type", MarkupElementType.STRONG),
+    has_tag_provider(UnderlineMarkup, "type", MarkupElementType.UNDERLINE),
+    has_tag_provider(UserMentionMarkup, "type", MarkupElementType.USER_MENTION),
     # ---> AttachmentRequestType <---
     has_tag_provider(PhotoAttachmentRequest, "type", AttachmentRequestType.IMAGE),
     has_tag_provider(VideoAttachmentRequest, "type", AttachmentRequestType.VIDEO),

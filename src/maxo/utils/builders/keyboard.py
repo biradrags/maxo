@@ -8,7 +8,6 @@ from copy import deepcopy
 from itertools import chain, cycle
 from typing import ClassVar, Self, TypeVar
 
-from maxo.enums import Intent
 from maxo.omit import Omittable, Omitted
 from maxo.types.buttons import InlineButtons
 from maxo.types.callback_button import CallbackButton
@@ -90,12 +89,10 @@ class KeyboardBuilder:
         self,
         text: str,
         payload: str,
-        intent: Intent = Intent.DEFAULT,
     ) -> Self:
         self.add(
             CallbackButton(
                 text=text,
-                intent=intent,
                 payload=payload,
             ),
         )

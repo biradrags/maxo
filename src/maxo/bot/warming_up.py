@@ -151,7 +151,6 @@ _types = (
     InlineButtons,
     ReplyButtons,
     Callback,
-    CallbackAnswer,
     CallbackButton,
     Chat,
     ChatAdmin,

@@ -6,7 +6,7 @@ from maxo.dialogs.api.internal import RawKeyboard
 from maxo.dialogs.api.protocols import DialogManager, DialogProtocol
 from maxo.dialogs.widgets.common import ManagedScroll, Scroll, WhenCondition
 from maxo.dialogs.widgets.text import Const, Format, Text
-from maxo.types import Callback, CallbackKeyboardButton
+from maxo.types import Callback, CallbackButton
 
 from .base import Keyboard
 
@@ -146,7 +146,7 @@ class SwitchPage(BasePager):
     ) -> RawKeyboard:
         return [
             [
-                CallbackKeyboardButton(
+                CallbackButton(
                     text=await self.text.render_text(data, manager),
                     payload=self._item_payload(data["target_page"]),
                 ),
@@ -315,7 +315,7 @@ class NumberedPager(BasePager):
                 text_widget = self.page_text
             text = await text_widget.render_text(button_data, manager)
             buttons.append(
-                CallbackKeyboardButton(
+                CallbackButton(
                     text=text,
                     payload=self._item_payload(target_page),
                 ),

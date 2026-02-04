@@ -1,4 +1,4 @@
-from collections.abc import Mapping, MutableMapping, MutableSequence
+from collections.abc import Mapping, MutableSequence
 from functools import partial
 from typing import Any
 
@@ -14,58 +14,48 @@ from maxo.routing.observers.state import EmptyObserverState, StartedObserverStat
 from maxo.routing.observers.update import UpdateObserver
 from maxo.routing.routers.state import EmptyRouterState, StartedRouterState
 from maxo.routing.sentinels import UNHANDLED, SkipHandler
-from maxo.routing.signals.exception import ErrorEvent
 from maxo.routing.signals.shutdown import AfterShutdown, BeforeShutdown
 from maxo.routing.signals.startup import AfterStartup, BeforeStartup
-from maxo.routing.updates.bot_added import BotAdded
-from maxo.routing.updates.bot_removed import BotRemoved
-from maxo.routing.updates.bot_started import BotStarted
-from maxo.routing.updates.chat_title_changed import ChatTitileChanged
-from maxo.routing.updates.message_callback import MessageCallback
-from maxo.routing.updates.message_chat_created import MessageChatCreated
-from maxo.routing.updates.message_created import MessageCreated
-from maxo.routing.updates.message_edited import MessageEdited
-from maxo.routing.updates.message_removed import MessageRemoved
-from maxo.routing.updates.user_added import UserAdded
-from maxo.routing.updates.user_removed import UserRemoved
+from maxo.routing.updates import (
+    BotAddedToChat,
+    BotRemovedFromChat,
+    BotStarted,
+    BotStopped,
+    ChatTitleChanged,
+    DialogCleared,
+    DialogMuted,
+    DialogRemoved,
+    DialogUnmuted,
+    MessageCallback,
+    MessageChatCreated,
+    MessageCreated,
+    MessageEdited,
+    MessageRemoved,
+    UserAddedToChat,
+    UserRemovedFromChat,
+)
+from maxo.routing.updates.error import ErrorEvent
 from maxo.routing.utils.get_default_name import get_router_default_name
 
 
 class Router(BaseRouter):
-    bot_added: UpdateObserver[BotAdded]
-    bot_removed: UpdateObserver[BotRemoved]
-    bot_started: UpdateObserver[BotStarted]
-    chat_title_changed: UpdateObserver[ChatTitileChanged]
-    message_callback: UpdateObserver[MessageCallback]
-    message_chat_created: UpdateObserver[MessageChatCreated]
-    message_created: UpdateObserver[MessageCreated]
-    message_edited: UpdateObserver[MessageEdited]
-    message_removed: UpdateObserver[MessageRemoved]
-    user_added: UpdateObserver[UserAdded]
-    user_removed: UpdateObserver[UserRemoved]
-    exception: UpdateObserver[ErrorEvent[Any, Any]]
-
-    before_startup: SignalObserver[BeforeStartup]
-    after_startup: SignalObserver[AfterStartup]
-    before_shutdown: SignalObserver[BeforeShutdown]
-    after_shutdown: SignalObserver[AfterShutdown]
-
-    _observers: MutableMapping[Any, Observer[Any, Any, Any]]
-
-    __state: RouterState
-
     def __init__(self, name: str | None = None) -> None:
-        self.bot_added = UpdateObserver[BotAdded]()
-        self.bot_removed = UpdateObserver[BotRemoved]()
+        self.bot_added_to_chat = UpdateObserver[BotAddedToChat]()
+        self.bot_removed_from_chat = UpdateObserver[BotRemovedFromChat]()
         self.bot_started = UpdateObserver[BotStarted]()
-        self.chat_title_changed = UpdateObserver[ChatTitileChanged]()
+        self.bot_stopped = UpdateObserver[BotStopped]()
+        self.chat_title_changed = UpdateObserver[ChatTitleChanged]()
+        self.dialog_cleared = UpdateObserver[DialogCleared]()
+        self.dialog_muted = UpdateObserver[DialogMuted]()
+        self.dialog_removed = UpdateObserver[DialogRemoved]()
+        self.dialog_unmuted = UpdateObserver[DialogUnmuted]()
         self.message_callback = UpdateObserver[MessageCallback]()
         self.message_chat_created = UpdateObserver[MessageChatCreated]()
         self.message_created = UpdateObserver[MessageCreated]()
         self.message_edited = UpdateObserver[MessageEdited]()
         self.message_removed = UpdateObserver[MessageRemoved]()
-        self.user_added = UpdateObserver[UserAdded]()
-        self.user_removed = UpdateObserver[UserRemoved]()
+        self.user_added_to_chat = UpdateObserver[UserAddedToChat]()
+        self.user_removed_from_chat = UpdateObserver[UserRemovedFromChat]()
 
         self.exception = self.exceptions = self.error = self.errors = UpdateObserver[
             ErrorEvent[Any, Any]
@@ -82,17 +72,22 @@ class Router(BaseRouter):
         self.after_shutdown = SignalObserver[AfterShutdown]()
 
         self._observers = {
-            BotAdded: self.bot_added,
-            BotRemoved: self.bot_removed,
+            BotAddedToChat: self.bot_added_to_chat,
+            BotRemovedFromChat: self.bot_removed_from_chat,
             BotStarted: self.bot_started,
-            ChatTitileChanged: self.chat_title_changed,
+            BotStopped: self.bot_stopped,
+            ChatTitleChanged: self.chat_title_changed,
+            DialogCleared: self.dialog_cleared,
+            DialogMuted: self.dialog_muted,
+            DialogRemoved: self.dialog_removed,
+            DialogUnmuted: self.dialog_unmuted,
             MessageCallback: self.message_callback,
             MessageChatCreated: self.message_chat_created,
             MessageCreated: self.message_created,
             MessageEdited: self.message_edited,
             MessageRemoved: self.message_removed,
-            UserAdded: self.user_added,
-            UserRemoved: self.user_removed,
+            UserAddedToChat: self.user_added_to_chat,
+            UserRemovedFromChat: self.user_removed_from_chat,
             ErrorEvent: self.exception,
             BeforeStartup: self.before_startup,
             AfterStartup: self.after_startup,

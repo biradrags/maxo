@@ -3,19 +3,23 @@ from typing import assert_never
 
 from maxo.omit import is_not_omitted
 from maxo.types import (
+    Attachments,
+    AttachmentsRequests,
     AudioAttachment,
     AudioAttachmentRequest,
     ContactAttachment,
     ContactAttachmentRequest,
     FileAttachment,
     FileAttachmentRequest,
-    ImageAttachment,
-    ImageAttachmentRequest,
     InlineKeyboardAttachment,
     InlineKeyboardAttachmentRequest,
     Keyboard,
     LocationAttachment,
     LocationAttachmentRequest,
+    PhotoAttachment,
+    PhotoAttachmentRequest,
+    ReplyKeyboardAttachment,
+    ReplyKeyboardAttachmentRequest,
     ShareAttachment,
     ShareAttachmentRequest,
     StickerAttachment,
@@ -23,8 +27,6 @@ from maxo.types import (
     VideoAttachment,
     VideoAttachmentRequest,
 )
-from maxo.types.attachments import Attachments
-from maxo.types.request_attachments import AttachmentsRequests
 
 
 def request_to_attachment(request: AttachmentsRequests) -> Attachments:
@@ -41,11 +43,13 @@ def request_to_attachment(request: AttachmentsRequests) -> Attachments:
         return ShareAttachment(
             payload=request.payload,
         )
+    if isinstance(request, ReplyKeyboardAttachmentRequest):
+        return ReplyKeyboardAttachment(buttons=request.buttons)
 
     if isinstance(
         request,
         (
-            ImageAttachmentRequest,
+            PhotoAttachmentRequest,
             VideoAttachmentRequest,
             AudioAttachmentRequest,
             FileAttachmentRequest,
@@ -64,8 +68,8 @@ def request_to_attachment(request: AttachmentsRequests) -> Attachments:
 
 
 def attachment_to_request(attachment: Attachments) -> AttachmentsRequests:
-    if isinstance(attachment, ImageAttachment):
-        return ImageAttachmentRequest.factory(token=attachment.payload.token)
+    if isinstance(attachment, PhotoAttachment):
+        return PhotoAttachmentRequest.factory(token=attachment.payload.token)
     if isinstance(attachment, VideoAttachment):
         return VideoAttachmentRequest.factory(token=attachment.payload.token)
     if isinstance(attachment, AudioAttachment):
@@ -98,5 +102,7 @@ def attachment_to_request(attachment: Attachments) -> AttachmentsRequests:
             contact_id=contact_id,
             vcf_info=attachment.payload.vcf_info,
         )
+    if isinstance(attachment, ReplyKeyboardAttachment):
+        return ReplyKeyboardAttachmentRequest(buttons=attachment.buttons)
 
     assert_never(attachment)

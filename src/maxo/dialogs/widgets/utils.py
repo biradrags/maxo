@@ -66,7 +66,7 @@ def ensure_input(
 def ensure_media(widget: Media | Sequence[Media]) -> Media:
     if isinstance(widget, Media):
         return widget
-    if len(widget) > 1:  # TODO case selection of media
+    if len(widget) > 1:  # TODO: Case selection of media
         raise ValueError("Only one media widget is supported")
     if len(widget) == 1:
         return widget[0]

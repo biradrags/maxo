@@ -44,16 +44,16 @@ from maxo.dialogs.api.protocols import (
     MessageNotModified,
 )
 from maxo.dialogs.context.storage import StorageProxy
-from maxo.enums import ChatStatusType, ChatType
+from maxo.enums import ChatStatus, ChatType
 from maxo.fsm import State
 from maxo.routing.interfaces import BaseRouter
 from maxo.routing.middlewares.update_context import UPDATE_CONTEXT_KEY
-from maxo.routing.signals.exception import ErrorEvent
 from maxo.routing.updates import MessageCallback
+from maxo.routing.updates.error import ErrorEvent
 from maxo.types import (
     Chat,
     Message,
-    MessageKeyboardButton,
+    MessageButton,
     Recipient,
     User,
 )
@@ -366,7 +366,7 @@ class ManagerImpl(DialogManager):
         if stack.id == DEFAULT_STACK_ID:
             return  # no limitations for default stack
         if any(
-            isinstance(button, MessageKeyboardButton)
+            isinstance(button, MessageButton)
             for button in itertools.chain(*new_message.keyboard)
         ):
             raise InvalidKeyboardType(
@@ -430,7 +430,7 @@ class ManagerImpl(DialogManager):
             recipient=Recipient(
                 user_id=event.callback.user.user_id,
                 chat_id=None,
-                chat_type=ChatType.DIALOG,
+                chat_type=ChatType.CHAT,  # TODO: Узнать тип чата?
             ),
             message_id=stack.last_message_id,
             sequence_id=stack.last_sequence_id,
@@ -470,7 +470,7 @@ class ManagerImpl(DialogManager):
     def _calc_show_mode(self) -> ShowMode:
         if self.show_mode is not ShowMode.AUTO:
             return self.show_mode
-        if self.middleware_data[UPDATE_CONTEXT_KEY].chat_type != ChatType.DIALOG:
+        if self.middleware_data[UPDATE_CONTEXT_KEY].chat_type != ChatType.CHAT:
             return ShowMode.EDIT
         if self.current_stack().id != DEFAULT_STACK_ID:
             return ShowMode.EDIT
@@ -519,7 +519,7 @@ class ManagerImpl(DialogManager):
             is_public=False,
             last_event_time=datetime.now(),
             participants_count=1,
-            status=ChatStatusType.ACTIVE,
+            status=ChatStatus.ACTIVE,
         )
 
     def bg(

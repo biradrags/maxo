@@ -100,7 +100,7 @@ class MockMessageManager(MessageManagerProtocol):
         message = Message(
             timestamp=datetime.now(),
             recipient=Recipient(
-                chat_type=ChatType.DIALOG,
+                chat_type=ChatType.CHAT,
                 chat_id=old_message.recipient.chat_id,
                 user_id=old_message.recipient.chat_id,
             ),

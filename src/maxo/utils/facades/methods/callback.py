@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
 
-from maxo.bot.method_results.messages.callback_answer import CallbackAnswerResult
 from maxo.omit import Omittable, Omitted
 from maxo.types.callback import Callback
 from maxo.types.new_message_body import NewMessageBody
+from maxo.types.simple_query_result import SimpleQueryResult
 from maxo.utils.facades.methods.base import BaseMethodsFacade
 
 
@@ -17,8 +17,8 @@ class CallbackMethodsFacade(BaseMethodsFacade, ABC):
         self,
         notification: Omittable[str | None] = Omitted(),
         message: NewMessageBody | None = None,
-    ) -> CallbackAnswerResult:
-        return await self.bot.callback_answer(
+    ) -> SimpleQueryResult:
+        return await self.bot.answer_on_callback(
             callback_id=self.callback.callback_id,
             notification=notification,
             message=message,

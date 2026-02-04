@@ -3,17 +3,18 @@ from typing import Self
 
 from maxo.enums.attachment_type import AttachmentType
 from maxo.omit import Omittable, Omitted
-from maxo.types.base import MaxoType
+from maxo.types.attachment import Attachment
 from maxo.types.share_attachment_payload import ShareAttachmentPayload
 
 
-class ShareAttachment(MaxoType):
-    type = AttachmentType.SHARE
+class ShareAttachment(Attachment):
+    type: AttachmentType = AttachmentType.SHARE
 
     payload: ShareAttachmentPayload = field(default_factory=ShareAttachmentPayload)
-    title: Omittable[str | None] = Omitted()
+
     description: Omittable[str | None] = Omitted()
     image_url: Omittable[str | None] = Omitted()
+    title: Omittable[str | None] = Omitted()
 
     @classmethod
     def factory(

@@ -2,23 +2,15 @@ from typing import Self
 
 from maxo.enums.attachment_type import AttachmentType
 from maxo.omit import Omittable, Omitted
-from maxo.types.base import MaxoType
+from maxo.types.attachment import Attachment
 from maxo.types.media_attachment_payload import MediaAttachmentPayload
 
 
-class AudioAttachment(MaxoType):
-    """
-    Аудио вложение.
-
-    Args:
-        payload: Содержимое аудио вложения.
-        transcription: Транскрипция аудио.
-
-    """
-
-    type = AttachmentType.AUDIO
+class AudioAttachment(Attachment):
+    type: AttachmentType = AttachmentType.AUDIO
 
     payload: MediaAttachmentPayload
+
     transcription: Omittable[str | None] = Omitted()
 
     @classmethod

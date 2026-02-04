@@ -2,12 +2,10 @@ from enum import StrEnum
 
 
 class MarkupElementType(StrEnum):
-    STRONG = "strong"
     EMPHASIZED = "emphasized"
-    MONOSPACED = "monospaced"
     LINK = "link"
+    MONOSPACED = "monospaced"
     STRIKETHROUGH = "strikethrough"
+    STRONG = "strong"
     UNDERLINE = "underline"
     USER_MENTION = "user_mention"
-    HEADING = "heading"
-    HIGHLIGHTED = "highlighted"

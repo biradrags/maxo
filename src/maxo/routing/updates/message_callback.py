@@ -1,7 +1,5 @@
-from datetime import datetime
-
-from maxo.enums import UpdateType
-from maxo.errors.types import AttributeIsEmptyError
+from maxo.enums.update_type import UpdateType
+from maxo.errors import AttributeIsEmptyError
 from maxo.omit import Omittable, Omitted
 from maxo.routing.updates.base import MaxUpdate
 from maxo.types.callback import Callback
@@ -10,9 +8,10 @@ from maxo.types.user import User
 
 
 class MessageCallback(MaxUpdate):
+    """Вы получите этот `update` как только пользователь нажмёт кнопку."""
+
     type = UpdateType.MESSAGE_CALLBACK
 
-    timestamp: datetime
     callback: Callback
     message: Message | None = None
     user_locale: Omittable[str | None] = Omitted()

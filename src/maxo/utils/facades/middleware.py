@@ -3,7 +3,7 @@ from typing import Any, final
 
 from maxo.routing.ctx import Ctx
 from maxo.routing.interfaces.middleware import BaseMiddleware, NextMiddleware
-from maxo.routing.signals.update import Update
+from maxo.routing.signals.update import MaxoUpdate
 from maxo.routing.updates.base import BaseUpdate
 from maxo.routing.updates.message_callback import MessageCallback
 from maxo.routing.updates.message_created import MessageCreated
@@ -17,13 +17,13 @@ _FACADES_MAP: Mapping[type[Any], type[BaseUpdateFacade[Any]]] = {
 }
 
 
-class FacadeMiddleware(BaseMiddleware[Update[Any]]):
+class FacadeMiddleware(BaseMiddleware[MaxoUpdate[Any]]):
     @final
     async def __call__(
         self,
-        update: Update[Any],
+        update: MaxoUpdate[Any],
         ctx: Ctx,
-        next: NextMiddleware[Update[Any]],
+        next: NextMiddleware[MaxoUpdate[Any]],
     ) -> Any:
         facade = self._facade_cls_factory(type(update.update))
         if facade:

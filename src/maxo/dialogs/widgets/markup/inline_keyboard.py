@@ -14,6 +14,6 @@ class InlineKeyboardFactory(MarkupFactory):
         manager: DialogManager,
         keyboard: RawKeyboard,
     ) -> MarkupVariant:
-        # TODO validate buttons
+        # TODO: Validate buttons
         add_intent_id(keyboard, manager.current_context().id)
         return keyboard

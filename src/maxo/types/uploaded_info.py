@@ -3,12 +3,6 @@ from maxo.types.base import MaxoType
 
 
 class UploadedInfo(MaxoType):
-    """
-    Загруженная информация.
-
-    Args:
-        token: Токен — уникальный ID загруженного медиафайла.
-
-    """
+    """Это информация, которую вы получите, как только аудио/видео будет загружено"""
 
     token: Omittable[str] = Omitted()

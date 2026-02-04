@@ -12,7 +12,7 @@ from maxo.dialogs.widgets.widget_event import (
     ensure_event_processor,
 )
 from maxo.routing.updates import MessageCallback
-from maxo.types import CallbackKeyboardButton
+from maxo.types import CallbackButton
 
 
 class OnCounterEvent(Protocol):
@@ -110,7 +110,7 @@ class Counter(Keyboard):
         if self.minus:
             minus = await self.minus.render_text(data, manager)
             row.append(
-                CallbackKeyboardButton(
+                CallbackButton(
                     text=minus,
                     payload=self._item_payload("-"),
                 ),
@@ -121,7 +121,7 @@ class Counter(Keyboard):
                 manager,
             )
             row.append(
-                CallbackKeyboardButton(
+                CallbackButton(
                     text=text,
                     payload=self._item_payload(""),
                 ),
@@ -129,7 +129,7 @@ class Counter(Keyboard):
         if self.plus:
             plus = await self.plus.render_text(data, manager)
             row.append(
-                CallbackKeyboardButton(
+                CallbackButton(
                     text=plus,
                     payload=self._item_payload("+"),
                 ),

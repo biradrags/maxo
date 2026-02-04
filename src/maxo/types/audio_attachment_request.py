@@ -1,17 +1,14 @@
 from typing import Self
 
-from maxo.types.base import MaxoType
+from maxo.enums.attachment_request_type import AttachmentRequestType
+from maxo.types.attachment_request import AttachmentRequest
 from maxo.types.uploaded_info import UploadedInfo
 
 
-class AudioAttachmentRequest(MaxoType):
-    """
-    Запрос на прикрепление аудио.
+class AudioAttachmentRequest(AttachmentRequest):
+    """Запрос на прикрепление аудио к сообщению. ДОЛЖЕН быть единственным вложением в сообщении"""
 
-    Args:
-        payload: Данные запроса на прикрепление аудио.
-
-    """
+    type: AttachmentRequestType = AttachmentRequestType.AUDIO
 
     payload: UploadedInfo
 

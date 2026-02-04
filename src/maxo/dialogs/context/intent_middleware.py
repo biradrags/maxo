@@ -32,9 +32,9 @@ from maxo.routing.middlewares.update_context import (
     UPDATE_CONTEXT_KEY,
 )
 from maxo.routing.sentinels import UNHANDLED
-from maxo.routing.signals.exception import ErrorEvent
 from maxo.routing.updates.base import MaxUpdate
 from maxo.routing.updates.bot_started import BotStarted
+from maxo.routing.updates.error import ErrorEvent
 from maxo.routing.updates.message_callback import MessageCallback
 from maxo.routing.updates.message_created import MessageCreated
 from maxo.utils.facades import MessageCallbackFacade
@@ -57,7 +57,10 @@ def event_context_from_callback(event: MessageCallback, ctx: Ctx) -> EventContex
     )
 
 
-def event_context_from_message(event: MessageCreated, ctx: Ctx) -> EventContext:
+def event_context_from_message(
+    event: MessageCreated,
+    ctx: Ctx,
+) -> EventContext:
     user = ctx.get(EVENT_FROM_USER_KEY)
     _event_user_id = getattr(event.message.sender, "user_id", None)
     user_id = _event_user_id or getattr(user, "user_id", None)

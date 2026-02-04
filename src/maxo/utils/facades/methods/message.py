@@ -3,25 +3,26 @@ from abc import ABC, abstractmethod
 from collections.abc import Sequence
 
 from maxo import loggers
-from maxo.bot.method_results.messages.delete_message import DeleteMessageResult
 from maxo.enums import MessageLinkType, TextFormat, UploadType
 from maxo.omit import Omittable, Omitted
 from maxo.types import (
+    AttachmentsRequests,
     AudioAttachmentRequest,
     FileAttachmentRequest,
-    ImageAttachmentRequest,
+    MediaAttachmentsRequests,
+    PhotoAttachmentRequest,
     VideoAttachmentRequest,
 )
+from maxo.types.buttons import InlineButtons
 from maxo.types.inline_keyboard_attachment_request import (
     InlineKeyboardAttachmentRequest,
 )
 from maxo.types.inline_keyboard_attachment_request_payload import (
     InlineKeyboardAttachmentRequestPayload,
 )
-from maxo.types.keyboard_buttons import KeyboardButtons
 from maxo.types.message import Message
 from maxo.types.new_message_link import NewMessageLink
-from maxo.types.request_attachments import AttachmentsRequests, MediaAttachmentsRequests
+from maxo.types.simple_query_result import SimpleQueryResult
 from maxo.utils.facades.methods.base import BaseMethodsFacade
 from maxo.utils.facades.methods.upload_media import UploadMediaFacade
 from maxo.utils.helpers.calculating import calculate_chat_id_and_user_id
@@ -34,7 +35,7 @@ class MessageMethodsFacade(BaseMethodsFacade, ABC):
     def message(self) -> Message:
         raise NotImplementedError
 
-    async def delete_message(self) -> DeleteMessageResult:
+    async def delete_message(self) -> SimpleQueryResult:
         message_id = self.message.unsafe_body.mid
         return await self.bot.delete_message(message_id=message_id)
 
@@ -45,7 +46,7 @@ class MessageMethodsFacade(BaseMethodsFacade, ABC):
         notify: Omittable[bool] = True,
         format: TextFormat | None = None,
         disable_link_preview: Omittable[bool] = Omitted(),
-        keyboard: Sequence[Sequence[KeyboardButtons]] | None = None,
+        keyboard: Sequence[Sequence[InlineButtons]] | None = None,
         media: Sequence[InputFile] | None = None,
     ) -> Message:
         recipient = self.message.recipient
@@ -76,7 +77,7 @@ class MessageMethodsFacade(BaseMethodsFacade, ABC):
     async def answer_text(
         self,
         text: str,
-        keyboard: Sequence[Sequence[KeyboardButtons]] | None = None,
+        keyboard: Sequence[Sequence[InlineButtons]] | None = None,
         notify: Omittable[bool] = True,
         format: TextFormat | None = None,
         disable_link_preview: Omittable[bool] = Omitted(),
@@ -92,7 +93,7 @@ class MessageMethodsFacade(BaseMethodsFacade, ABC):
     async def reply_text(
         self,
         text: str,
-        keyboard: Sequence[Sequence[KeyboardButtons]] | None = None,
+        keyboard: Sequence[Sequence[InlineButtons]] | None = None,
         notify: Omittable[bool] = True,
         format: TextFormat | None = None,
         disable_link_preview: Omittable[bool] = Omitted(),
@@ -110,7 +111,7 @@ class MessageMethodsFacade(BaseMethodsFacade, ABC):
         self,
         media: InputFile | Sequence[InputFile],
         text: str | None = None,
-        keyboard: Sequence[Sequence[KeyboardButtons]] | None = None,
+        keyboard: Sequence[Sequence[InlineButtons]] | None = None,
         notify: Omittable[bool] = True,
         format: TextFormat | None = None,
         link: NewMessageLink | None = None,
@@ -132,7 +133,7 @@ class MessageMethodsFacade(BaseMethodsFacade, ABC):
     async def edit_message(
         self,
         text: str | None = None,
-        keyboard: Sequence[Sequence[KeyboardButtons]] | None = None,
+        keyboard: Sequence[Sequence[InlineButtons]] | None = None,
         media: Sequence[InputFile] | None = None,
         link: NewMessageLink | None = None,
         notify: bool = True,
@@ -167,7 +168,7 @@ class MessageMethodsFacade(BaseMethodsFacade, ABC):
     async def _build_attachments(
         self,
         base: Sequence[AttachmentsRequests],
-        keyboard: Sequence[Sequence[KeyboardButtons]] | None = None,
+        keyboard: Sequence[Sequence[InlineButtons]] | None = None,
         media: Sequence[InputFile] | None = None,
     ) -> Sequence[AttachmentsRequests]:
         attachments = list(base)
@@ -181,7 +182,7 @@ class MessageMethodsFacade(BaseMethodsFacade, ABC):
 
         if media:
             attachments.extend(await self._build_media_attachments(media))
-            # TODO: Костыль
+            # TODO: Исправить костыль со сном, https://github.com/K1rL3s/maxo/issues/10
             # maxo.errors.api.MaxBotBadRequestError:
             # ('attachment.not.ready', 'Key: errors.process.attachment.file.not.processed')
             await asyncio.sleep(0.5)
@@ -207,7 +208,7 @@ class MessageMethodsFacade(BaseMethodsFacade, ABC):
                 case UploadType.VIDEO:
                     attachments.append(VideoAttachmentRequest.factory(token))
                 case UploadType.IMAGE:
-                    attachments.append(ImageAttachmentRequest.factory(token=token))
+                    attachments.append(PhotoAttachmentRequest.factory(token=token))
                 case _:
                     loggers.utils.warning("Received unknown attachment type: %s", type_)
 

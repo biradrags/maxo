@@ -8,13 +8,12 @@ from copy import deepcopy
 from itertools import chain, cycle
 from typing import ClassVar, Self, TypeVar
 
-from maxo.enums import IntentType
 from maxo.omit import Omittable, Omitted
-from maxo.types.callback_keyboard_button import CallbackKeyboardButton
-from maxo.types.keyboard_buttons import KeyboardButtons
-from maxo.types.link_keyboard_button import LinkKeyboardButton
-from maxo.types.request_contact_keyboard_button import RequestContactKeyboardButton
-from maxo.types.request_geo_location_button import RequestGeoLocationKeyboardButton
+from maxo.types.buttons import InlineButtons
+from maxo.types.callback_button import CallbackButton
+from maxo.types.link_button import LinkButton
+from maxo.types.request_contact_button import RequestContactButton
+from maxo.types.request_geo_location_button import RequestGeoLocationButton
 
 T = TypeVar("T")
 
@@ -44,7 +43,7 @@ class KeyboardValidator:
     min_width: ClassVar[int] = 1
     max_buttons: ClassVar[int] = 210
 
-    def validate_keyboard(self, markup: Sequence[Sequence[KeyboardButtons]]) -> bool:
+    def validate_keyboard(self, markup: Sequence[Sequence[InlineButtons]]) -> bool:
         count = 0
         for row in markup:
             self.validate_row(row)
@@ -55,7 +54,7 @@ class KeyboardValidator:
             )
         return True
 
-    def validate_row(self, row: Sequence[KeyboardButtons]) -> None:
+    def validate_row(self, row: Sequence[InlineButtons]) -> None:
         if len(row) > self.max_width:
             raise ValueError(f"Row {row!r} is too long (max width: {self.max_width})")
 
@@ -68,13 +67,13 @@ class KeyboardValidator:
 
 
 class KeyboardBuilder:
-    _keyboard: MutableSequence[MutableSequence[KeyboardButtons]]
+    _keyboard: MutableSequence[MutableSequence[InlineButtons]]
 
     __slots__ = ("_keyboard", "_validator")
 
     def __init__(
         self,
-        keyboard: MutableSequence[MutableSequence[KeyboardButtons]] | None = None,
+        keyboard: MutableSequence[MutableSequence[InlineButtons]] | None = None,
     ) -> None:
         validator = KeyboardValidator()
 
@@ -90,12 +89,10 @@ class KeyboardBuilder:
         self,
         text: str,
         payload: str,
-        intent: IntentType = IntentType.DEFAULT,
     ) -> Self:
         self.add(
-            CallbackKeyboardButton(
+            CallbackButton(
                 text=text,
-                intent=intent,
                 payload=payload,
             ),
         )
@@ -103,7 +100,7 @@ class KeyboardBuilder:
 
     def add_link(self, text: str, url: str) -> Self:
         self.add(
-            LinkKeyboardButton(
+            LinkButton(
                 text=text,
                 url=url,
             ),
@@ -112,7 +109,7 @@ class KeyboardBuilder:
 
     def add_request_contact(self, text: str) -> Self:
         self.add(
-            RequestContactKeyboardButton(
+            RequestContactButton(
                 text=text,
             ),
         )
@@ -124,7 +121,7 @@ class KeyboardBuilder:
         quick: Omittable[bool] = Omitted(),
     ) -> Self:
         self.add(
-            RequestGeoLocationKeyboardButton(
+            RequestGeoLocationButton(
                 text=text,
                 quick=quick,
             ),
@@ -132,13 +129,13 @@ class KeyboardBuilder:
         return self
 
     @property
-    def buttons(self) -> Generator[KeyboardButtons, None, None]:
+    def buttons(self) -> Generator[InlineButtons, None, None]:
         yield from chain.from_iterable(self.build())
 
-    def build(self) -> MutableSequence[MutableSequence[KeyboardButtons]]:
+    def build(self) -> MutableSequence[MutableSequence[InlineButtons]]:
         return deepcopy(self._keyboard)
 
-    def add(self, *buttons: KeyboardButtons) -> Self:
+    def add(self, *buttons: InlineButtons) -> Self:
         self._validator.validate_row(buttons)
         keyboard = self.build()
 
@@ -161,7 +158,7 @@ class KeyboardBuilder:
         self._keyboard = keyboard
         return self
 
-    def row(self, *buttons: KeyboardButtons, width: int | None = None) -> Self:
+    def row(self, *buttons: InlineButtons, width: int | None = None) -> Self:
         if width is None:
             width = self._validator.max_width
 
@@ -181,7 +178,7 @@ class KeyboardBuilder:
         size = next(sizes_iter)
 
         keyboard = []
-        row: MutableSequence[KeyboardButtons] = []
+        row: MutableSequence[InlineButtons] = []
         for button in self.buttons:
             if len(row) >= size:
                 keyboard.append(row)

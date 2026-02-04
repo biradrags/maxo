@@ -1,20 +1,17 @@
 from typing import Self
 
+from maxo.enums.attachment_request_type import AttachmentRequestType
 from maxo.omit import Omittable, Omitted
-from maxo.types.base import MaxoType
+from maxo.types.attachment_request import AttachmentRequest
 from maxo.types.contact_attachment_request_payload import (
     ContactAttachmentRequestPayload,
 )
 
 
-class ContactAttachmentRequest(MaxoType):
-    """
-    Запрос на прикрепление контакта.
+class ContactAttachmentRequest(AttachmentRequest):
+    """Запрос на прикрепление карточки контакта к сообщению. MДОЛЖЕН быть единственным вложением в сообщении"""
 
-    Args:
-        payload: Полезная нагрузка для запроса прикрепления контакта.
-
-    """
+    type: AttachmentRequestType = AttachmentRequestType.CONTACT
 
     payload: ContactAttachmentRequestPayload
 

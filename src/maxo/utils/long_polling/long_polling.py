@@ -11,7 +11,7 @@ from maxo.omit import Omittable, Omitted
 from maxo.routing.dispatcher import Dispatcher
 from maxo.routing.signals.shutdown import AfterShutdown, BeforeShutdown
 from maxo.routing.signals.startup import AfterStartup, BeforeStartup
-from maxo.routing.signals.update import Update
+from maxo.routing.signals.update import MaxoUpdate
 from maxo.routing.utils import collect_used_updates
 
 _DEFAULT_BACKOFF_CONFIG = BackoffConfig(
@@ -69,7 +69,7 @@ class LongPolling:
         dispatcher = self._dispatcher
         dispatcher.workflow_data.update(bot=bot, **workflow_data)
 
-        types = types or collect_used_updates(self._dispatcher)
+        types = list(types or collect_used_updates(self._dispatcher))
 
         async with self._lock:
             await dispatcher.feed_signal(BeforeStartup())
@@ -112,9 +112,9 @@ class LongPolling:
         timeout: Omittable[int] = 30,
         limit: Omittable[int] = 100,
         marker: Omittable[int | None] = Omitted(),
-        types: Omittable[str] = Omitted(),
+        types: Omittable[list[str]] = Omitted(),
         drop_pending_updates: bool = False,
-    ) -> AsyncIterator[Update[Any]]:
+    ) -> AsyncIterator[MaxoUpdate[Any]]:
         start_time = time.time()
         backoff = Backoff(self._backoff_config)
         bot_id = bot.state.info.user_id
@@ -143,6 +143,7 @@ class LongPolling:
                     bot_username,
                     bot_id,
                 )
+                await asyncio.sleep(backoff.current_delay)
                 backoff.next()
                 continue
 
@@ -163,4 +164,4 @@ class LongPolling:
                     loggers.long_polling.debug("Skip update: %s", update)
                     continue
                 loggers.long_polling.debug("New update: %s", update)
-                yield Update(update=update, marker=result.marker)
+                yield MaxoUpdate(update=update, marker=result.marker)

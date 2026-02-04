@@ -5,8 +5,8 @@ from maxo.dialogs.api.protocols import DialogManager
 from maxo.dialogs.widgets.text import Text
 from maxo.omit import Omittable, Omitted
 from maxo.types import (
-    RequestContactKeyboardButton,
-    RequestGeoLocationKeyboardButton,
+    RequestContactButton,
+    RequestGeoLocationButton,
 )
 
 from .base import Keyboard
@@ -28,7 +28,7 @@ class RequestContact(Keyboard):
     ) -> RawKeyboard:
         return [
             [
-                RequestContactKeyboardButton(
+                RequestContactButton(
                     text=await self.text.render_text(data, manager),
                 ),
             ],
@@ -53,7 +53,7 @@ class RequestLocation(Keyboard):
     ) -> RawKeyboard:
         return [
             [
-                RequestGeoLocationKeyboardButton(
+                RequestGeoLocationButton(
                     text=await self.text.render_text(data, manager),
                     quick=self.quick,
                 ),

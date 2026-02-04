@@ -1,28 +1,14 @@
-from retejo.core.markers import Omittable, Omitted
-from retejo.http.markers import QueryParam
-
-from maxo.bot.method_results.chats.get_chats import GetChatsResult
 from maxo.bot.methods.base import MaxoMethod
+from maxo.bot.methods.markers import Query
+from maxo.omit import Omittable, Omitted
+from maxo.types.chat_list import ChatList
 
 
-class GetChats(MaxoMethod[GetChatsResult]):
-    """
-    Получение списка всех чатов.
-
-    Возвращает информацию о чатах, в которых участвовал бот.
-    Результат включает список чатов и маркер для перехода к следующей странице.
-
-    Источник: https://dev.max.ru/docs-api/methods/GET/chats
-
-    Args:
-        count: Количество запрашиваемых чатов. По умолчанию: 50. От 1 до 100.
-        marker: Указатель на следующую страницу данных.
-            Для первой страницы передайте null.
-
-    """
+class GetChats(MaxoMethod[ChatList]):
+    """Получение списка всех групповых чатов."""
 
     __url__ = "chats"
-    __http_method__ = "get"
+    __method__ = "get"
 
-    count: QueryParam[Omittable[int]] = 50
-    marker: QueryParam[Omittable[int | None]] = Omitted()
+    count: Query[Omittable[int]] = Omitted()
+    marker: Query[Omittable[int]] = Omitted()

@@ -2,15 +2,16 @@ from enum import StrEnum
 
 
 class AttachmentType(StrEnum):
-    IMAGE = "image"
-    VIDEO = "video"
-    AUDIO = "audio"
-    FILE = "file"
-    STICKER = "sticker"
-    CONTACT = "contact"
-    INLINE_KEYBOARD = "inline_keyboard"
-    SHARE = "share"
-    LOCATION = "location"
+    """Общая схема, представляющая вложение сообщения"""
 
-    VOICE = AUDIO
-    ANY = "any"
+    AUDIO = "audio"
+    CONTACT = "contact"
+    DATA = "data"
+    FILE = "file"
+    IMAGE = "image"
+    INLINE_KEYBOARD = "inline_keyboard"
+    LOCATION = "location"
+    REPLY_KEYBOARD = "reply_keyboard"
+    SHARE = "share"
+    STICKER = "sticker"
+    VIDEO = "video"

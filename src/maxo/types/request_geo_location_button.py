@@ -1,16 +1,11 @@
+from maxo.enums.button_type import ButtonType
 from maxo.omit import Omittable, Omitted
-from maxo.types.base import MaxoType
+from maxo.types.button import Button
 
 
-class RequestGeoLocationKeyboardButton(MaxoType):
-    """
-    Инлайн кнопка запроса геолокации.
+class RequestGeoLocationButton(Button):
+    """После нажатия на такую кнопку клиент отправляет новое сообщение с вложением текущего географического положения пользователя"""
 
-    Args:
-        text: Видимый текст кнопки. От 1 до 128 символов.
-        quick: Если true, отправляет местоположение без запроса подтверждения пользователя.
+    type: ButtonType = ButtonType.REQUEST_GEO_LOCATION
 
-    """
-
-    text: str
     quick: Omittable[bool] = Omitted()

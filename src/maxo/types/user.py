@@ -6,33 +6,23 @@ from maxo.types.base import MaxoType
 
 class User(MaxoType):
     """
-    Информация о пользователе.
+    Объект, описывающий один из вариантов наследования:
 
-    Args:
-        user_id: ID пользователя.
-        first_name: Отображаемое имя пользователя.
-        last_name: Отображаемая фамилия пользователя.
-        username:
-            Уникальное публичное имя пользователя.
-            Может быть null, если пользователь недоступен или имя не задано.
-        is_bot: True, если пользователь является ботом.
-        last_activity_time:
-            Время последней активности пользователя в MAX (Unix-время в миллисекундах).
-            Может быть неактуальным, если пользователь отключил статус "онлайн" в настройках.
-        description:
-            Описание пользователя.
-            Может быть null, если пользователь его не заполнил.
-            До 16000 символов.
-
+    - [`User`](/docs-api/objects/User) — объект содержит общую информацию о пользователе или боте без аватара
+    - [`UserWithPhoto`](/docs-api/objects/UserWithPhoto) — объект с общей информацией о пользователе или боте, дополнительно содержит URL аватара и описание
+    - [`BotInfo`](/docs-api/objects/BotInfo) — объект включает общую информацию о боте, URL аватара и описание. Дополнительно содержит список команд, поддерживаемых ботом. Возвращается только при вызове метода [`GET /me`](/docs-api/methods/GET/me)
+    - [`ChatMember`](/docs-api/objects/ChatMember) — объект включает общую информацию о пользователе или боте, URL аватара и описание при его наличии. Дополнительно содержит данные для пользователей-участников чата. Возвращается только при вызове некоторых методов группы `/chats`, например [`GET /chats/{chatId}/members`](/docs-api/methods/GET/chats/-chatId-/members)
     """
 
-    user_id: int
     first_name: str
-    last_name: str | None = None
-    username: str | None = None
     is_bot: bool
     last_activity_time: datetime
-    description: Omittable[str | None] = Omitted()
+    user_id: int
+
+    last_name: str | None = None
+    username: str | None = None
+
+    name: Omittable[str | None] = Omitted()
 
     @property
     def id(self) -> int:

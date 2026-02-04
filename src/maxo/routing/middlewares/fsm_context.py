@@ -5,11 +5,11 @@ from maxo.fsm.manager import FSMContext
 from maxo.fsm.storages.base import BaseEventIsolation, BaseStorage
 from maxo.routing.ctx import Ctx
 from maxo.routing.interfaces.middleware import BaseMiddleware, NextMiddleware
-from maxo.routing.signals.update import Update
+from maxo.routing.signals.update import MaxoUpdate
 from maxo.types.update_context import UpdateContext
 
 
-class FSMContextMiddleware(BaseMiddleware[Update[Any]]):
+class FSMContextMiddleware(BaseMiddleware[MaxoUpdate[Any]]):
     __slots__ = (
         "_events_isolation",
         "_storage",
@@ -25,9 +25,9 @@ class FSMContextMiddleware(BaseMiddleware[Update[Any]]):
 
     async def __call__(
         self,
-        update: Update[Any],
+        update: MaxoUpdate[Any],
         ctx: Ctx,
-        next: NextMiddleware[Update[Any]],
+        next: NextMiddleware[MaxoUpdate[Any]],
     ) -> Any:
         storage_key = self.make_storage_key(
             bot_id=ctx["bot"].state.info.user_id,

@@ -4,16 +4,16 @@ from decimal import Decimal
 from typing import Self, overload
 
 from maxo.omit import Omittable, Omitted
+from maxo.types import AttachmentsRequests
 from maxo.types.audio_attachment_request import AudioAttachmentRequest
+from maxo.types.buttons import InlineButtons
 from maxo.types.contact_attachment_request import ContactAttachmentRequest
 from maxo.types.file_attachment_request import FileAttachmentRequest
-from maxo.types.image_attachment_request import ImageAttachmentRequest
 from maxo.types.inline_keyboard_attachment_request import (
     InlineKeyboardAttachmentRequest,
 )
-from maxo.types.keyboard_buttons import KeyboardButtons
 from maxo.types.location_attachment_request import LocationAttachmentRequest
-from maxo.types.request_attachments import AttachmentsRequests
+from maxo.types.photo_attachment_request import PhotoAttachmentRequest
 from maxo.types.share_attachment_request import ShareAttachmentRequest
 from maxo.types.sticker_attachment_request import StickerAttachmentRequest
 from maxo.types.video_attachment_request import VideoAttachmentRequest
@@ -45,7 +45,7 @@ class AttachmentRequestBuilder:
         photos: Omittable[list[str] | None] = Omitted(),
     ) -> Self:
         self._items.append(
-            ImageAttachmentRequest.factory(
+            PhotoAttachmentRequest.factory(
                 url=url,
                 token=token,
                 photos=photos,
@@ -86,7 +86,7 @@ class AttachmentRequestBuilder:
         )
         return self
 
-    def add_inline_keyboard(self, buttons: Sequence[Sequence[KeyboardButtons]]) -> Self:
+    def add_inline_keyboard(self, buttons: Sequence[Sequence[InlineButtons]]) -> Self:
         self._items.append(
             InlineKeyboardAttachmentRequest.factory(
                 buttons=buttons,

@@ -13,13 +13,13 @@ from maxo.dialogs.api.entities.link_preview import LinkPreviewOptions
 from maxo.dialogs.api.protocols import DialogProtocol
 from maxo.routing.updates import MessageCallback, MessageCreated
 from maxo.types import (
-    CallbackKeyboardButton,
-    LinkKeyboardButton,
-    MessageKeyboardButton,
-    RequestContactKeyboardButton,
-    RequestGeoLocationKeyboardButton,
+    CallbackButton,
+    LinkButton,
+    MessageButton,
+    RequestContactButton,
+    RequestGeoLocationButton,
 )
-from maxo.types.open_app_keyboard_button import OpenAppKeyboardButton
+from maxo.types.open_app_button import OpenAppButton
 
 
 @runtime_checkable
@@ -58,12 +58,12 @@ class LinkPreviewWidget(Widget, Protocol):
 
 
 ButtonVariant = (
-    CallbackKeyboardButton
-    | MessageKeyboardButton
-    | LinkKeyboardButton
-    | OpenAppKeyboardButton
-    | RequestContactKeyboardButton
-    | RequestGeoLocationKeyboardButton
+    CallbackButton
+    | MessageButton
+    | LinkButton
+    | OpenAppButton
+    | RequestContactButton
+    | RequestGeoLocationButton
 )
 RawKeyboard = list[list[ButtonVariant]]
 

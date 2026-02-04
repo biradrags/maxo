@@ -1,54 +1,24 @@
-from collections.abc import Sequence
-
-from retejo.http.markers import Body, QueryParam
-
-from maxo.bot.method_results.messages.send_message import SendMessageResult
 from maxo.bot.methods.base import MaxoMethod
-from maxo.enums import TextFormat
+from maxo.bot.methods.markers import Body, Query
+from maxo.enums.text_format import TextFormat
 from maxo.omit import Omittable, Omitted
+from maxo.types.attachments import AttachmentsRequests
 from maxo.types.new_message_link import NewMessageLink
-from maxo.types.request_attachments import AttachmentsRequests
+from maxo.types.send_message_result import SendMessageResult
 
 
 class SendMessage(MaxoMethod[SendMessageResult]):
-    """
-    Отправить сообщение.
-
-    Отправляет сообщение в чат.
-
-    Медиафайлы прикрепляются к сообщениям поэтапно:
-
-    1. Получите URL для загрузки медиафайлов.
-    2. Загрузите бинарные данные соответствующего формата по полученному URL.
-    3. После успешной загрузки получите JSON-объект в ответе.
-       Используйте этот объект для создания вложения.
-
-    Источник: https://dev.max.ru/docs-api/methods/POST/messages
-
-    Args:
-        user_id: Если вы хотите отправить сообщение пользователю, укажите его ID.
-        chat_id: Если сообщение отправляется в чат, укажите его ID.
-        disable_link_preview: Если `False`,
-            сервер не будет генерировать превью для ссылок в тексте сообщения.
-        text: Новый текст сообщения. До 4000 символов.
-        attachments: Новый текст сообщения.
-        link: Ссылка на сообщение.
-        notify: Если `False`, участники чата не будут уведомлены (по умолчанию true).
-        format:
-            Если установлен, текст сообщения будет форматрован данным способом.
-            Для подробной информации загляните в раздел "Форматирование".
-
-    """
+    """Отправить сообщение."""
 
     __url__ = "messages"
-    __http_method__ = "post"
+    __method__ = "post"
 
-    user_id: QueryParam[Omittable[int]] = Omitted()
-    chat_id: QueryParam[Omittable[int]] = Omitted()
-    disable_link_preview: QueryParam[Omittable[bool]] = Omitted()
+    chat_id: Query[Omittable[int]] = Omitted()
+    disable_link_preview: Query[Omittable[bool]] = Omitted()
+    user_id: Query[Omittable[int]] = Omitted()
 
-    text: Body[str | None] = None
-    attachments: Body[Sequence[AttachmentsRequests] | None] = None
+    attachments: Body[list[AttachmentsRequests] | None] = None
     link: Body[NewMessageLink | None] = None
-    notify: Body[Omittable[bool]] = True
+    text: Body[str | None] = None
     format: Body[Omittable[TextFormat | None]] = Omitted()
+    notify: Body[Omittable[bool]] = Omitted()

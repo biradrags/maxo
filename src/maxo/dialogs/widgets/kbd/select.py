@@ -21,7 +21,7 @@ from maxo.dialogs.widgets.widget_event import (
     ensure_event_processor,
 )
 from maxo.routing.updates import MessageCallback
-from maxo.types import CallbackKeyboardButton
+from maxo.types import CallbackButton
 
 from .base import Keyboard
 
@@ -94,7 +94,7 @@ class Select(Keyboard, Generic[T]):
         target_item: Any,
         data: dict,
         manager: DialogManager,
-    ) -> CallbackKeyboardButton:
+    ) -> CallbackButton:
         """
         Render one of the buttons in keyboard.
 
@@ -110,7 +110,7 @@ class Select(Keyboard, Generic[T]):
             "pos0": pos,
         }
         item_id = self.item_id_getter(target_item)
-        return CallbackKeyboardButton(
+        return CallbackButton(
             text=await self.text.render_text(data, manager),
             payload=self._item_payload(item_id),
         )

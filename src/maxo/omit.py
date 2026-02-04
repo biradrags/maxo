@@ -1,33 +1,36 @@
-from typing import TypeAlias, TypeVar
+from typing import Any, TypeAlias, TypeVar
 
-from retejo.core import Omitted as OriginOmitted
-from retejo.marker_tools import (
-    is_defined as origin_is_defined,
-    is_not_defined as origin_is_not_defined,
-    is_not_omittable_tp as origin_is_not_omittable_tp,
-    is_not_omitted as origin_is_not_omitted,
-    is_omittable_tp as origin_is_omittable_tp,
-    is_omitted as origin_is_omitted,
-)
+from adaptix import Omitted as AdaptixOmitted
+from typing_extensions import TypeIs
 
-T = TypeVar("T")
+Omitted = AdaptixOmitted
+Omitted.__bool__ = lambda _: False  # Абсолютно осознанное решение
 
-Omittable: TypeAlias = T | OriginOmitted  # noqa: UP040
-Omitted = OriginOmitted
-is_defined = origin_is_defined
-is_not_defined = origin_is_not_defined
-is_not_omittable_tp = origin_is_not_omittable_tp
-is_not_omitted = origin_is_not_omitted
-is_omittable_tp = origin_is_omittable_tp
-is_omitted = origin_is_omitted
+_OmittedValueT = TypeVar("_OmittedValueT")
+Omittable: TypeAlias = _OmittedValueT | Omitted
+
+
+def is_omitted(value: Any) -> TypeIs[Omitted]:
+    return isinstance(value, Omitted)
+
+
+def is_not_omitted(value: Omittable[_OmittedValueT]) -> TypeIs[_OmittedValueT]:
+    return not is_omitted(value)
+
+
+def is_defined(value: Omittable[_OmittedValueT | None]) -> TypeIs[_OmittedValueT]:
+    return not isinstance(value, Omitted) and value is not None
+
+
+def is_not_defined(value: Omittable[_OmittedValueT | None]) -> TypeIs[Omittable[None]]:
+    return not is_defined(value)
+
 
 __all__ = (
     "Omittable",
     "Omitted",
     "is_defined",
     "is_not_defined",
-    "is_not_omittable_tp",
     "is_not_omitted",
-    "is_omittable_tp",
     "is_omitted",
 )

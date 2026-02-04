@@ -1,14 +1,14 @@
 import re
 from typing import Protocol
 
-from maxo.types import CallbackKeyboardButton, Message
+from maxo.types import CallbackButton, Message
 
 
 class InlineButtonLocator(Protocol):
     def find_button(
         self,
         message: Message,
-    ) -> CallbackKeyboardButton | None:
+    ) -> CallbackButton | None:
         raise NotImplementedError
 
 
@@ -19,7 +19,7 @@ class InlineButtonTextLocator:
     def find_button(
         self,
         message: Message,
-    ) -> CallbackKeyboardButton | None:
+    ) -> CallbackButton | None:
         if not message.unsafe_body.keyboard:
             return None
         for row in message.unsafe_body.keyboard.buttons:
@@ -40,7 +40,7 @@ class InlineButtonPositionLocator:
     def find_button(
         self,
         message: Message,
-    ) -> CallbackKeyboardButton | None:
+    ) -> CallbackButton | None:
         if not message.unsafe_body.keyboard:
             return None
         try:
@@ -59,7 +59,7 @@ class InlineButtonDataLocator:
     def find_button(
         self,
         message: Message,
-    ) -> CallbackKeyboardButton | None:
+    ) -> CallbackButton | None:
         if not message.unsafe_body.keyboard:
             return None
         for row in message.unsafe_body.keyboard.buttons:

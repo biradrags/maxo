@@ -3,14 +3,8 @@ from maxo.types.user import User
 
 
 class UserWithPhoto(User):
-    """
-    Информация о пользователе c фото.
-
-    Args:
-        avatar_url: URL аватара
-        full_avatar_url: URL аватара большего размера
-
-    """
+    """Объект с общей информацией о пользователе или боте, дополнительно содержит URL аватара и описание"""
 
     avatar_url: Omittable[str] = Omitted()
+    description: Omittable[str | None] = Omitted()
     full_avatar_url: Omittable[str] = Omitted()

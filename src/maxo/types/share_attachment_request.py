@@ -1,18 +1,15 @@
 from typing import Self
 
+from maxo.enums.attachment_request_type import AttachmentRequestType
 from maxo.omit import Omittable, Omitted
-from maxo.types.base import MaxoType
+from maxo.types.attachment_request import AttachmentRequest
 from maxo.types.share_attachment_payload import ShareAttachmentPayload
 
 
-class ShareAttachmentRequest(MaxoType):
-    """
-    Запрос на прикрепление вложения обмена.
+class ShareAttachmentRequest(AttachmentRequest):
+    """Запрос на прикрепление предпросмотра медиафайла по внешнему URL"""
 
-    Args:
-        payload: Полезная нагрузка вложения обмена.
-
-    """
+    type: AttachmentRequestType = AttachmentRequestType.SHARE
 
     payload: ShareAttachmentPayload
 

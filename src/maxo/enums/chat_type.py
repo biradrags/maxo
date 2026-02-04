@@ -2,14 +2,8 @@ from enum import StrEnum
 
 
 class ChatType(StrEnum):
-    """
-    Тип чата.
+    """Тип чата: диалог, чат"""
 
-    Attributes:
-        CHAT: Групповой чат.
-        DIALOG: Личный чат.
-
-    """
-
+    CHANNEL = "channel"
     CHAT = "chat"
     DIALOG = "dialog"

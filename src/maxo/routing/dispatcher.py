@@ -14,7 +14,7 @@ from maxo.routing.observers.signal import SignalObserver
 from maxo.routing.routers.simple import Router
 from maxo.routing.sentinels import UNHANDLED
 from maxo.routing.signals.base import BaseSignal
-from maxo.routing.signals.update import Update
+from maxo.routing.signals.update import MaxoUpdate
 from maxo.routing.updates.base import BaseUpdate
 from maxo.routing.utils._resolving_inner_middlewares import resolve_middlewares
 from maxo.routing.utils.validate_router_graph import validate_router_graph
@@ -22,7 +22,7 @@ from maxo.utils.facades.middleware import FacadeMiddleware
 
 
 class Dispatcher(Router):
-    update: SignalObserver[Update[Any]]
+    update: SignalObserver[MaxoUpdate[Any]]
 
     def __init__(
         self,
@@ -39,7 +39,7 @@ class Dispatcher(Router):
         self.workflow_data["dispatcher"] = self
         self.workflow_data["router"] = self
 
-        self.update = self._observers[Update] = SignalObserver[Update]()
+        self.update = self._observers[MaxoUpdate] = SignalObserver[MaxoUpdate]()
         self.update.middleware.outer(ErrorMiddleware(self))
         self.update.middleware.outer(UpdateContextMiddleware())
 
@@ -61,7 +61,11 @@ class Dispatcher(Router):
 
         self.update.middleware.outer(FacadeMiddleware())
 
-    async def feed_max_update(self, update: Update[Any], bot: Bot | None = None) -> Any:
+    async def feed_max_update(
+        self,
+        update: MaxoUpdate[Any],
+        bot: Bot | None = None,
+    ) -> Any:
         loop = asyncio.get_running_loop()
         start_time = loop.time()
 

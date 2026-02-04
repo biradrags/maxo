@@ -26,7 +26,7 @@ from maxo.dialogs.api.protocols import (
 )
 from maxo.dialogs.manager.updater import Updater
 from maxo.dialogs.utils import is_user_loaded
-from maxo.enums import ChatStatusType, ChatType
+from maxo.enums import ChatStatus, ChatType
 from maxo.fsm import State
 from maxo.routing.interfaces import BaseRouter
 from maxo.types import User
@@ -48,7 +48,7 @@ class BgManager(BaseDialogManager):
         self._event_context = EventContext(
             chat_id=chat_id,
             user_id=user.id,
-            chat_type=ChatType.DIALOG,  # FIXME
+            chat_type=ChatType.CHAT,  # TODO: Узнать тип чата
             user=user,
             chat=None,
             bot=bot,
@@ -83,7 +83,7 @@ class BgManager(BaseDialogManager):
             user=user,
             chat_id=chat_id,
             user_id=user_id,
-            chat_type=ChatType.DIALOG,  # FIXME
+            chat_type=ChatType.CHAT,  # TODO: Узнать тип чата
             chat=None,
         )
         if stack_id is None:
@@ -221,7 +221,7 @@ class BgManagerFactoryImpl(BgManagerFactory):
             is_public=False,
             last_event_time=datetime.now(),
             participants_count=1,
-            status=ChatStatusType.ACTIVE,
+            status=ChatStatus.ACTIVE,
         )
         user = FakeUser(
             user_id=user_id,

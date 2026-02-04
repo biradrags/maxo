@@ -4,6 +4,7 @@ from re import Match
 from maxo.types.base import MaxoType
 
 
+# Самодельный объект
 class CommandObject(MaxoType):
     prefix: str = "/"
     command: str = ""

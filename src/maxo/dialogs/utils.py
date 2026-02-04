@@ -2,8 +2,8 @@ from logging import getLogger
 
 from maxo.dialogs.api.internal import RawKeyboard
 from maxo.types import (
-    CallbackKeyboardButton,
-    MessageKeyboardButton,
+    CallbackButton,
+    MessageButton,
     Recipient,
     User,
 )
@@ -73,9 +73,9 @@ def decode_reply_callback(data: str) -> str:
 
 
 def _transform_to_reply_button(
-    button: CallbackKeyboardButton | MessageKeyboardButton,
-) -> MessageKeyboardButton:
-    if isinstance(button, MessageKeyboardButton):
+    button: CallbackButton | MessageButton,
+) -> MessageButton:
+    if isinstance(button, MessageButton):
         return button
     # if button.web_app:
     #     return KeyboardButton(text=button.text, web_app=button.web_app)
@@ -83,7 +83,7 @@ def _transform_to_reply_button(
         raise ValueError(
             "Cannot convert inline button without payload or web_app",
         )
-    return MessageKeyboardButton(
+    return MessageButton(
         text=join_reply_callback(
             text=button.text,
             payload=button.payload,
@@ -92,8 +92,8 @@ def _transform_to_reply_button(
 
 
 def transform_to_reply_keyboard(
-    keyboard: list[list[CallbackKeyboardButton | MessageKeyboardButton]],
-) -> list[list[MessageKeyboardButton]]:
+    keyboard: list[list[CallbackButton | MessageButton]],
+) -> list[list[MessageButton]]:
     return [[_transform_to_reply_button(button) for button in row] for row in keyboard]
 
 
@@ -130,7 +130,7 @@ def intent_payload(
 def add_intent_id(keyboard: RawKeyboard, intent_id: str):
     for row in keyboard:
         for button in row:
-            if isinstance(button, CallbackKeyboardButton):
+            if isinstance(button, CallbackButton):
                 button.payload = intent_payload(
                     intent_id,
                     button.payload,

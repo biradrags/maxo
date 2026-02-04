@@ -1,23 +1,17 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class ChatAdminPermission(Enum):
-    """
-    Перечень прав пользователя.
+class ChatAdminPermission(StrEnum):
+    """Права администратора чата"""
 
-    Attributes:
-        READ_ALL_MESSAGES: Читать все сообщения.
-        ADD_REMOVE_MEMBERS: Добавлять/удалять участников.
-        ADD_ADMINS: Добавлять администраторов.
-        CHANGE_CHAT_INFO: Изменять информацию о чате.
-        PIN_MESSAGE: Закреплять сообщения.
-        WRITE: Писать сообщения.
-
-    """
-
-    READ_ALL_MESSAGES = "read_all_messages"
-    ADD_REMOVE_MEMBERS = "add_remove_members"
     ADD_ADMINS = "add_admins"
+    ADD_REMOVE_MEMBERS = "add_remove_members"
+    CAN_CALL = "can_call"
     CHANGE_CHAT_INFO = "change_chat_info"
+    DELETE_MESSAGE = "delete_message"
+    EDIT_LINK = "edit_link"
+    EDIT_MESSAGE = "edit_message"
     PIN_MESSAGE = "pin_message"
+    POST_EDIT_DELETE_MESSAGE = "post_edit_delete_message"
+    READ_ALL_MESSAGES = "read_all_messages"
     WRITE = "write"

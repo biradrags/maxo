@@ -1,42 +1,47 @@
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from typing import Any, Self, TypeVar
+from typing import Self, TypeVar
 
-from retejo.core.method_binder import bind_method
+from unihttp.bind_method import bind_method
 
 from maxo.bot.api_client import MaxApiClient
-from maxo.bot.methods.base import MaxoMethod
-from maxo.bot.methods.bots.edit_bot_info import EditBotInfo
-from maxo.bot.methods.bots.get_bot_info import GetBotInfo
-from maxo.bot.methods.chats.add_chat_administrators import AddChatAdministrators
-from maxo.bot.methods.chats.add_chat_members import AddChatMembers
-from maxo.bot.methods.chats.delete_chat import DeleteChat
-from maxo.bot.methods.chats.delete_chat_member import DeleteChatMember
-from maxo.bot.methods.chats.delete_me_from_chat import DeleteMeFromChat
-from maxo.bot.methods.chats.delete_pin_message import DeletePinMessage
-from maxo.bot.methods.chats.edit_chat import EditChat
-from maxo.bot.methods.chats.get_chat import GetChat
-from maxo.bot.methods.chats.get_chat_administrators import GetChatAdministrators
-from maxo.bot.methods.chats.get_chat_by_link import GetChatByLink
-from maxo.bot.methods.chats.get_chat_members import GetChatMembers
-from maxo.bot.methods.chats.get_chats import GetChats
-from maxo.bot.methods.chats.get_me_chat_membership import GetMeChatMembership
-from maxo.bot.methods.chats.get_pin_message import GetPinMessage
-from maxo.bot.methods.chats.pin_message import PinMessage
-from maxo.bot.methods.chats.revoke_administrator_rights import (
-    RevokeAdministratorRights,
+from maxo.bot.methods import (
+    AnswerOnCallback,
+    DeleteChat,
+    DeleteMessage,
+    EditBotInfo,
+    EditChat,
+    EditMessage,
+    GetAdmins,
+    GetChat,
+    GetChatByLink,
+    GetChats,
+    GetMembers,
+    GetMembership,
+    GetMessageById,
+    GetMessages,
+    GetMyInfo,
+    GetPinnedMessage,
+    GetSubscriptions,
+    GetUpdates,
+    GetUploadUrl,
+    GetVideoAttachmentDetails,
+    LeaveChat,
+    PinMessage,
+    RemoveMember,
+    SendAction,
+    SendMessage,
+    SetAdmins,
+    Subscribe,
+    UnpinMessage,
+    Unsubscribe,
+    UploadMedia,
 )
-from maxo.bot.methods.chats.send_chat_action import SendChatAction
-from maxo.bot.methods.messages.callback_answer import CallbackAnswer
-from maxo.bot.methods.messages.delete_message import DeleteMessage
-from maxo.bot.methods.messages.edit_message import EditMessage
-from maxo.bot.methods.messages.get_message import GetMessage
-from maxo.bot.methods.messages.get_messages import GetMessages
-from maxo.bot.methods.messages.get_video_info import GetVideoInfo
-from maxo.bot.methods.messages.send_message import SendMessage
-from maxo.bot.methods.subscriptions.get_updates import GetUpdates
-from maxo.bot.methods.upload.get_download_link import GetDownloadLink
-from maxo.bot.methods.upload.upload_media import UploadMedia
+from maxo.bot.methods.base import MaxoMethod
+from maxo.bot.methods.chats.add_members import AddMembers
+from maxo.bot.methods.chats.delete_admin import (
+    DeleteAdmin,
+)
 from maxo.bot.state import (
     BotState,
     ClosedBotState,
@@ -44,9 +49,8 @@ from maxo.bot.state import (
     EmptyBotState,
     RunningBotState,
 )
-from maxo.enums.text_fromat import TextFormat
-from maxo.types import ChatMember
-from maxo.types.base import MaxoType
+from maxo.enums.text_format import TextFormat
+from maxo.types import MaxoType
 
 _MethodResultT = TypeVar("_MethodResultT", bound=MaxoType)
 
@@ -77,7 +81,7 @@ class Bot:
         api_client = MaxApiClient(self._token, self._warming_up, self._text_format)
         self._state = ConnectingBotState(api_client=api_client)
 
-        info = await api_client.send_method(GetBotInfo())
+        info = await self.get_my_info()
         self._state = RunningBotState(info=info, api_client=api_client)
 
     @asynccontextmanager
@@ -89,11 +93,11 @@ class Bot:
             if auto_close:
                 await self.close()
 
-    async def send_method(
+    async def call_method(
         self,
         method: MaxoMethod[_MethodResultT],
     ) -> _MethodResultT:
-        return await self.state.api_client.send_method(method)
+        return await self.state.api_client.call_method(method)
 
     async def close(self) -> None:
         if self.state.closed or not self.state.started:
@@ -102,56 +106,49 @@ class Bot:
         await self.state.api_client.close()
         self._state = ClosedBotState()
 
-    # Subscriptions
-
-    get_updates = bind_method(GetUpdates)
-
     # Bots
 
-    get_bot_info = bind_method(GetBotInfo)
     edit_bot_info = bind_method(EditBotInfo)
+    get_my_info = bind_method(GetMyInfo)
 
     # Chats
 
-    get_chats = bind_method(GetChats)
-    get_chat_by_link = bind_method(GetChatByLink)
-    get_chat = bind_method(GetChat)
-    edit_chat = bind_method(EditChat)
+    add_members = bind_method(AddMembers)
+    delete_admin = bind_method(DeleteAdmin)
     delete_chat = bind_method(DeleteChat)
-
-    send_chat_action = bind_method(SendChatAction)
-
-    get_pin_message = bind_method(GetPinMessage)
+    edit_chat = bind_method(EditChat)
+    get_admins = bind_method(GetAdmins)
+    get_chat = bind_method(GetChat)
+    get_chat_by_link = bind_method(GetChatByLink)
+    get_chats = bind_method(GetChats)
+    get_members = bind_method(GetMembers)
+    get_membership = bind_method(GetMembership)
+    get_pinned_message = bind_method(GetPinnedMessage)
+    leave_chat = bind_method(LeaveChat)
     pin_message = bind_method(PinMessage)
-    delete_pin_message = bind_method(DeletePinMessage)
+    remove_member = bind_method(RemoveMember)
+    send_action = bind_method(SendAction)
+    set_admins = bind_method(SetAdmins)
+    unpin_message = bind_method(UnpinMessage)
 
-    get_me_chat_membership = bind_method(GetMeChatMembership)
-    remove_me_from_chat = bind_method(DeleteMeFromChat)
+    # Messages
 
-    get_chat_administrators = bind_method(GetChatAdministrators)
-    add_chat_administrators = bind_method(AddChatAdministrators)
-    revoke_administrator_rights = bind_method(RevokeAdministratorRights)
-
-    get_chat_members = bind_method(GetChatMembers)
-    add_chat_members = bind_method(AddChatMembers)
-    delete_chat_member = bind_method(DeleteChatMember)
-
-    async def get_chat_member(self, *args: Any, **kwargs: Any) -> ChatMember | None:
-        # TODO: Сделать
-        pass
-
-    # uploads
-
-    get_download_link = bind_method(GetDownloadLink)
-    upload_media = bind_method(UploadMedia)
-
-    # messages
-    get_messages = bind_method(GetMessages)
-    send_message = bind_method(SendMessage)
-    edit_message = bind_method(EditMessage)
-    get_message = bind_method(GetMessage)
+    answer_on_callback = bind_method(AnswerOnCallback)
     delete_message = bind_method(DeleteMessage)
+    edit_message = bind_method(EditMessage)
+    get_message_by_id = bind_method(GetMessageById)
+    get_messages = bind_method(GetMessages)
+    get_video_attachment_details = bind_method(GetVideoAttachmentDetails)
+    send_message = bind_method(SendMessage)
 
-    get_video_info = bind_method(GetVideoInfo)
+    # Subscriptions
 
-    callback_answer = bind_method(CallbackAnswer)
+    get_subscriptions = bind_method(GetSubscriptions)
+    get_updates = bind_method(GetUpdates)
+    subscribe = bind_method(Subscribe)
+    unsubscribe = bind_method(Unsubscribe)
+
+    # Uploads
+
+    get_upload_url = bind_method(GetUploadUrl)
+    upload_media = bind_method(UploadMedia)

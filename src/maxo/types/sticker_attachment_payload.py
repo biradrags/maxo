@@ -1,15 +1,5 @@
-from maxo.types.base import MaxoType
+from maxo.types.attachment_payload import AttachmentPayload
 
 
-class StickerAttachmentPayload(MaxoType):
-    """
-    Содержимое вложения стикера.
-
-    Args:
-        url: URL медиа-вложения. Для видео-вложения используйте метод `GetVideoAttachmentDetails`, чтобы получить прямые ссылки.
-        code: ID стикера.
-
-    """
-
-    url: str
+class StickerAttachmentPayload(AttachmentPayload):
     code: str

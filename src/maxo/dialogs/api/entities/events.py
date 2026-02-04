@@ -3,9 +3,9 @@ from typing import Any
 
 from maxo import Bot
 from maxo.enums import ChatType
-from maxo.routing.signals.exception import ErrorEvent
 from maxo.routing.updates import MessageCallback, MessageCreated
 from maxo.routing.updates.bot_started import BotStarted
+from maxo.routing.updates.error import ErrorEvent
 from maxo.types import Chat, User
 
 from .update_event import DialogUpdateEvent

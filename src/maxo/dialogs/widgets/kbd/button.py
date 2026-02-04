@@ -10,7 +10,7 @@ from maxo.dialogs.widgets.widget_event import (
 )
 from maxo.omit import Omittable, Omitted
 from maxo.routing.updates import MessageCallback
-from maxo.types import CallbackKeyboardButton, LinkKeyboardButton, OpenAppKeyboardButton
+from maxo.types import CallbackButton, LinkButton, OpenAppButton
 
 from .base import Keyboard
 
@@ -45,7 +45,7 @@ class Button(Keyboard):
     ) -> RawKeyboard:
         return [
             [
-                CallbackKeyboardButton(
+                CallbackButton(
                     text=await self.text.render_text(data, manager),
                     payload=self._own_payload(),
                 ),
@@ -71,7 +71,7 @@ class Url(Keyboard):
     ) -> RawKeyboard:
         return [
             [
-                LinkKeyboardButton(
+                LinkButton(
                     text=await self.text.render_text(data, manager),
                     url=await self.url.render_text(data, manager),
                 ),
@@ -105,7 +105,7 @@ class WebApp(Keyboard):
 
         return [
             [
-                OpenAppKeyboardButton(
+                OpenAppButton(
                     text=text,
                     web_app=web_app,
                     contact_id=self.contact_id,

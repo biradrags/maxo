@@ -23,8 +23,6 @@ from .manager.sub_manager import SubManager
 from .setup import setup_dialogs
 from .window import Window
 
-__version__ = _metadata.version("maxo")
-
 
 __all__ = (
     "DEFAULT_STACK_ID",

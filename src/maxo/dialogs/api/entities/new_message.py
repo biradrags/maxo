@@ -10,11 +10,10 @@ from maxo.types import (
     NewMessageLink,
     Recipient,
 )
-from maxo.types.attachments import Attachments
-from maxo.types.keyboard_buttons import KeyboardButtons
-from maxo.types.request_attachments import AttachmentsRequests
+from maxo.types.attachments import Attachments, AttachmentsRequests
+from maxo.types.buttons import InlineButtons
 
-MarkupVariant = list[list[KeyboardButtons]]
+MarkupVariant = list[list[InlineButtons]]
 
 
 class UnknownText(Enum):
@@ -41,7 +40,7 @@ class NewMessage:
     link_to: NewMessageLink | None = None
 
     @property
-    def keyboard(self) -> Sequence[Sequence[KeyboardButtons]]:
+    def keyboard(self) -> Sequence[Sequence[InlineButtons]]:
         if not self.attachments:
             return []
         for attachment in self.attachments:

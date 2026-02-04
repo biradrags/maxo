@@ -1,38 +1,31 @@
-from collections.abc import Sequence
+import json
+from collections.abc import Callable
 from datetime import datetime
 from typing import Any
 
 from adaptix import P, Retort, dumper, loader
-from aiohttp import ClientResponse
-from retejo.core import AdaptixFactory, Factory, RequestContextProxy
-from retejo.http import (
-    HttpMethod,
-    HttpRequest,
-    http_method_dumper_provider,
-    http_response_loader_provider,
-)
-from retejo.http.clients.aiohttp import AiohttpClient
-from retejo.http.entities import HttpResponse
-from retejo.http.markers import (
-    BodyMarker,
-    FormMarker,
-    HeaderMarker,
-    QueryParamMarker,
-    UrlVarMarker,
-)
-from retejo.marker_tools import for_marker
+from aiohttp import ClientSession
+from unihttp.clients.aiohttp import AiohttpAsyncClient
+from unihttp.http import HTTPResponse
+from unihttp.markers import BodyMarker, QueryMarker
+from unihttp.method import BaseMethod
+from unihttp.middlewares import AsyncMiddleware
+from unihttp.serializers.adaptix import DEFAULT_RETORT, for_marker
 
+from maxo.__meta__ import __version__
 from maxo._internal._adaptix.concat_provider import concat_provider
 from maxo._internal._adaptix.has_tag_provider import has_tag_provider
 from maxo.bot.warming_up import WarmingUpType, warming_up_retort
 from maxo.enums import (
     AttachmentRequestType,
     AttachmentType,
-    KeyboardButtonType,
+    ButtonType,
     MarkupElementType,
+    UpdateType,
 )
-from maxo.enums.text_fromat import TextFormat
-from maxo.errors.api import (
+from maxo.enums.text_format import TextFormat
+from maxo.errors import (
+    MaxBotApiError,
     MaxBotBadRequestError,
     MaxBotForbiddenError,
     MaxBotMethodNotAllowedError,
@@ -40,97 +33,113 @@ from maxo.errors.api import (
     MaxBotServiceUnavailableError,
     MaxBotTooManyRequestsError,
     MaxBotUnauthorizedError,
-    RetvalReturnedServerException,
+    MaxBotUnknownServerError,
 )
-from maxo.omit import Omittable
-from maxo.routing.updates.bot_added import BotAdded
-from maxo.routing.updates.bot_removed import BotRemoved
-from maxo.routing.updates.bot_started import BotStarted
-from maxo.routing.updates.chat_title_changed import ChatTitileChanged
-from maxo.routing.updates.message_callback import MessageCallback
-from maxo.routing.updates.message_chat_created import MessageChatCreated
-from maxo.routing.updates.message_created import MessageCreated
-from maxo.routing.updates.message_edited import MessageEdited
-from maxo.routing.updates.message_removed import MessageRemoved
-from maxo.routing.updates.user_added import UserAdded
-from maxo.routing.updates.user_removed import UserRemoved
-from maxo.types import InlineKeyboardAttachment
-from maxo.types.audio_attachment import AudioAttachment
-from maxo.types.audio_attachment_request import AudioAttachmentRequest
-from maxo.types.callback_keyboard_button import CallbackKeyboardButton
-from maxo.types.contact_attachment import ContactAttachment
-from maxo.types.contact_attachment_request import ContactAttachmentRequest
-from maxo.types.file_attachment import FileAttachment
-from maxo.types.file_attachment_request import FileAttachmentRequest
-from maxo.types.image_attachment import ImageAttachment
-from maxo.types.image_attachment_request import ImageAttachmentRequest
-from maxo.types.inline_keyboard_attachment_request import (
+from maxo.routing.updates import (
+    BotAddedToChat,
+    BotRemovedFromChat,
+    BotStarted,
+    BotStopped,
+    ChatTitleChanged,
+    DialogCleared,
+    DialogMuted,
+    DialogRemoved,
+    DialogUnmuted,
+    MessageCallback,
+    MessageChatCreated,
+    MessageCreated,
+    MessageEdited,
+    MessageRemoved,
+    UserAddedToChat,
+    UserRemovedFromChat,
+)
+from maxo.types import (
+    AudioAttachment,
+    AudioAttachmentRequest,
+    CallbackButton,
+    ContactAttachment,
+    ContactAttachmentRequest,
+    DataAttachment,
+    EmphasizedMarkup,
+    FileAttachment,
+    FileAttachmentRequest,
+    InlineKeyboardAttachment,
     InlineKeyboardAttachmentRequest,
+    LinkButton,
+    LinkMarkup,
+    LocationAttachment,
+    LocationAttachmentRequest,
+    MessageButton,
+    MonospacedMarkup,
+    OpenAppButton,
+    PhotoAttachment,
+    PhotoAttachmentRequest,
+    ReplyKeyboardAttachment,
+    ReplyKeyboardAttachmentRequest,
+    RequestContactButton,
+    RequestGeoLocationButton,
+    ShareAttachment,
+    ShareAttachmentRequest,
+    StickerAttachment,
+    StickerAttachmentRequest,
+    StrikethroughMarkup,
+    StrongMarkup,
+    UnderlineMarkup,
+    UserMentionMarkup,
+    VideoAttachment,
+    VideoAttachmentRequest,
 )
-from maxo.types.link_keyboard_button import LinkKeyboardButton
-from maxo.types.location_attachment import LocationAttachment
-from maxo.types.location_attachment_request import LocationAttachmentRequest
-from maxo.types.markup_elements import (
-    EmphasizedMarkupElement,
-    HeadingMarkupElement,
-    HighlightedMarkupElement,
-    LinkMarkupElement,
-    MonospacedMarkupElements,
-    StrikethroughMarkupElement,
-    StrongMarkupElement,
-    UnderlineMarkupElement,
-    UserMentionMarkupElement,
-)
-from maxo.types.message_keyboard_button import MessageKeyboardButton
-from maxo.types.open_app_keyboard_button import OpenAppKeyboardButton
-from maxo.types.request_contact_keyboard_button import RequestContactKeyboardButton
-from maxo.types.request_geo_location_button import RequestGeoLocationKeyboardButton
-from maxo.types.share_attachment import ShareAttachment
-from maxo.types.share_attachment_request import ShareAttachmentRequest
-from maxo.types.sticker_attachment import StickerAttachment
-from maxo.types.sticker_attachment_request import StickerAttachmentRequest
-from maxo.types.video_attachment import VideoAttachment
-from maxo.types.video_attachment_request import VideoAttachmentRequest
 
 _has_tag_providers = concat_provider(
     # ---> UpdateType <---
-    has_tag_provider(BotAdded, "update_type", "bot_added"),
-    has_tag_provider(UserAdded, "update_type", "user_added"),
-    has_tag_provider(MessageRemoved, "update_type", "message_removed"),
-    has_tag_provider(MessageEdited, "update_type", "message_edited"),
-    has_tag_provider(MessageCallback, "update_type", "message_callback"),
-    has_tag_provider(MessageChatCreated, "update_type", "message_chat_created"),
-    has_tag_provider(MessageCreated, "update_type", "message_created"),
-    has_tag_provider(BotStarted, "update_type", "bot_started"),
-    has_tag_provider(BotRemoved, "update_type", "bot_removed"),
-    has_tag_provider(ChatTitileChanged, "update_type", "chat_title_changed"),
-    has_tag_provider(UserRemoved, "update_type", "user_removed"),
+    has_tag_provider(BotAddedToChat, "update_type", UpdateType.BOT_ADDED),
+    has_tag_provider(BotRemovedFromChat, "update_type", UpdateType.BOT_REMOVED),
+    has_tag_provider(BotStarted, "update_type", UpdateType.BOT_STARTED),
+    has_tag_provider(BotStopped, "update_type", UpdateType.BOT_STOPPED),
+    has_tag_provider(ChatTitleChanged, "update_type", UpdateType.CHAT_TITLE_CHANGED),
+    has_tag_provider(DialogCleared, "update_type", UpdateType.DIALOG_CLEARED),
+    has_tag_provider(DialogMuted, "update_type", UpdateType.DIALOG_MUTED),
+    has_tag_provider(DialogRemoved, "update_type", UpdateType.DIALOG_REMOVED),
+    has_tag_provider(DialogUnmuted, "update_type", UpdateType.DIALOG_UNMUTED),
+    has_tag_provider(MessageCallback, "update_type", UpdateType.MESSAGE_CALLBACK),
+    has_tag_provider(
+        MessageChatCreated,
+        "update_type",
+        UpdateType.MESSAGE_CHAT_CREATED,
+    ),
+    has_tag_provider(MessageCreated, "update_type", UpdateType.MESSAGE_CREATED),
+    has_tag_provider(MessageEdited, "update_type", UpdateType.MESSAGE_EDITED),
+    has_tag_provider(MessageRemoved, "update_type", UpdateType.MESSAGE_REMOVED),
+    has_tag_provider(UserAddedToChat, "update_type", UpdateType.USER_ADDED),
+    has_tag_provider(UserRemovedFromChat, "update_type", UpdateType.USER_REMOVED),
     # ---> AttachmentType <---
     has_tag_provider(AudioAttachment, "type", AttachmentType.AUDIO),
     has_tag_provider(ContactAttachment, "type", AttachmentType.CONTACT),
     has_tag_provider(FileAttachment, "type", AttachmentType.FILE),
-    has_tag_provider(ImageAttachment, "type", AttachmentType.IMAGE),
+    has_tag_provider(PhotoAttachment, "type", AttachmentType.IMAGE),
     has_tag_provider(InlineKeyboardAttachment, "type", AttachmentType.INLINE_KEYBOARD),
+    has_tag_provider(ReplyKeyboardAttachment, "type", AttachmentType.REPLY_KEYBOARD),
     has_tag_provider(LocationAttachment, "type", AttachmentType.LOCATION),
     has_tag_provider(ShareAttachment, "type", AttachmentType.SHARE),
     has_tag_provider(StickerAttachment, "type", AttachmentType.STICKER),
     has_tag_provider(VideoAttachment, "type", AttachmentType.VIDEO),
+    has_tag_provider(DataAttachment, "type", AttachmentType.DATA),
     # ---> MarkupElementType <---
-    has_tag_provider(EmphasizedMarkupElement, "type", MarkupElementType.EMPHASIZED),
-    has_tag_provider(HeadingMarkupElement, "type", MarkupElementType.HEADING),
-    has_tag_provider(HighlightedMarkupElement, "type", MarkupElementType.HIGHLIGHTED),
-    has_tag_provider(LinkMarkupElement, "type", MarkupElementType.LINK),
-    has_tag_provider(MonospacedMarkupElements, "type", MarkupElementType.MONOSPACED),
+    has_tag_provider(EmphasizedMarkup, "type", MarkupElementType.EMPHASIZED),
+    # has_tag_provider(HeadingMarkupElement, "type", MarkupElementType.HEADING),
+    # has_tag_provider(HighlightedMarkupElement, "type", MarkupElementType.HIGHLIGHTED),
+    has_tag_provider(LinkMarkup, "type", MarkupElementType.LINK),
+    has_tag_provider(MonospacedMarkup, "type", MarkupElementType.MONOSPACED),
     has_tag_provider(
-        StrikethroughMarkupElement,
+        StrikethroughMarkup,
         "type",
         MarkupElementType.STRIKETHROUGH,
     ),
-    has_tag_provider(StrongMarkupElement, "type", MarkupElementType.STRONG),
-    has_tag_provider(UnderlineMarkupElement, "type", MarkupElementType.UNDERLINE),
-    has_tag_provider(UserMentionMarkupElement, "type", MarkupElementType.USER_MENTION),
+    has_tag_provider(StrongMarkup, "type", MarkupElementType.STRONG),
+    has_tag_provider(UnderlineMarkup, "type", MarkupElementType.UNDERLINE),
+    has_tag_provider(UserMentionMarkup, "type", MarkupElementType.USER_MENTION),
     # ---> AttachmentRequestType <---
-    has_tag_provider(ImageAttachmentRequest, "type", AttachmentRequestType.IMAGE),
+    has_tag_provider(PhotoAttachmentRequest, "type", AttachmentRequestType.IMAGE),
     has_tag_provider(VideoAttachmentRequest, "type", AttachmentRequestType.VIDEO),
     has_tag_provider(AudioAttachmentRequest, "type", AttachmentRequestType.AUDIO),
     has_tag_provider(FileAttachmentRequest, "type", AttachmentRequestType.FILE),
@@ -141,142 +150,137 @@ _has_tag_providers = concat_provider(
         "type",
         AttachmentRequestType.INLINE_KEYBOARD,
     ),
+    has_tag_provider(
+        ReplyKeyboardAttachmentRequest,
+        "type",
+        AttachmentRequestType.REPLY_KEYBOARD,
+    ),
     has_tag_provider(LocationAttachmentRequest, "type", AttachmentRequestType.LOCATION),
     has_tag_provider(ShareAttachmentRequest, "type", AttachmentRequestType.SHARE),
     # ---> KeyboardButtonType <---
-    has_tag_provider(CallbackKeyboardButton, "type", KeyboardButtonType.CALLBACK),
-    has_tag_provider(LinkKeyboardButton, "type", KeyboardButtonType.LINK),
+    has_tag_provider(CallbackButton, "type", ButtonType.CALLBACK),
+    has_tag_provider(LinkButton, "type", ButtonType.LINK),
     has_tag_provider(
-        RequestContactKeyboardButton,
+        RequestContactButton,
         "type",
-        KeyboardButtonType.REQUEST_CONTACT,
+        ButtonType.REQUEST_CONTACT,
     ),
     has_tag_provider(
-        RequestGeoLocationKeyboardButton,
+        RequestGeoLocationButton,
         "type",
-        KeyboardButtonType.REQUEST_GEO_LOCATION,
+        ButtonType.REQUEST_GEO_LOCATION,
     ),
     has_tag_provider(
-        OpenAppKeyboardButton,
+        OpenAppButton,
         "type",
-        KeyboardButtonType.OPEN_APP,
+        ButtonType.OPEN_APP,
     ),
     has_tag_provider(
-        MessageKeyboardButton,
+        MessageButton,
         "type",
-        KeyboardButtonType.MESSAGE,
+        ButtonType.MESSAGE,
     ),
 )
 
 
-class MaxApiClient(AiohttpClient):
+class MaxApiClient(AiohttpAsyncClient):
     def __init__(
         self,
         token: str,
         warming_up: bool,
         text_format: TextFormat | None = None,
         base_url: str = "https://platform-api.max.ru/",
+        middleware: list[AsyncMiddleware] | None = None,
+        session: ClientSession | None = None,
+        json_dumps: Callable[[Any], str] = json.dumps,
+        json_loads: Callable[[str | bytes | bytearray], Any] = json.loads,
     ) -> None:
         self._token = token
         self._warming_up = warming_up
         self._text_format = text_format
-        super().__init__(base_url=base_url)
 
-    def init_method_dumper(self) -> Factory:
-        retort = Retort(
+        if session is None:
+            session = ClientSession()
+
+        if "Authorization" not in session.headers:
+            session.headers["Authorization"] = self._token
+        if "User-Agent" not in session.headers:
+            session.headers["User-Agent"] = f"maxo/{__version__}"
+
+        request_dumper = self._init_method_dumper()
+        response_loader = self._init_response_loader()
+
+        super().__init__(
+            base_url=base_url,
+            request_dumper=request_dumper,
+            response_loader=response_loader,
+            middleware=middleware,
+            session=session,
+            json_dumps=json_dumps,
+            json_loads=json_loads,
+        )
+
+    def _init_method_dumper(self) -> Retort:
+        retort = DEFAULT_RETORT.extend(
             recipe=[
-                http_method_dumper_provider(),
                 _has_tag_providers,
                 dumper(
-                    for_marker(QueryParamMarker, P[None]),
+                    for_marker(QueryMarker, P[None]),
                     lambda _: "null",
                 ),
                 dumper(
-                    for_marker(QueryParamMarker, P[bool]),
+                    for_marker(QueryMarker, P[bool]),
                     lambda item: int(item),
                 ),
                 dumper(
-                    for_marker(QueryParamMarker, P[Sequence[str]] | P[Sequence[int]]),
-                    lambda item: ",".join(item),
+                    for_marker(QueryMarker, P[list[str]] | P[list[int]]),
+                    lambda seq: ",".join(str(el) for el in seq),
                 ),
                 dumper(
-                    for_marker(BodyMarker, P[Omittable[TextFormat | None]]),
+                    for_marker(BodyMarker, P[TextFormat] | P[TextFormat | None]),
                     lambda item: item or self._text_format,
                 ),
             ],
         )
+
         if self._warming_up:
             retort = warming_up_retort(retort, warming_up=WarmingUpType.METHOD)
-        return AdaptixFactory(retort)
 
-    def init_response_loader(self) -> Factory:
-        retort = Retort(
+        return retort
+
+    def _init_response_loader(self) -> Retort:
+        retort = DEFAULT_RETORT.extend(
             recipe=[
-                http_response_loader_provider(),
                 _has_tag_providers,
                 loader(P[datetime], lambda x: datetime.fromtimestamp(x / 1000)),
             ],
         )
+
         if self._warming_up:
             retort = warming_up_retort(retort, warming_up=WarmingUpType.TYPES)
-        return AdaptixFactory(retort)
 
-    def method_to_request(self, method: HttpMethod[Any]) -> HttpRequest:
-        request_context = RequestContextProxy(self._method_dumper.dump(method))
+        return retort
 
-        url_vars = request_context.get(UrlVarMarker)
-        if url_vars is None:
-            url = method.__url__
-        else:
-            url = method.__url__.format_map(url_vars)
-
-        # TODO: Вынести в retort dumper?
-        headers: dict[str, Any] = request_context.get(HeaderMarker) or {}
-        headers["Authorization"] = headers.get("Authorization", self._token)
-
-        return HttpRequest(
-            url=url,
-            http_method=method.__http_method__,
-            body=request_context.get(BodyMarker),
-            headers=headers,
-            query_params=request_context.get(QueryParamMarker),
-            form=request_context.get(FormMarker),
-            context=request_context,
-        )
-
-    async def retrieve_response_data(
-        self,
-        raw_response: ClientResponse,
-    ) -> Any:
-        text = await raw_response.text()
-        if "retval" in text:
-            raise RetvalReturnedServerException
-
-        return await super().retrieve_response_data(raw_response)
-
-    async def handle_error_response(
-        self,
-        response: HttpResponse[ClientResponse],
-    ) -> None:
-        # TODO: WTF???
-        code, message = (
-            response.data.get("code", -1),
-            response.data.get("message", ""),
-        )
+    def handle_error(self, response: HTTPResponse, method: BaseMethod[Any]):
+        code: str = response.data.get("code", "")
+        error: str = response.data.get("error", "")
+        message: str = response.data.get("message", "")
 
         if response.status_code == 400:
-            raise MaxBotBadRequestError(code, message)
+            raise MaxBotBadRequestError(code, error, message)
         if response.status_code == 401:
-            raise MaxBotUnauthorizedError(code, message)
+            raise MaxBotUnauthorizedError(code, error, message)
         if response.status_code == 403:
-            raise MaxBotForbiddenError(code, message)
+            raise MaxBotForbiddenError(code, error, message)
         if response.status_code == 404:
-            raise MaxBotNotFoundError(code, message)
+            raise MaxBotNotFoundError(code, error, message)
         if response.status_code == 405:
-            raise MaxBotMethodNotAllowedError(code, message)
+            raise MaxBotMethodNotAllowedError(code, error, message)
         if response.status_code == 429:
-            raise MaxBotTooManyRequestsError(code, message)
+            raise MaxBotTooManyRequestsError(code, error, message)
+        if response.status_code == 500:
+            raise MaxBotUnknownServerError(code, error, message)
         if response.status_code == 503:
-            raise MaxBotServiceUnavailableError(code, message)
+            raise MaxBotServiceUnavailableError(code, error, message)
 
-        return await super().handle_error_response(response)
+        raise MaxBotApiError(code, error, message)

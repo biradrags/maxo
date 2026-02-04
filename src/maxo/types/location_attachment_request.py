@@ -1,17 +1,11 @@
-from decimal import Decimal
+from maxo.enums.attachment_request_type import AttachmentRequestType
+from maxo.types.attachment_request import AttachmentRequest
 
-from maxo.types.base import MaxoType
 
+class LocationAttachmentRequest(AttachmentRequest):
+    """Запрос на прикрепление клавиатуры к сообщению"""
 
-class LocationAttachmentRequest(MaxoType):
-    """
-    Запрос на прикрепление локации.
+    type: AttachmentRequestType = AttachmentRequestType.LOCATION
 
-    Args:
-        latitude: Ширина
-        longitude: Долгота
-
-    """
-
-    latitude: Decimal
-    longitude: Decimal
+    latitude: float
+    longitude: float

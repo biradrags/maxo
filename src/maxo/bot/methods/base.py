@@ -1,20 +1,9 @@
-from typing import Generic, TypeVar
+from unihttp.method import BaseMethod
 
-from retejo.http.entities import HttpMethod
-from retejo.http.markers import Header
-
-from maxo.omit import Omittable, Omitted
-
-_MethodResultT = TypeVar("_MethodResultT")
+from maxo.types import MaxoType
 
 
-class MaxoMethod(HttpMethod[_MethodResultT], Generic[_MethodResultT]):
+class MaxoMethod[_MethodResultT](BaseMethod[_MethodResultT], MaxoType):
     """
     Базовый метод для методов Bot API Max.
-
-    Args:
-        access_token: Токен бота. По умолчанию используется переданный токен в Bot.
-
     """
-
-    access_token: Header[Omittable[str]] = Omitted()

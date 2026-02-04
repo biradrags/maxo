@@ -1,14 +1,18 @@
 from datetime import datetime
 
+from maxo.omit import Omittable, Omitted
 from maxo.types.base import MaxoType
 from maxo.types.user import User
 
 
 class Callback(MaxoType):
-    timestamp: datetime
+    """Объект, отправленный боту, когда пользователь нажимает кнопку"""
+
     callback_id: str
-    payload: str | None = None
+    timestamp: datetime
     user: User
+
+    payload: Omittable[str] = Omitted()
 
     @property
     def id(self) -> str:

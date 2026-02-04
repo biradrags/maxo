@@ -1,4 +1,4 @@
-from maxo.enums.text_fromat import TextFormat
+from maxo.enums.text_format import TextFormat
 from maxo.types.attachments import Attachments
 from maxo.types.base import MaxoType
 from maxo.types.new_message_link import NewMessageLink

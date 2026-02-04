@@ -8,7 +8,7 @@ from maxo.dialogs.api.entities import (
     NewMessage,
 )
 from maxo.dialogs.api.internal import Widget, WindowProtocol
-from maxo.enums.text_fromat import TextFormat
+from maxo.enums.text_format import TextFormat
 from maxo.fsm import State
 from maxo.routing.middlewares.update_context import UPDATE_CONTEXT_KEY
 from maxo.routing.updates import MessageCallback, MessageCreated

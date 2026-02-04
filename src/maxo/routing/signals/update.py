@@ -7,6 +7,6 @@ from maxo.routing.updates.base import BaseUpdate
 _UpdateT = TypeVar("_UpdateT", bound=BaseUpdate)
 
 
-class Update(BaseSignal, Generic[_UpdateT]):
+class MaxoUpdate(BaseSignal, Generic[_UpdateT]):
     update: _UpdateT
     marker: Omittable[int | None] = Omitted()

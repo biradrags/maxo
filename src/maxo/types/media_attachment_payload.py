@@ -1,15 +1,5 @@
-from maxo.types.base import MaxoType
+from maxo.types.attachment_payload import AttachmentPayload
 
 
-class MediaAttachmentPayload(MaxoType):
-    """
-    Содержимое мультимедийного вложения.
-
-    Args:
-        url: URL медиа-вложения. Для видео-вложения используйте метод GetVideoAttachmentDetails, чтобы получить прямые ссылки.
-        token: Используйте token, если вы пытаетесь повторно использовать одно и то же вложение в другом сообщении.
-
-    """
-
-    url: str
+class MediaAttachmentPayload(AttachmentPayload):
     token: str

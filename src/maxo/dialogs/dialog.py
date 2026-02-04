@@ -197,7 +197,7 @@ class Dialog(Router, DialogProtocol):
         update_context: UpdateContext = dialog_manager.middleware_data[
             UPDATE_CONTEXT_KEY
         ]
-        if update_context.chat_type == ChatType.DIALOG:  # noqa: SIM103
+        if update_context.chat_type == ChatType.CHAT:  # noqa: SIM103
             # for private chats we can ensure dialog is visible
             return True
         return False

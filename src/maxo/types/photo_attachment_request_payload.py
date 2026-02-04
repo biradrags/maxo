@@ -1,20 +1,11 @@
 from maxo.omit import Omittable, Omitted
+from maxo.types.photo_token import PhotoToken
 from maxo.types.base import MaxoType
 
 
 class PhotoAttachmentRequestPayload(MaxoType):
-    """
-    Запрос на прикрепление изображения.
+    """Запрос на прикрепление изображения (все поля являются взаимоисключающими)"""
 
-    Все поля являются взаимоисключающими.
-
-    Args:
-        url: Любой внешний URL изображения, которое вы хотите прикрепить. От 1 символа.
-        token: Токен существующего вложения.
-        photos: Токены, полученные после загрузки изображений
-
-    """
-
-    url: Omittable[str | None] = Omitted()
+    photos: Omittable[list[PhotoToken] | None] = Omitted()  # TODO: Проверить кто это
     token: Omittable[str | None] = Omitted()
-    photos: Omittable[list[str] | None] = Omitted()
+    url: Omittable[str | None] = Omitted()

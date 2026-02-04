@@ -2,7 +2,10 @@ from maxo.errors.base import MaxoError
 
 
 class MaxBotApiError(MaxoError):
+    """Сервер возвращает это, если возникло исключение при вашем запросе."""
+
     code: str
+    error: str
     message: str
 
 
@@ -22,6 +25,9 @@ class MaxBotMethodNotAllowedError(MaxBotApiError): ...
 
 
 class MaxBotTooManyRequestsError(MaxBotApiError): ...
+
+
+class MaxBotUnknownServerError(MaxBotApiError): ...
 
 
 class MaxBotServiceUnavailableError(MaxBotApiError): ...

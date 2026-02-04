@@ -1,14 +1,16 @@
-from collections.abc import Sequence
 from datetime import datetime
 
 from maxo.enums.chat_admin_permission import ChatAdminPermission
-from maxo.omit import Omittable, Omitted
 from maxo.types.user_with_photo import UserWithPhoto
 
 
 class ChatMember(UserWithPhoto):
-    last_access_time: Omittable[datetime] = Omitted()
-    is_owner: Omittable[bool] = Omitted()
-    is_admin: Omittable[bool] = Omitted()
-    join_time: Omittable[datetime] = Omitted()
-    permissions: Omittable[Sequence[ChatAdminPermission] | None] = Omitted()
+    """Объект включает общую информацию о пользователе или боте, URL аватара и описание (при наличии). Дополнительно содержит данные для пользователей-участников чата. Возвращается только при вызове некоторых методов группы `/chats`, например [`GET /chats/{chatId}/members`](/docs-api/methods/GET/chats/-chatId-/members)"""
+
+    alias: str
+    is_admin: bool
+    is_owner: bool
+    join_time: datetime
+    last_access_time: datetime
+
+    permissions: list[ChatAdminPermission] | None = None

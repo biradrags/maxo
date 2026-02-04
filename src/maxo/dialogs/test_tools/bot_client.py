@@ -3,14 +3,14 @@ from datetime import datetime
 from typing import Union
 
 from maxo import Bot, Dispatcher
-from maxo.bot.state import InitialBotState
-from maxo.enums import ChatStatusType, ChatType, MessageLinkType
-from maxo.routing.signals import Update
+from maxo.bot.state import RunningBotState
+from maxo.enums import ChatStatus, ChatType, MessageLinkType
+from maxo.routing.signals import MaxoUpdate
 from maxo.routing.updates import MessageCallback, MessageCreated
 from maxo.types import (
     BotInfo,
     Callback,
-    CallbackKeyboardButton,
+    CallbackButton,
     Chat,
     LinkedMessage,
     Message,
@@ -33,7 +33,7 @@ class FakeBot(Bot):
             is_bot=True,
             last_activity_time=datetime.fromtimestamp(1234567890),
         )
-        self._state = InitialBotState(info=info, api_client=None)
+        self._state = RunningBotState(info=info, api_client=None)
 
     def __hash__(self) -> int:
         return 1
@@ -59,13 +59,13 @@ class BotClient:
         dp: Dispatcher,
         user_id: int = 1,
         chat_id: int = 1,
-        chat_type: ChatType = ChatType.DIALOG,
+        chat_type: ChatType = ChatType.CHAT,
         bot: Bot | None = None,
     ):
         self.chat = Chat(
             chat_id=chat_id,
             type=chat_type,
-            status=ChatStatusType.ACTIVE,
+            status=ChatStatus.ACTIVE,
             last_event_time=datetime.now(),
             is_public=False,
             participants_count=2,
@@ -98,7 +98,7 @@ class BotClient:
         return Message(
             sender=self.user,
             recipient=Recipient(
-                chat_type=ChatType.DIALOG,
+                chat_type=ChatType.DIALOG,  # TODO: Узнать тип чата?
                 user_id=self.bot.state.info.user_id,
                 chat_id=self.chat.chat_id,
             ),
@@ -126,7 +126,7 @@ class BotClient:
 
     async def send(self, text: str, reply_to: Message | None = None):
         return await self.dp.feed_max_update(
-            Update(
+            MaxoUpdate(
                 update=MessageCreated(
                     message=self._new_message(text, reply_to),
                     timestamp=datetime.fromtimestamp(1234567890),
@@ -138,7 +138,7 @@ class BotClient:
 
     def _new_callback(
         self,
-        button: CallbackKeyboardButton,
+        button: CallbackButton,
     ) -> Callback:
         if not button.payload:
             raise ValueError("Button has no callback data")

@@ -1,18 +1,15 @@
 from typing import Self
 
+from maxo.enums.attachment_request_type import AttachmentRequestType
 from maxo.omit import Omittable, Omitted
-from maxo.types.base import MaxoType
+from maxo.types.attachment_request import AttachmentRequest
 from maxo.types.uploaded_info import UploadedInfo
 
 
-class VideoAttachmentRequest(MaxoType):
-    """
-    Запрос на прикрепление изображения.
+class VideoAttachmentRequest(AttachmentRequest):
+    """Запрос на прикрепление видео к сообщению"""
 
-    Args:
-        payload: Данные запроса на прикрепление изображения
-
-    """
+    type: AttachmentRequestType = AttachmentRequestType.VIDEO
 
     payload: UploadedInfo
 

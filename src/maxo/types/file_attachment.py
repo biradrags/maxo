@@ -1,25 +1,15 @@
 from typing import Self
 
 from maxo.enums.attachment_type import AttachmentType
-from maxo.types.base import MaxoType
+from maxo.types.attachment import Attachment
 from maxo.types.file_attachment_payload import FileAttachmentPayload
 
 
-class FileAttachment(MaxoType):
-    """
-    Файловое вложение.
+class FileAttachment(Attachment):
+    type: AttachmentType = AttachmentType.FILE
 
-    Args:
-        payload: Содержимое файлового вложения.
-        filename: Имя загруженного файла
-        size: Размер файла в байтах
-
-    """
-
-    type = AttachmentType.FILE
-
-    payload: FileAttachmentPayload
     filename: str
+    payload: FileAttachmentPayload
     size: int
 
     @classmethod

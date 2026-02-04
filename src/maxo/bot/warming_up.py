@@ -1,144 +1,135 @@
 from enum import Enum
-from mailbox import Message
 from typing import Any, TypeVar, assert_never
 
 from adaptix import Retort
 
-from maxo.bot.method_results.chats.add_chat_administrators import (
-    AddChatAdministratorsResult,
+from maxo.bot.methods import (
+    AnswerOnCallback,
+    DeleteChat,
+    DeleteMessage,
+    EditBotInfo,
+    EditChat,
+    EditMessage,
+    GetAdmins,
+    GetChat,
+    GetChatByLink,
+    GetChats,
+    GetMembers,
+    GetMembership,
+    GetMessageById,
+    GetMessages,
+    GetMyInfo,
+    GetPinnedMessage,
+    GetSubscriptions,
+    GetUpdates,
+    GetUploadUrl,
+    GetVideoAttachmentDetails,
+    LeaveChat,
+    PinMessage,
+    RemoveMember,
+    SendAction,
+    SendMessage,
+    SetAdmins,
+    Subscribe,
+    UnpinMessage,
+    Unsubscribe,
+    UploadMedia,
 )
-from maxo.bot.method_results.chats.add_chat_members import AddChatMembersResult
-from maxo.bot.method_results.chats.delete_chat import DeleteChatResult
-from maxo.bot.method_results.chats.delete_chat_member import DeleteChatMemberResult
-from maxo.bot.method_results.chats.delete_me_from_chat import DeleteMeFromChatResult
-from maxo.bot.method_results.chats.delete_pin_message import DeletePinMessageResult
-from maxo.bot.method_results.chats.get_chat_administrators import (
-    GetChatAdministratorsResult,
-)
-from maxo.bot.method_results.chats.get_chat_members import GetChatMembersResult
-from maxo.bot.method_results.chats.get_chats import GetChatsResult
-from maxo.bot.method_results.chats.pin_message import PinMessageResult
-from maxo.bot.method_results.chats.revoke_administrator_rights import (
-    RevokeAdministratorRightsResult,
-)
-from maxo.bot.method_results.chats.send_chat_action import SendChatActionResult
-from maxo.bot.method_results.messages.callback_answer import CallbackAnswerResult
-from maxo.bot.method_results.messages.delete_message import DeleteMessageResult
-from maxo.bot.method_results.messages.edit_message import EditMessageResult
-from maxo.bot.method_results.messages.get_messages import GetMessagesResult
-from maxo.bot.method_results.messages.send_message import SendMessageResult
-from maxo.bot.method_results.subscriptions.get_updates import GetUpdatesResult
-from maxo.bot.method_results.upload.get_download_link import GetDownloadLinkResult
-from maxo.bot.method_results.upload.upload_media import (
-    UploadImagePhotoTokenResult,
-    UploadMediaResult,
-)
-from maxo.bot.methods.bots.edit_bot_info import EditBotInfo
-from maxo.bot.methods.bots.get_bot_info import GetBotInfo
-from maxo.bot.methods.chats.add_chat_administrators import AddChatAdministrators
-from maxo.bot.methods.chats.add_chat_members import AddChatMembers
-from maxo.bot.methods.chats.delete_chat import DeleteChat
-from maxo.bot.methods.chats.delete_chat_member import DeleteChatMember
-from maxo.bot.methods.chats.delete_me_from_chat import DeleteMeFromChat
-from maxo.bot.methods.chats.delete_pin_message import DeletePinMessage
-from maxo.bot.methods.chats.edit_chat import EditChat
-from maxo.bot.methods.chats.get_chat import GetChat
-from maxo.bot.methods.chats.get_chat_administrators import GetChatAdministrators
-from maxo.bot.methods.chats.get_chat_by_link import GetChatByLink
-from maxo.bot.methods.chats.get_chat_members import GetChatMembers
-from maxo.bot.methods.chats.get_chats import GetChats
-from maxo.bot.methods.chats.get_me_chat_membership import GetMeChatMembership
-from maxo.bot.methods.chats.get_pin_message import GetPinMessage
-from maxo.bot.methods.chats.pin_message import PinMessage
-from maxo.bot.methods.chats.revoke_administrator_rights import (
-    RevokeAdministratorRights,
-)
-from maxo.bot.methods.chats.send_chat_action import SendChatAction
-from maxo.bot.methods.messages.callback_answer import CallbackAnswer
-from maxo.bot.methods.messages.delete_message import DeleteMessage
-from maxo.bot.methods.messages.edit_message import EditMessage
-from maxo.bot.methods.messages.get_message import GetMessage
-from maxo.bot.methods.messages.get_messages import GetMessages
-from maxo.bot.methods.messages.get_video_info import GetVideoInfo
-from maxo.bot.methods.messages.send_message import SendMessage
-from maxo.bot.methods.subscriptions.get_updates import GetUpdates
-from maxo.bot.methods.upload.get_download_link import GetDownloadLink
-from maxo.bot.methods.upload.upload_media import UploadMedia
-from maxo.types.audio_attachment import AudioAttachment
-from maxo.types.audio_attachment_request import AudioAttachmentRequest
-from maxo.types.bot_command import BotCommand
-from maxo.types.bot_info import BotInfo
-from maxo.types.callback import Callback
-from maxo.types.callback_keyboard_button import CallbackKeyboardButton
-from maxo.types.chat import Chat
-from maxo.types.chat_admin import ChatAdmin
-from maxo.types.chat_member import ChatMember
-from maxo.types.chat_membership import ChatMembership
-from maxo.types.contact_attachment import ContactAttachment
-from maxo.types.contact_attachment_payload import ContactAttachmentPayload
-from maxo.types.contact_attachment_request import ContactAttachmentRequest
-from maxo.types.contact_attachment_request_payload import (
+from maxo.types import (
+    Attachment,
+    AttachmentPayload,
+    AttachmentRequest,
+    Attachments,
+    AudioAttachment,
+    AudioAttachmentRequest,
+    BotCommand,
+    BotInfo,
+    Button,
+    Callback,
+    CallbackButton,
+    Chat,
+    ChatAdmin,
+    ChatAdminsList,
+    ChatButton,
+    ChatList,
+    ChatMember,
+    ChatMembersList,
+    ContactAttachment,
+    ContactAttachmentPayload,
+    ContactAttachmentRequest,
     ContactAttachmentRequestPayload,
-)
-from maxo.types.file_attachment import FileAttachment
-from maxo.types.file_attachment_payload import FileAttachmentPayload
-from maxo.types.file_attachment_request import FileAttachmentRequest
-from maxo.types.image import Image
-from maxo.types.image_attachment import ImageAttachment
-from maxo.types.image_attachment_request import ImageAttachmentRequest
-from maxo.types.inline_keyboard_attachment import InlineKeyboardAttachment
-from maxo.types.inline_keyboard_attachment_request import (
+    DataAttachment,
+    EmphasizedMarkup,
+    FileAttachment,
+    FileAttachmentPayload,
+    FileAttachmentRequest,
+    GetPinnedMessageResult,
+    GetSubscriptionsResult,
+    HeadingMarkup,
+    HighlightedMarkup,
+    Image,
+    InlineButtons,
+    InlineKeyboardAttachment,
     InlineKeyboardAttachmentRequest,
-)
-from maxo.types.inline_keyboard_attachment_request_payload import (
     InlineKeyboardAttachmentRequestPayload,
-)
-from maxo.types.keyboard import Keyboard
-from maxo.types.link_keyboard_button import LinkKeyboardButton
-from maxo.types.linked_message import LinkedMessage
-from maxo.types.location_attachment import LocationAttachment
-from maxo.types.location_attachment_request import LocationAttachmentRequest
-from maxo.types.markup_elements import (
-    EmphasizedMarkupElement,
-    HeadingMarkupElement,
-    HighlightedMarkupElement,
-    LinkMarkupElement,
-    MonospacedMarkupElements,
-    StrikethroughMarkupElement,
-    StrongMarkupElement,
-    UnderlineMarkupElement,
-    UserMentionMarkupElement,
-)
-from maxo.types.media_attachment_payload import MediaAttachmentPayload
-from maxo.types.message_body import MessageBody
-from maxo.types.message_keyboard_button import MessageKeyboardButton
-from maxo.types.message_stat import MessageStat
-from maxo.types.new_message import NewMessage
-from maxo.types.new_message_body import NewMessageBody
-from maxo.types.new_message_link import NewMessageLink
-from maxo.types.open_app_keyboard_button import OpenAppKeyboardButton
-from maxo.types.photo_attachment_payload import PhotoAttachmentPayload
-from maxo.types.photo_attachment_request_payload import PhotoAttachmentRequestPayload
-from maxo.types.recipient import Recipient
-from maxo.types.request_contact_keyboard_button import RequestContactKeyboardButton
-from maxo.types.request_geo_location_button import RequestGeoLocationKeyboardButton
-from maxo.types.share_attachment import ShareAttachment
-from maxo.types.share_attachment_payload import ShareAttachmentPayload
-from maxo.types.share_attachment_request import ShareAttachmentRequest
-from maxo.types.sticker_attachment import StickerAttachment
-from maxo.types.sticker_attachment_payload import StickerAttachmentPayload
-from maxo.types.sticker_attachment_request import StickerAttachmentRequest
-from maxo.types.sticker_attachment_request_payload import (
+    Keyboard,
+    LinkButton,
+    LinkMarkup,
+    LinkedMessage,
+    LocationAttachment,
+    LocationAttachmentRequest,
+    MarkupElements,
+    MaxoType,
+    MediaAttachmentPayload,
+    Message,
+    MessageBody,
+    MessageButton,
+    MessageList,
+    MonospacedMarkup,
+    NewMessage,
+    NewMessageBody,
+    NewMessageLink,
+    OpenAppButton,
+    PhotoAttachment,
+    PhotoAttachmentPayload,
+    PhotoAttachmentRequest,
+    PhotoAttachmentRequestPayload,
+    PhotoToken,
+    Recipient,
+    ReplyButton,
+    ReplyButtons,
+    ReplyKeyboardAttachment,
+    ReplyKeyboardAttachmentRequest,
+    RequestContactButton,
+    RequestGeoLocationButton,
+    SendContactButton,
+    SendGeoLocationButton,
+    SendMessageButton,
+    SendMessageResult,
+    ShareAttachment,
+    ShareAttachmentPayload,
+    ShareAttachmentRequest,
+    SimpleQueryResult,
+    StickerAttachment,
+    StickerAttachmentPayload,
+    StickerAttachmentRequest,
     StickerAttachmentRequestPayload,
+    StrikethroughMarkup,
+    StrongMarkup,
+    Subscription,
+    UnderlineMarkup,
+    UpdateContext,
+    UpdateList,
+    UploadEndpoint,
+    User,
+    UserMentionMarkup,
+    UserWithPhoto,
+    VideoAttachment,
+    VideoAttachmentDetails,
+    VideoAttachmentRequest,
+    VideoThumbnail,
+    VideoUrls,
 )
-from maxo.types.uploaded_info import UploadedInfo
-from maxo.types.user import User
-from maxo.types.user_with_photo import UserWithPhoto
-from maxo.types.video_attachment import VideoAttachment
-from maxo.types.video_attachment_request import VideoAttachmentRequest
-from maxo.types.video_info import VideoInfo
-from maxo.types.video_thumbnail import VideoThumbnail
-from maxo.types.video_urls import VideoUrls
 
 
 class WarmingUpType(Enum):
@@ -146,128 +137,135 @@ class WarmingUpType(Enum):
     TYPES = "types"
 
 
-_types = [
-    AudioAttachmentRequest,
+_types = (
+    Attachment,
+    AttachmentPayload,
+    AttachmentRequest,
+    Attachments,
     AudioAttachment,
+    AudioAttachmentRequest,
+    MaxoType,
     BotCommand,
     BotInfo,
-    CallbackKeyboardButton,
+    Button,
+    InlineButtons,
+    ReplyButtons,
     Callback,
-    ChatAdmin,
-    ChatMember,
-    ChatMembership,
+    CallbackButton,
     Chat,
-    ContactAttachmentPayload,
-    ContactAttachmentRequestPayload,
-    ContactAttachmentRequest,
+    ChatAdmin,
+    ChatAdminsList,
+    ChatButton,
+    ChatList,
+    ChatMember,
+    ChatMembersList,
     ContactAttachment,
+    ContactAttachmentPayload,
+    ContactAttachmentRequest,
+    ContactAttachmentRequestPayload,
+    DataAttachment,
+    FileAttachment,
     FileAttachmentPayload,
     FileAttachmentRequest,
-    FileAttachment,
-    ImageAttachmentRequest,
-    ImageAttachment,
+    GetPinnedMessageResult,
+    GetSubscriptionsResult,
     Image,
-    InlineKeyboardAttachmentRequestPayload,
-    InlineKeyboardAttachmentRequest,
     InlineKeyboardAttachment,
+    InlineKeyboardAttachmentRequest,
+    InlineKeyboardAttachmentRequestPayload,
     Keyboard,
-    LinkKeyboardButton,
+    LinkButton,
     LinkedMessage,
-    LocationAttachmentRequest,
     LocationAttachment,
-    EmphasizedMarkupElement,
-    HeadingMarkupElement,
-    HighlightedMarkupElement,
-    LinkMarkupElement,
-    MonospacedMarkupElements,
-    StrikethroughMarkupElement,
-    StrongMarkupElement,
-    UnderlineMarkupElement,
-    UserMentionMarkupElement,
+    LocationAttachmentRequest,
+    EmphasizedMarkup,
+    HeadingMarkup,
+    HighlightedMarkup,
+    LinkMarkup,
+    MarkupElements,
+    MonospacedMarkup,
+    StrikethroughMarkup,
+    StrongMarkup,
+    UnderlineMarkup,
+    UserMentionMarkup,
     MediaAttachmentPayload,
-    MessageBody,
-    MessageKeyboardButton,
-    MessageStat,
     Message,
+    MessageBody,
+    MessageButton,
+    MessageList,
+    NewMessage,
     NewMessageBody,
     NewMessageLink,
-    NewMessage,
-    OpenAppKeyboardButton,
+    OpenAppButton,
+    PhotoAttachment,
     PhotoAttachmentPayload,
+    PhotoAttachmentRequest,
     PhotoAttachmentRequestPayload,
+    PhotoToken,
     Recipient,
-    RequestContactKeyboardButton,
-    RequestGeoLocationKeyboardButton,
+    ReplyButton,
+    ReplyKeyboardAttachment,
+    ReplyKeyboardAttachmentRequest,
+    RequestContactButton,
+    RequestGeoLocationButton,
+    SendContactButton,
+    SendGeoLocationButton,
+    SendMessageButton,
+    SendMessageResult,
+    ShareAttachment,
     ShareAttachmentPayload,
     ShareAttachmentRequest,
-    ShareAttachment,
-    StickerAttachmentPayload,
-    StickerAttachmentRequestPayload,
-    StickerAttachmentRequest,
+    SimpleQueryResult,
     StickerAttachment,
-    UploadedInfo,
-    UserWithPhoto,
+    StickerAttachmentPayload,
+    StickerAttachmentRequest,
+    StickerAttachmentRequestPayload,
+    Subscription,
+    UpdateContext,
+    UpdateList,
+    UploadEndpoint,
     User,
-    VideoAttachmentRequest,
+    UserWithPhoto,
     VideoAttachment,
-    VideoInfo,
+    VideoAttachmentDetails,
+    VideoAttachmentRequest,
     VideoThumbnail,
     VideoUrls,
-    AddChatAdministratorsResult,
-    AddChatMembersResult,
-    DeleteChatMemberResult,
-    DeleteChatResult,
-    DeleteMeFromChatResult,
-    DeletePinMessageResult,
-    GetChatAdministratorsResult,
-    GetChatMembersResult,
-    GetChatsResult,
-    PinMessageResult,
-    RevokeAdministratorRightsResult,
-    SendChatActionResult,
-    CallbackAnswerResult,
-    DeleteMessageResult,
-    EditMessageResult,
-    GetMessagesResult,
-    SendMessageResult,
-    GetUpdatesResult,
-    GetDownloadLinkResult,
-    UploadImagePhotoTokenResult,
-    UploadMediaResult,
-]
+)
 
 
-_methods = [
-    GetBotInfo,
-    EditBotInfo,
-    AddChatAdministrators,
-    AddChatMembers,
-    DeleteChatMember,
+_methods = (
+    AnswerOnCallback,
     DeleteChat,
-    DeleteMeFromChat,
-    DeletePinMessage,
-    EditChat,
-    GetChatAdministrators,
-    GetChatByLink,
-    GetChatMembers,
-    GetChat,
-    GetChats,
-    GetMeChatMembership,
-    GetPinMessage,
-    PinMessage,
-    RevokeAdministratorRights,
-    SendChatAction,
-    CallbackAnswer,
     DeleteMessage,
+    EditBotInfo,
+    EditChat,
     EditMessage,
-    GetMessage,
+    GetAdmins,
+    GetChat,
+    GetChatByLink,
+    GetChats,
+    GetMembers,
+    GetMembership,
+    GetMessageById,
     GetMessages,
-    GetVideoInfo,
-    SendMessage,
+    GetMyInfo,
+    GetPinnedMessage,
+    GetSubscriptions,
     GetUpdates,
-    GetDownloadLink,
+    GetUploadUrl,
+    GetVideoAttachmentDetails,
+    LeaveChat,
+    PinMessage,
+    RemoveMember,
+    SendAction,
+    SendMessage,
+    SetAdmins,
+    Subscribe,
+    UnpinMessage,
+    Unsubscribe,
     UploadMedia,
-]
+)
 
 _RetortT = TypeVar("_RetortT", bound=Retort)
 
@@ -279,7 +277,7 @@ def warming_up_retort(
     if warming_up is None:
         return retort
 
-    types: list[Any]
+    types: tuple[Any, ...]
     if warming_up is WarmingUpType.METHOD:
         types = _methods
         retort_method = retort.get_dumper

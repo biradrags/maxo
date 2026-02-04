@@ -1,28 +1,24 @@
-from collections.abc import Sequence
 from typing import Self
 
-from maxo.types.base import MaxoType
+from maxo.enums.attachment_request_type import AttachmentRequestType
+from maxo.types.attachment_request import AttachmentRequest
+from maxo.types.buttons import InlineButtons
 from maxo.types.inline_keyboard_attachment_request_payload import (
     InlineKeyboardAttachmentRequestPayload,
 )
-from maxo.types.keyboard_buttons import KeyboardButtons
 
 
-class InlineKeyboardAttachmentRequest(MaxoType):
-    """
-    Запрос на прикрепление inline клавиатуры.
+class InlineKeyboardAttachmentRequest(AttachmentRequest):
+    """Запрос на прикрепление клавиатуры к сообщению"""
 
-    Args:
-        payload: Полезная нагрузка для запроса на прикрепление inline клавиатуры.
-
-    """
+    type: AttachmentRequestType = AttachmentRequestType.INLINE_KEYBOARD
 
     payload: InlineKeyboardAttachmentRequestPayload
 
     @classmethod
     def factory(
         cls,
-        buttons: Sequence[Sequence[KeyboardButtons]],
+        buttons: list[list[InlineButtons]],
     ) -> Self:
         return cls(
             payload=InlineKeyboardAttachmentRequestPayload(

@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from maxo.errors.types import AttributeIsEmptyError
+from maxo.errors import AttributeIsEmptyError
 from maxo.omit import Omittable, Omitted, is_defined
 from maxo.types.base import MaxoType
 from maxo.types.linked_message import LinkedMessage
@@ -11,27 +11,14 @@ from maxo.types.user import User
 
 
 class Message(MaxoType):
-    """
-    Сообщение.
+    """Сообщение в чате"""
 
-    Args:
-        sender: Пользователь, отправивший сообщение
-        recipient: Получатель сообщения. Может быть пользователем или чатом
-        timestamp: Время создания сообщения в формате Unix-time
-        link: Пересланное или ответное сообщение
-        body:
-            Содержимое сообщения. Текст + вложения.
-            Может быть null, если сообщение содержит только пересланное сообщение
-        stat: Статистика сообщения.
-        url: Публичная ссылка на сообщение. Может быть null для диалогов или не публичных чатов
-
-    """
-
-    sender: Omittable[User] = Omitted()
+    body: MessageBody
     recipient: Recipient
     timestamp: datetime
+
     link: Omittable[LinkedMessage | None] = Omitted()
-    body: MessageBody | None = None
+    sender: Omittable[User] = Omitted()
     stat: Omittable[MessageStat | None] = Omitted()
     url: Omittable[str | None] = Omitted()
 

@@ -4,7 +4,7 @@ from itertools import chain
 from maxo.dialogs.api.internal import ButtonVariant, RawKeyboard
 from maxo.dialogs.api.protocols import DialogManager, DialogProtocol
 from maxo.dialogs.widgets.common import WhenCondition
-from maxo.types import Callback, CallbackKeyboardButton
+from maxo.types import Callback, CallbackButton
 
 from .base import Keyboard
 
@@ -51,7 +51,7 @@ class Group(Keyboard):
 
     def _wrap_kbd(
         self,
-        kbd: Iterable[CallbackKeyboardButton],
+        kbd: Iterable[CallbackButton],
     ) -> RawKeyboard:
         res: RawKeyboard = []
         row: list[ButtonVariant] = []

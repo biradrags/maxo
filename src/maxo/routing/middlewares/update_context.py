@@ -4,17 +4,17 @@ from maxo.enums import ChatType
 from maxo.omit import is_defined
 from maxo.routing.ctx import Ctx
 from maxo.routing.interfaces.middleware import BaseMiddleware, NextMiddleware
-from maxo.routing.signals.update import Update
-from maxo.routing.updates.bot_added import BotAdded
-from maxo.routing.updates.bot_removed import BotRemoved
+from maxo.routing.signals.update import MaxoUpdate
+from maxo.routing.updates.bot_added_to_chat import BotAddedToChat
+from maxo.routing.updates.bot_removed_from_chat import BotRemovedFromChat
 from maxo.routing.updates.bot_started import BotStarted
-from maxo.routing.updates.chat_title_changed import ChatTitileChanged
+from maxo.routing.updates.chat_title_changed import ChatTitleChanged
 from maxo.routing.updates.message_callback import MessageCallback
 from maxo.routing.updates.message_chat_created import MessageChatCreated
 from maxo.routing.updates.message_created import MessageCreated
 from maxo.routing.updates.message_edited import MessageEdited
-from maxo.routing.updates.user_added import UserAdded
-from maxo.routing.updates.user_removed import UserRemoved
+from maxo.routing.updates.user_added_to_chat import UserAddedToChat
+from maxo.routing.updates.user_removed_from_chat import UserRemovedFromChat
 from maxo.types import User
 from maxo.types.update_context import UpdateContext
 
@@ -23,12 +23,12 @@ EVENT_FROM_USER_KEY: Final = "event_from_user"
 
 
 # TODO: Определять UpdateContext и User в одном методе
-class UpdateContextMiddleware(BaseMiddleware[Update[Any]]):
+class UpdateContextMiddleware(BaseMiddleware[MaxoUpdate[Any]]):
     async def __call__(
         self,
-        update: Update[Any],
+        update: MaxoUpdate[Any],
         ctx: Ctx,
-        next: NextMiddleware[Update[Any]],
+        next: NextMiddleware[MaxoUpdate[Any]],
     ) -> Any:
         update_context = self._resolve_update_context(update.update)
         ctx[UPDATE_CONTEXT_KEY] = update_context
@@ -46,12 +46,12 @@ class UpdateContextMiddleware(BaseMiddleware[Update[Any]]):
         if isinstance(
             update,
             (
-                BotAdded,
-                BotRemoved,
+                BotAddedToChat,
+                BotRemovedFromChat,
                 BotStarted,
-                ChatTitileChanged,
-                UserAdded,
-                UserRemoved,
+                ChatTitleChanged,
+                UserAddedToChat,
+                UserRemovedFromChat,
             ),
         ):
             chat_id = update.chat_id
@@ -80,7 +80,7 @@ class UpdateContextMiddleware(BaseMiddleware[Update[Any]]):
         return UpdateContext(
             chat_id=chat_id,
             user_id=user_id,
-            type=ChatType.DIALOG,
+            type=ChatType.DIALOG,  # TODO: Узнать тип чата
         )
 
     def _resolve_user(

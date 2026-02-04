@@ -1,6 +1,6 @@
 from typing import Any, Literal
 
-from maxo.bot.methods import CallbackAnswer
+from maxo.bot.methods import AnswerOnCallback
 from maxo.types import (
     Callback,
     Message,
@@ -12,7 +12,7 @@ from maxo.types import (
 class ReplyCallback(Callback):
     original_message: Message
 
-    def answer(self, *_: Any, **__: Any) -> CallbackAnswer:
+    def answer(self, *_: Any, **__: Any) -> AnswerOnCallback:
         raise ValueError(
             "This callback query is generated from ReplyButton click. "
             "Support of `.answer()` call is impossible.",

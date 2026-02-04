@@ -1,16 +1,8 @@
-from collections.abc import Sequence
-
 from maxo.types.base import MaxoType
-from maxo.types.keyboard_buttons import KeyboardButtons
+from maxo.types.buttons import InlineButtons
 
 
 class Keyboard(MaxoType):
-    """
-    Клавиатура.
+    """Клавиатура - это двумерный массив кнопок"""
 
-    Args:
-        buttons: Двумерный массив кнопок.
-
-    """
-
-    buttons: Sequence[Sequence[KeyboardButtons]]
+    buttons: list[list[InlineButtons]]

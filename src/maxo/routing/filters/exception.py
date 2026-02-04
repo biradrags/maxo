@@ -3,8 +3,8 @@ from typing import Any, Generic, TypeVar, final
 
 from maxo.routing.ctx import Ctx
 from maxo.routing.filters.base import BaseFilter
-from maxo.routing.signals.exception import ErrorEvent
 from maxo.routing.updates import BaseUpdate
+from maxo.routing.updates.error import ErrorEvent
 
 _UpdateT = TypeVar("_UpdateT", bound=BaseUpdate)
 _ExceptionT = TypeVar("_ExceptionT", bound=Exception)

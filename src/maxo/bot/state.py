@@ -88,7 +88,7 @@ class ConnectingBotState(BotState):
 
 
 class RunningBotState(ConnectingBotState):
-    __slots__ = ("_info", "_api_client")
+    __slots__ = ("_api_client", "_info")
 
     def __init__(
         self,

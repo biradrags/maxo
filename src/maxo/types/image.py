@@ -2,12 +2,6 @@ from maxo.types.base import MaxoType
 
 
 class Image(MaxoType):
-    """
-    Икона чата.
-
-    Args:
-        url: URL изображения
-
-    """
+    """Общая схема, описывающая объект изображения"""
 
     url: str

@@ -15,7 +15,7 @@ from maxo.routing.interfaces import BaseRouter
 from maxo.routing.interfaces.middleware import BaseMiddleware, NextMiddleware
 from maxo.routing.observers import SignalObserver, UpdateObserver
 from maxo.routing.signals.base import BaseSignal
-from maxo.routing.signals.update import Update
+from maxo.routing.signals.update import MaxoUpdate
 
 try:
     from dishka import Provider, Scope, from_context
@@ -41,19 +41,19 @@ _SignalT = TypeVar("_SignalT", bound=BaseSignal)
 _Handler = TypeVar("_Handler", bound=UpdateHandler | SignalHandler)
 
 
-# FIXME: Типы женерики функции сигналы хендлеры
+# TODO: Типы женерики функции сигналы хендлеры
 # _SignalHandlerFn = Callable[_ParamsP, _ReturnT]
 # _UpdateHandlerFn = Callable[[Concatenate[_UpdateT, _ParamsP]], _ReturnT]
 
 
-# FIXME: Типы женерики функции сигналы хендлеры
+# TODO: Типы женерики функции сигналы хендлеры
 @overload
 def inject(
     func,  # _SignalHandlerFn[_SignalT, _ParamsP, _ReturnT],
 ) -> SignalHandlerFn[_SignalT, _ReturnT]: ...
 
 
-# FIXME: Типы женерики функции сигналы хендлеры
+# TODO: Типы женерики функции сигналы хендлеры
 @overload
 def inject(
     func,  # : _UpdateHandlerFn[_UpdateT, _ParamsP, _ReturnT],
@@ -128,7 +128,7 @@ def inject_handler(handler: _Handler) -> _Handler:
     return handler
 
 
-class DishkaMiddleware(BaseMiddleware[Update[Any]]):
+class DishkaMiddleware(BaseMiddleware[MaxoUpdate[Any]]):
     __slots__ = ("_container", "_extra_context")
 
     def __init__(
@@ -141,14 +141,14 @@ class DishkaMiddleware(BaseMiddleware[Update[Any]]):
 
     async def __call__(
         self,
-        update: Update[Any],
+        update: MaxoUpdate[Any],
         ctx: Ctx,
-        next: NextMiddleware[Update[Any]],
+        next: NextMiddleware[MaxoUpdate[Any]],
     ) -> Any:
         async with self._container(
             {
-                Update[Any]: update,
-                Update[type(update.update)]: update,  # type: ignore[misc]
+                MaxoUpdate[Any]: update,
+                MaxoUpdate[type(update.update)]: update,  # type: ignore[misc]
                 Ctx: ctx,
             }
             | self._extra_context,
@@ -167,7 +167,7 @@ class MaxoProvider(Provider):
         + from_context(provides=BaseStorage)
         + from_context(provides=FSMContext)
         + from_context(provides=RawState)
-        + from_context(provides=Update[Any])
-        + from_context(provides=Update[_UpdateT])
+        + from_context(provides=MaxoUpdate[Any])
+        + from_context(provides=MaxoUpdate[_UpdateT])
         + from_context(provides=Ctx)
     )

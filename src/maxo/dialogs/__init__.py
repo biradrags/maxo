@@ -23,7 +23,6 @@ from .manager.sub_manager import SubManager
 from .setup import setup_dialogs
 from .window import Window
 
-
 __all__ = (
     "DEFAULT_STACK_ID",
     "GROUP_STACK_ID",

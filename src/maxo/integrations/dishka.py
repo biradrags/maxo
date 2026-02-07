@@ -3,7 +3,6 @@
 __all__ = ("CONTAINER_NAME", "MaxoProvider", "inject", "setup_dishka")
 
 from collections.abc import Container, Generator
-from functools import partial
 from inspect import Parameter, signature
 from typing import Any, ParamSpec, TypeVar, overload
 
@@ -91,6 +90,7 @@ def setup_dishka(
     )
 
     if auto_inject:
+
         def _auto_inject(**_kwargs: Any) -> None:
             inject_router(dispatcher)
 

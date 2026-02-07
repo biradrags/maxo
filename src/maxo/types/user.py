@@ -19,9 +19,9 @@ class User(MaxoType):
     last_activity_time: datetime
     user_id: int
 
-    last_name: str | None = None
     username: str | None = None
 
+    last_name: Omittable[str | None] = Omitted()
     name: Omittable[str | None] = Omitted()
 
     @property

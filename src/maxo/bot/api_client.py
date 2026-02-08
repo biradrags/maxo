@@ -2,11 +2,14 @@ import json
 from collections.abc import Callable
 from datetime import datetime
 from typing import Any
+from urllib.parse import urljoin
 
+import aiohttp
 from adaptix import P, Retort, dumper, loader
-from aiohttp import ClientSession
+from aiohttp import ClientSession, FormData
 from unihttp.clients.aiohttp import AiohttpAsyncClient
-from unihttp.http import HTTPResponse
+from unihttp.exceptions import NetworkError, RequestTimeoutError
+from unihttp.http import HTTPRequest, HTTPResponse
 from unihttp.markers import BodyMarker, QueryMarker
 from unihttp.method import BaseMethod
 from unihttp.middlewares import AsyncMiddleware
@@ -15,6 +18,7 @@ from unihttp.serializers.adaptix import DEFAULT_RETORT, for_marker
 from maxo.__meta__ import __version__
 from maxo._internal._adaptix.concat_provider import concat_provider
 from maxo._internal._adaptix.has_tag_provider import has_tag_provider
+from maxo.bot.middlewares.status_patch import StatusPatchMiddleware
 from maxo.bot.warming_up import WarmingUpType, warming_up_retort
 from maxo.enums import (
     AttachmentRequestType,
@@ -34,6 +38,7 @@ from maxo.errors import (
     MaxBotTooManyRequestsError,
     MaxBotUnauthorizedError,
     MaxBotUnknownServerError,
+    RetvalReturnedServerException,
 )
 from maxo.routing.updates import (
     BotAddedToChat,
@@ -207,6 +212,10 @@ class MaxApiClient(AiohttpAsyncClient):
         if "User-Agent" not in session.headers:
             session.headers["User-Agent"] = f"maxo/{__version__}"
 
+        if middleware is None:
+            middleware = []
+        middleware.insert(0, StatusPatchMiddleware())
+
         request_dumper = self._init_method_dumper()
         response_loader = self._init_response_loader()
 
@@ -261,9 +270,54 @@ class MaxApiClient(AiohttpAsyncClient):
 
         return retort
 
+    # Метод копипаста из AiohttpAsyncClient ради проверка на retval
+    async def make_request(self, request: HTTPRequest) -> HTTPResponse:
+        data: FormData | str | None = None
+
+        if request.form or request.file:
+            data = self._build_form_data(request)
+
+        if request.body:
+            if request.form or request.file:
+                raise ValueError(
+                    "Cannot use Body with Form or File. "
+                    "Use Form for fields in multipart requests.",
+                )
+
+            data = self.json_dumps(request.body)
+            if "Content-Type" not in request.header:
+                request.header["Content-Type"] = "application/json"
+
+        try:
+            async with self._session.request(
+                method=request.method,
+                url=urljoin(self.base_url, request.url),
+                headers=request.header,
+                params=request.query,
+                data=data,
+            ) as response:
+                response_data = None
+                content = await response.read()
+                if content:
+                    if b"retval" in content:
+                        raise RetvalReturnedServerException
+                    response_data = self.json_loads(content)
+
+                return HTTPResponse(
+                    status_code=response.status,
+                    headers=response.headers,
+                    cookies=response.cookies,
+                    data=response_data,
+                    raw_response=response,
+                )
+        except aiohttp.ClientConnectionError as e:
+            raise NetworkError(str(e)) from e
+        except TimeoutError as e:
+            raise RequestTimeoutError(str(e)) from e
+
     def handle_error(self, response: HTTPResponse, method: BaseMethod[Any]):
-        code: str = response.data.get("code", "")
-        error: str = response.data.get("error", "")
+        code: str = response.data.get("code") or response.data.get("error_code", "")
+        error: str = response.data.get("error") or response.data.get("error_data", "")
         message: str = response.data.get("message", "")
 
         if response.status_code == 400:
@@ -282,5 +336,4 @@ class MaxApiClient(AiohttpAsyncClient):
             raise MaxBotUnknownServerError(code, error, message)
         if response.status_code == 503:
             raise MaxBotServiceUnavailableError(code, error, message)
-
         raise MaxBotApiError(code, error, message)

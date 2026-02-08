@@ -1,6 +1,6 @@
 from maxo.omit import Omittable, Omitted
-from maxo.types.photo_token import PhotoToken
 from maxo.types.base import MaxoType
+from maxo.types.photo_token import PhotoToken
 
 
 class PhotoAttachmentRequestPayload(MaxoType):

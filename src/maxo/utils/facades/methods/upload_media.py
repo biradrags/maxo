@@ -3,7 +3,7 @@ from unihttp.http import UploadFile
 from maxo.bot.bot import Bot
 from maxo.errors.api import RetvalReturnedServerException
 from maxo.omit import is_defined
-from maxo.types import UploadEndpoint
+from maxo.types.upload_media_result import UploadMediaResult
 from maxo.utils.upload_media import InputFile
 
 
@@ -16,11 +16,12 @@ class UploadMediaFacade:
         self._bot = bot
         self._upload_media = upload_media
 
-    async def upload(self) -> UploadEndpoint:
+    async def upload(self) -> str:
         upload_media = self._upload_media
 
         result = await self._bot.get_upload_url(type=upload_media.type)
 
+        upload_result: UploadMediaResult | None
         try:
             upload_result = await self._bot.upload_media(
                 upload_url=result.url,
@@ -33,8 +34,8 @@ class UploadMediaFacade:
             upload_result = None
 
         if is_defined(result.token):
-            return UploadEndpoint(token=result.token)
+            return result.token
         if upload_result is not None:
-            return upload_result
+            return upload_result.last_token
 
         raise RuntimeError

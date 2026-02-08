@@ -85,6 +85,7 @@ from .underline_markup import UnderlineMarkup
 from .update_context import UpdateContext
 from .update_list import UpdateList
 from .upload_endpoint import UploadEndpoint
+from .upload_media_result import UploadMediaResult
 from .user import User
 from .user_mention_markup import UserMentionMarkup
 from .user_with_photo import UserWithPhoto
@@ -184,6 +185,7 @@ __all__ = (
     "UpdateContext",
     "UpdateList",
     "UploadEndpoint",
+    "UploadMediaResult",
     "User",
     "UserMentionMarkup",
     "UserWithPhoto",

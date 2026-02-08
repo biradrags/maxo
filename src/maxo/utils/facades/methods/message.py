@@ -216,4 +216,4 @@ class MessageMethodsFacade(BaseMethodsFacade, ABC):
 
     async def _upload_media(self, media: InputFile) -> tuple[UploadType, str]:
         token = await UploadMediaFacade(self.bot, media).upload()
-        return media.type, token.last_token
+        return media.type, token

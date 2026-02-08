@@ -1,11 +1,13 @@
 from unihttp.http import UploadFile
 
 from maxo.bot.methods.base import MaxoMethod
-from maxo.bot.methods.markers import Form, Path
-from maxo.types.upload_endpoint import UploadEndpoint
+from maxo.bot.methods.markers import File, Path
+from maxo.types.upload_media_result import UploadMediaResult
 
 
-class UploadMedia(MaxoMethod[UploadEndpoint]):
+# Самодельный метод по доке
+# https://dev.max.ru/docs-api/methods/POST/uploads
+class UploadMedia(MaxoMethod[UploadMediaResult]):
     """
     Загрузка медиа.
 
@@ -19,4 +21,4 @@ class UploadMedia(MaxoMethod[UploadEndpoint]):
     __method__ = "post"
 
     upload_url: Path[str]
-    file: Form[UploadFile]
+    file: File[UploadFile]

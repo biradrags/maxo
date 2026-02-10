@@ -1,5 +1,5 @@
 # ruff: noqa: PLC0415
-
+from abc import ABC
 from typing import Any, Generic, TypeVar
 
 from maxo.routing.interfaces.filter import Filter
@@ -8,7 +8,9 @@ from maxo.routing.updates.base import BaseUpdate
 _UpdateT = TypeVar("_UpdateT", bound=BaseUpdate)
 
 
-class BaseFilter(Filter[_UpdateT], Generic[_UpdateT]):
+class BaseFilter(ABC, Filter[_UpdateT], Generic[_UpdateT]):
+    __slots__ = ()
+
     def __and__(self, other: "Filter[_UpdateT] | Any") -> "Filter[_UpdateT]":
         if not isinstance(other, Filter):
             return NotImplemented

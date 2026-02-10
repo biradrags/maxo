@@ -13,14 +13,14 @@ class WidgetEventProcessor:
         event: ChatEvent,
         source: Any,
         manager: DialogManager,
-        *args,
-        **kwargs,
-    ):
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
         raise NotImplementedError
 
 
 class SimpleEventProcessor(WidgetEventProcessor):
-    def __init__(self, callback: Callable):
+    def __init__(self, callback: Callable) -> None:
         self.callback = callback
 
     async def process_event(
@@ -28,9 +28,9 @@ class SimpleEventProcessor(WidgetEventProcessor):
         event: ChatEvent,
         source: Any,
         manager: DialogManager,
-        *args,
-        **kwargs,
-    ):
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
         if self.callback:
             await self.callback(event, source, manager, *args, **kwargs)
 

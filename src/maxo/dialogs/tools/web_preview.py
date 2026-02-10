@@ -5,25 +5,27 @@ import os.path
 import sys
 from concurrent.futures import ProcessPoolExecutor
 from tempfile import NamedTemporaryFile
+from typing import Any
 
 from aiohttp import web
 
 from maxo.dialogs.tools.preview import render_preview_content
 from maxo.dialogs.tools.transitions import render_transitions
+from maxo.routing.interfaces import BaseRouter
 
 
-def removesuffix(s, suffix):
+def removesuffix(s: str, suffix: str) -> str:
     if s.endswith(suffix):
         return s[: -len(suffix)]
     return s
 
 
 class Renderer:
-    def __init__(self, app_module, dialogs_router):
+    def __init__(self, app_module: str, dialogs_router: str) -> None:
         self.app_module = app_module
         self.dialogs_router = dialogs_router
 
-    async def _get_router(self):
+    async def _get_router(self) -> BaseRouter:
         app_module = importlib.import_module(self.app_module)
         raw_router = getattr(app_module, self.dialogs_router)
         if inspect.iscoroutinefunction(raw_router):
@@ -34,27 +36,27 @@ class Renderer:
             router = raw_router
         return router
 
-    async def _load_preview(self):
+    async def _load_preview(self) -> str:
         router = await self._get_router()
         return await render_preview_content(router, simulate_events=True)
 
-    async def _load_transitions(self, path: str):
+    async def _load_transitions(self, path: str) -> None:
         router = await self._get_router()
         name = removesuffix(path, ".png")
         render_transitions(router, filename=name)
 
-    def load_preview(self):
+    def load_preview(self) -> str:
         return asyncio.run(self._load_preview())
 
-    def load_transitions(self, path):
+    def load_transitions(self, path: str) -> None:
         return asyncio.run(self._load_transitions(path))
 
 
 class Controller:
-    def __init__(self, app_module, dialogs_router):
+    def __init__(self, app_module: str, dialogs_router: str) -> None:
         self.renderer = Renderer(app_module, dialogs_router)
 
-    async def preview(self, _request):
+    async def preview(self, _request: web.Request) -> web.Response:
         loop = asyncio.get_event_loop()
         with ProcessPoolExecutor(max_workers=1) as executor:
             text = await loop.run_in_executor(
@@ -66,7 +68,7 @@ class Controller:
             headers={"Content-Type": "text/html"},
         )
 
-    async def transitions(self, _request):
+    async def transitions(self, _request: web.Request) -> web.Response:
         loop = asyncio.get_event_loop()
         with NamedTemporaryFile(suffix=".png") as f:
             with ProcessPoolExecutor(max_workers=1) as executor:
@@ -96,11 +98,11 @@ http://127.0.0.1:{PORT}/transitions
 """
 
 
-def disable_print(*_args, **_kwargs):
+def disable_print(*_args: Any, **_kwargs: Any) -> None:
     pass
 
 
-def main():
+def main() -> None:
     path, _, app_spec = sys.argv[1].rpartition(os.path.sep)
     if path:
         sys.path.append(path)

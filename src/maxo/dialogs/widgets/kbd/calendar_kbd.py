@@ -59,7 +59,7 @@ DAYS_HEADER_TEXT = Format("🗓 {date:%B %Y}")
 BEARING_DATE = date(2018, 1, 1)
 
 
-def empty_button():
+def empty_button() -> CallbackButton:
     return CallbackButton(text="⠀", payload="⠀")
 
 
@@ -78,19 +78,19 @@ def date_from_raw(raw_date: int) -> date:
     return EPOCH + timedelta(seconds=raw_date)
 
 
-def month_begin(offset: date):
+def month_begin(offset: date) -> date:
     return offset.replace(day=1)
 
 
-def next_month_begin(offset: date):
+def next_month_begin(offset: date) -> date:
     return month_begin(month_begin(offset) + timedelta(days=31))
 
 
-def prev_month_begin(offset: date):
+def prev_month_begin(offset: date) -> date:
     return month_begin(month_begin(offset) - timedelta(days=1))
 
 
-def get_today(tz: timezone):
+def get_today(tz: timezone) -> date:
     return datetime.now(tz).date()
 
 
@@ -192,7 +192,7 @@ class CalendarDaysView(CalendarScopeView):
         zoom_out_text: Text = ZOOM_OUT_TEXT,
         next_month_text: Text = NEXT_MONTH_TEXT,
         prev_month_text: Text = PREV_MONTH_TEXT,
-    ):
+    ) -> None:
         self.zoom_out_text = zoom_out_text
         self.next_month_text = next_month_text
         self.prev_month_text = prev_month_text
@@ -394,7 +394,7 @@ class CalendarMonthView(CalendarScopeView):
         zoom_out_text: Text = ZOOM_OUT_TEXT,
         next_year_text: Text = NEXT_YEAR_TEXT,
         prev_year_text: Text = PREV_YEAR_TEXT,
-    ):
+    ) -> None:
         self.callback_generator = callback_generator
         self.month_text = month_text
         self.this_month_text = this_month_text
@@ -536,10 +536,10 @@ class CalendarMonthView(CalendarScopeView):
 
     async def _render_header(
         self,
-        config,
-        offset,
-        data,
-        manager,
+        config: CalendarConfig,
+        offset: date,
+        data: dict,
+        manager: DialogManager,
     ) -> list[CallbackButton]:
         data = {
             "date": offset,
@@ -574,7 +574,7 @@ class CalendarYearsView(CalendarScopeView):
         this_year_text: Text = THIS_YEAR_TEXT,
         next_page_text: Text = NEXT_YEARS_PAGE_TEXT,
         prev_page_text: Text = PREV_YEARS_PAGE_TEXT,
-    ):
+    ) -> None:
         self.callback_generator = callback_generator
         self.year_text = year_text
         self.this_year_text = this_year_text
@@ -780,7 +780,7 @@ class Calendar(Keyboard):
 
     async def _render_keyboard(
         self,
-        data,
+        data: dict,
         manager: DialogManager,
     ) -> RawKeyboard:
         scope = self.get_scope(manager)

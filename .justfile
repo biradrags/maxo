@@ -1,5 +1,5 @@
 lint:
-    ruff check 
+    ruff check
     mypy
     codespell src examples
     bandit src -r

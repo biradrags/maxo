@@ -129,7 +129,7 @@ class LongPolling:
                     marker=marker,
                     types=types,
                 )
-            except Exception as exception:
+            except Exception as exception:  # noqa: BLE001
                 failed = True
                 loggers.dispatcher.exception(
                     "Failed to fetch updates - %s: %s",
@@ -137,7 +137,8 @@ class LongPolling:
                     exception,
                 )
                 loggers.dispatcher.warning(
-                    "Sleep for %f seconds and try again... (tryings = %d, username = @%s, bot id = %d)",
+                    "Sleep for %f seconds and try again... "
+                    "(tryings = %d, username = @%s, bot id = %d)",
                     backoff.current_delay,
                     backoff.counter,
                     bot_username,
@@ -149,7 +150,8 @@ class LongPolling:
 
             if failed:
                 loggers.dispatcher.info(
-                    "Connection established (tryings = %d, username = @%s, bot id = %d)",
+                    "Connection established "
+                    "(tryings = %d, username = @%s, bot id = %d)",
                     backoff.counter,
                     bot_username,
                     bot_id,

@@ -6,13 +6,13 @@ from maxo.dialogs.api.entities import DialogUpdate, DialogUpdateEvent
 
 
 class Updater:
-    def __init__(self, dp: Dispatcher):
+    def __init__(self, dp: Dispatcher) -> None:
         if not isinstance(dp, Dispatcher):
             raise TypeError("Root router must be Dispatcher.")
         self.dp = dp
 
     async def notify(self, update: DialogUpdate, bot: Bot) -> None:
-        def callback():
+        def callback() -> None:
             asyncio.create_task(  # noqa: RUF006
                 self._process_update(update, bot),
             )

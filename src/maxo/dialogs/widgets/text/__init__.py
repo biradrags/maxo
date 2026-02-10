@@ -1,5 +1,5 @@
 from .base import Const, Multi, Text
-from .format import Format, HtmlSafeFormat
+from .format import Format
 from .jinja import Jinja, setup_jinja
 from .list import List
 from .multi import Case
@@ -10,7 +10,6 @@ __all__ = (
     "Case",
     "Const",
     "Format",
-    "HtmlSafeFormat",
     "Jinja",
     "List",
     "Multi",

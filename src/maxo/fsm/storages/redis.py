@@ -64,7 +64,7 @@ class RedisStorage(BaseStorage):
         value = await self.redis.get(built_key)
         if isinstance(value, bytes):
             return value.decode("utf-8")
-        return cast("str | None", value)
+        return cast(str | None, value)
 
     async def set_data(
         self,

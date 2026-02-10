@@ -2,9 +2,9 @@
 
 __all__ = ("CONTAINER_NAME", "MaxoProvider", "inject", "setup_dishka")
 
-from collections.abc import Container, Generator
+from collections.abc import Callable, Container, Generator
 from inspect import Parameter, signature
-from typing import Any, ParamSpec, TypeVar, overload
+from typing import Any, Concatenate, ParamSpec, TypeVar, overload
 
 from dishka import AsyncContainer
 
@@ -40,22 +40,19 @@ _SignalT = TypeVar("_SignalT", bound=BaseSignal)
 _Handler = TypeVar("_Handler", bound=UpdateHandler | SignalHandler)
 
 
-# TODO: Типы женерики функции сигналы хендлеры
-# _SignalHandlerFn = Callable[_ParamsP, _ReturnT]
-# _UpdateHandlerFn = Callable[[Concatenate[_UpdateT, _ParamsP]], _ReturnT]
+_SignalHandlerFn = Callable[_ParamsP, _ReturnT]
+_UpdateHandlerFn = Callable[[Concatenate[_UpdateT, _ParamsP]], _ReturnT]
 
 
-# TODO: Типы женерики функции сигналы хендлеры
 @overload
 def inject(
-    func,  # _SignalHandlerFn[_SignalT, _ParamsP, _ReturnT],
+    func: _SignalHandlerFn[_ParamsP, _ReturnT],
 ) -> SignalHandlerFn[_SignalT, _ReturnT]: ...
 
 
-# TODO: Типы женерики функции сигналы хендлеры
 @overload
 def inject(
-    func,  # : _UpdateHandlerFn[_UpdateT, _ParamsP, _ReturnT],
+    func: _UpdateHandlerFn[_UpdateT, _ParamsP, _ReturnT],
 ) -> UpdateHandlerFn[_UpdateT, _ReturnT]: ...
 
 

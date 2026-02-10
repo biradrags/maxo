@@ -31,7 +31,7 @@ class OnSuccess(Protocol[T]):
         dialog_manager: DialogManager,
         data: T,
         /,
-    ) -> Any:
+    ) -> None:
         raise NotImplementedError
 
 
@@ -44,7 +44,7 @@ class OnError(Protocol[T]):
         dialog_manager: DialogManager,
         error: ValueError,
         /,
-    ) -> Any:
+    ) -> None:
         raise NotImplementedError
 
 
@@ -56,7 +56,7 @@ class TextInput(BaseInput, Generic[T]):
         on_success: OnSuccess[T] | WidgetEventProcessor | None = None,
         on_error: OnError | WidgetEventProcessor | None = None,
         filter: Callable[..., Any] | None = None,
-    ):
+    ) -> None:
         super().__init__(id=id)
         if filter is not None:
             self.filter = FilterObject(filter)
@@ -108,7 +108,7 @@ class TextInput(BaseInput, Generic[T]):
             return None
         return self.type_factory(data)
 
-    def managed(self, manager: DialogManager):
+    def managed(self, manager: DialogManager) -> "ManagedTextInput[T]":
         return ManagedTextInput(self, manager)
 
 

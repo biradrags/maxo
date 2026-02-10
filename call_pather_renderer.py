@@ -4,7 +4,10 @@ from contextlib import AbstractContextManager
 from dataclasses import dataclass
 from functools import partial, wraps
 from types import TracebackType
-from typing import Any, Protocol
+from typing import Any, ParamSpec, Protocol, TypeVar
+
+_P = ParamSpec("_P")
+_F = TypeVar("_F", bound=Callable[..., Any])
 
 
 @dataclass
@@ -276,10 +279,10 @@ class CallPathNodeCollectorWrapper(AbstractContextManager[None, None]):
         )
 
 
-def call_path_collector_dec(type: str):
-    def decorator(func):
+def call_path_collector_dec(type: str) -> Callable[[_F], _F]:
+    def decorator(func: _F) -> _F:
         @wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: _P.args, **kwargs: _P.kwargs) -> _F:
             chain: CallPathNodeCollector = args[-1]
             with chain(func, type, {"my_data": "a"}):
                 return func(*args, **kwargs)
@@ -289,20 +292,20 @@ def call_path_collector_dec(type: str):
     return decorator
 
 
-type NextMiddleware = Callable[["CallPathNodeCollector"], Any]
+type NextMiddleware = Callable[[CallPathNodeCollector], Any]
 
 
 def error_middleware(
     next: NextMiddleware,
     call_path_node_collector: CallPathNodeCollector,
-) -> Any:
+) -> None:
     next(call_path_node_collector)
 
 
 def di_middleware(
     next: NextMiddleware,
     call_path_node_collector: CallPathNodeCollector,
-) -> Any:
+) -> None:
     try:
         next(call_path_node_collector)
     except Exception as e:
@@ -312,7 +315,7 @@ def di_middleware(
 def upsert_user_middleware(
     next: NextMiddleware,
     call_path_node_collector: CallPathNodeCollector,
-) -> Any:
+) -> None:
     # raise ValueError
     next(call_path_node_collector)
 
@@ -323,7 +326,7 @@ def start_handler(call_path_node_collector: CallPathNodeCollector) -> None:
     # pass
 
 
-def _last_middleware(call_path_node_collector: CallPathNodeCollector) -> Any:
+def _last_middleware(call_path_node_collector: CallPathNodeCollector) -> None:
     return start_handler(call_path_node_collector)
 
 

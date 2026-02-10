@@ -184,7 +184,8 @@ class MessageMethodsFacade(BaseMethodsFacade, ABC):
             attachments.extend(await self._build_media_attachments(media))
             # TODO: Исправить костыль со сном, https://github.com/K1rL3s/maxo/issues/10
             # maxo.errors.api.MaxBotBadRequestError:
-            # ('attachment.not.ready', 'Key: errors.process.attachment.file.not.processed')
+            # ('attachment.not.ready',
+            # 'Key: errors.process.attachment.file.not.processed')
             await asyncio.sleep(0.5)
 
         return attachments

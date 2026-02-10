@@ -19,7 +19,7 @@ class StaticMedia(Media):
         use_pipe: bool = False,
         media_params: dict | None = None,
         when: WhenCondition = None,
-    ):
+    ) -> None:
         super().__init__(when=when)
         if not (url or path):
             raise ValueError("Neither url nor path are provided")

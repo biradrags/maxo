@@ -1,15 +1,15 @@
 from collections.abc import Callable, Sequence
 from operator import itemgetter
-from typing import Union
+from typing import Any
 
 from magic_filter import MagicFilter
 
 ItemsGetter = Callable[[dict], Sequence]
-ItemsGetterVariant = Union[str, ItemsGetter, MagicFilter, Sequence]
+ItemsGetterVariant = str | ItemsGetter | MagicFilter | Sequence
 
 
 def _get_identity(items: Sequence) -> ItemsGetter:
-    def identity(data) -> Sequence:
+    def identity(data: Any) -> Sequence:
         return items
 
     return identity

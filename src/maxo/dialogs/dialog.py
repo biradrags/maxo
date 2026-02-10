@@ -3,8 +3,8 @@ from collections.abc import Awaitable, Callable
 from logging import getLogger
 from typing import (
     Any,
+    ParamSpec,
     TypeVar,
-    Union,
 )
 
 from maxo import Router
@@ -21,7 +21,7 @@ from maxo.fsm import State, StatesGroup
 from maxo.routing.ctx import Ctx
 from maxo.routing.interfaces import BaseRouter
 from maxo.routing.middlewares.update_context import UPDATE_CONTEXT_KEY
-from maxo.routing.updates import MessageCallback
+from maxo.routing.updates import MessageCallback, MessageCreated
 from maxo.types import Callback
 from maxo.types.message import Message
 from maxo.types.update_context import UpdateContext
@@ -33,10 +33,11 @@ from .widgets.utils import GetterVariant, ensure_data_getter
 
 logger = getLogger(__name__)
 
-ChatEvent = Union[Callback, Message]
+ChatEvent = Callback | Message
 OnDialogEvent = Callable[[Any, DialogManager], Awaitable]
 OnResultEvent = Callable[[Data, Any, DialogManager], Awaitable]
-W = TypeVar("W", bound=Widget)
+_W = TypeVar("_W", bound=Widget)
+_P = ParamSpec("_P")
 
 
 class Dialog(Router, DialogProtocol):
@@ -50,7 +51,7 @@ class Dialog(Router, DialogProtocol):
         getter: GetterVariant = None,
         preview_data: GetterVariant = None,
         name: str | None = None,
-    ):
+    ) -> None:
         if not windows:
             raise ValueError(
                 "Dialog must have at least one window",
@@ -104,9 +105,9 @@ class Dialog(Router, DialogProtocol):
     async def _process_callback(
         self,
         callback: OnDialogEvent | None,
-        *args,
-        **kwargs,
-    ):
+        *args: _P.args,
+        **kwargs: _P.kwargs,
+    ) -> None:
         if callback:
             await callback(*args, **kwargs)
 
@@ -137,10 +138,10 @@ class Dialog(Router, DialogProtocol):
 
     async def _message_handler(
         self,
-        message: Message,
+        message: MessageCreated,
         ctx: Ctx,
         dialog_manager: DialogManager,
-    ):
+    ) -> None:
         old_context = dialog_manager.current_context()
         window = await self._current_window(dialog_manager)
         try:
@@ -159,7 +160,7 @@ class Dialog(Router, DialogProtocol):
         callback: MessageCallback,
         ctx: Ctx,
         dialog_manager: DialogManager,
-    ):
+    ) -> None:
         old_context = dialog_manager.current_context()
         intent_id, payload = remove_intent_id(callback.callback.payload)
 
@@ -184,7 +185,7 @@ class Dialog(Router, DialogProtocol):
         processed: bool,
         old_context: Context,
         dialog_manager: DialogManager,
-    ):
+    ) -> bool:
         if not dialog_manager.has_context():
             # nothing to show
             return False
@@ -202,7 +203,7 @@ class Dialog(Router, DialogProtocol):
             return True
         return False
 
-    def _setup_filter(self):
+    def _setup_filter(self) -> None:
         intent_filter = IntentFilter(
             aiogd_intent_state_group=self.states_group(),
         )
@@ -249,12 +250,12 @@ class Dialog(Router, DialogProtocol):
     ) -> None:
         await self._process_callback(self.on_close, result, manager)
 
-    def find(self, widget_id: Any) -> W | None:
+    def find(self, widget_id: str) -> _W | None:
         for w in self.windows.values():
             widget = w.find(widget_id)
             if widget:
                 return widget
         return None
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<{self.__class__.__qualname__}({self.states_group()})>"

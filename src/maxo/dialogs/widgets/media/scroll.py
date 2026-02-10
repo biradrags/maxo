@@ -21,7 +21,7 @@ class MediaScroll(Media, BaseScroll):
         id: str,
         when: WhenCondition = None,
         on_page_changed: OnPageChangedVariants = None,
-    ):
+    ) -> None:
         Media.__init__(self, when=when)
         BaseScroll.__init__(self, id=id, on_page_changed=on_page_changed)
         self.media = media

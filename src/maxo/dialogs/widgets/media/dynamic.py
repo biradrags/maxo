@@ -21,7 +21,7 @@ class DynamicMedia(Media):
         self,
         selector: str | MediaSelector,
         when: WhenCondition = None,
-    ):
+    ) -> None:
         super().__init__(when=when)
         if isinstance(selector, str):
             self.selector: MediaSelector = itemgetter(selector)

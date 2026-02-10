@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from enum import Enum
-from typing import Any, Protocol
+from typing import TYPE_CHECKING, Any, Optional, Protocol
 
 from maxo import Bot
 from maxo.dialogs.api.entities import (
@@ -13,6 +13,9 @@ from maxo.dialogs.api.entities import (
     StartMode,
 )
 from maxo.fsm import State
+
+if TYPE_CHECKING:
+    from maxo.dialogs.api.internal.widgets import Widget
 
 
 class UnsetId(Enum):
@@ -164,7 +167,7 @@ class DialogManager(BaseDialogManager, Protocol):
         raise NotImplementedError
 
     @abstractmethod
-    def find(self, widget_id: str) -> Any | None:
+    def find(self, widget_id: str) -> Optional["Widget"]:
         """
         Find a widget in current dialog by its id.
 

@@ -10,6 +10,7 @@ from maxo.fsm import State
 from maxo.routing.updates import MessageCallback, MessageCreated
 
 from .manager import DialogManager
+from .widgets import Widget
 
 
 class WindowProtocol(Protocol):
@@ -55,5 +56,5 @@ class WindowProtocol(Protocol):
         raise NotImplementedError
 
     @abstractmethod
-    def find(self, widget_id: str) -> Any:
+    def find(self, widget_id: str) -> Widget | None:
         raise NotImplementedError

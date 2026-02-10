@@ -12,7 +12,7 @@ from maxo.dialogs.widgets.common import (
 
 
 class Text(Whenable, BaseWidget, TextWidget):
-    def __init__(self, when: WhenCondition = None):
+    def __init__(self, when: WhenCondition = None) -> None:
         super().__init__(when=when)
 
     async def render_text(
@@ -31,7 +31,7 @@ class Text(Whenable, BaseWidget, TextWidget):
         return await self._render_text(data, manager)
 
     @abstractmethod
-    async def _render_text(self, data, manager: DialogManager) -> str:
+    async def _render_text(self, data: dict, manager: DialogManager) -> str:
         """
         Create text.
 
@@ -39,26 +39,26 @@ class Text(Whenable, BaseWidget, TextWidget):
         """
         raise NotImplementedError
 
-    def __add__(self, other: Union["Text", str]):
+    def __add__(self, other: Union["Text", str]) -> "Multi":
         if isinstance(other, str):
             other = Const(other)
         elif isinstance(other, Multi):
             return NotImplemented
         return Multi(self, other, sep="")
 
-    def __radd__(self, other: Union["Text", str]):
+    def __radd__(self, other: Union["Text", str]) -> "Multi":
         if isinstance(other, str):
             other = Const(other)
         return Multi(other, self, sep="")
 
-    def __or__(self, other: Union["Text", str]):
+    def __or__(self, other: Union["Text", str]) -> "Or":
         if isinstance(other, str):
             other = Const(other)
         elif isinstance(other, Or):
             return NotImplemented
         return Or(self, other)
 
-    def __ror__(self, other: Union["Text", str]):
+    def __ror__(self, other: Union["Text", str]) -> "Or":
         if isinstance(other, str):
             other = Const(other)
         return Or(other, self)
@@ -69,7 +69,7 @@ class Text(Whenable, BaseWidget, TextWidget):
 
 
 class Const(Text):
-    def __init__(self, text: str, when: WhenCondition = None):
+    def __init__(self, text: str, when: WhenCondition = None) -> None:
         super().__init__(when=when)
         self.text = text
 
@@ -82,7 +82,12 @@ class Const(Text):
 
 
 class Multi(Text):
-    def __init__(self, *texts: Text, sep="\n", when: WhenCondition = None):
+    def __init__(
+        self,
+        *texts: Text,
+        sep: str = "\n",
+        when: WhenCondition = None,
+    ) -> None:
         super().__init__(when=when)
         self.texts = texts
         self.sep = sep
@@ -125,7 +130,7 @@ class Multi(Text):
 
 
 class Or(Text):
-    def __init__(self, *texts: Text):
+    def __init__(self, *texts: Text) -> None:
         super().__init__()
         self.texts = texts
 

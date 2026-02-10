@@ -20,9 +20,9 @@ class EventProcessorButton(Button, WidgetEventProcessor):
         event: ChatEvent,
         source: Any,
         manager: DialogManager,
-        *args,
-        **kwargs,
-    ):
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
         await self._on_click(event, self, manager)
 
     async def _on_click(
@@ -30,7 +30,7 @@ class EventProcessorButton(Button, WidgetEventProcessor):
         callback: MessageCallback,
         button: Button,
         manager: DialogManager,
-    ):
+    ) -> None:
         raise NotImplementedError
 
 
@@ -43,7 +43,7 @@ class SwitchTo(EventProcessorButton):
         on_click: OnClick | None = None,
         when: WhenCondition = None,
         show_mode: ShowMode | None = None,
-    ):
+    ) -> None:
         super().__init__(
             text=text,
             on_click=self._on_click,
@@ -60,7 +60,7 @@ class SwitchTo(EventProcessorButton):
         callback: MessageCallback,
         button: Button,
         manager: DialogManager,
-    ):
+    ) -> None:
         if self.user_on_click:
             await self.user_on_click(callback, self, manager)
         await manager.switch_to(self.state, show_mode=self.show_mode)
@@ -74,7 +74,7 @@ class Next(EventProcessorButton):
         on_click: OnClick | None = None,
         show_mode: ShowMode | None = None,
         when: WhenCondition = None,
-    ):
+    ) -> None:
         super().__init__(
             text=text,
             on_click=self._on_click,
@@ -90,7 +90,7 @@ class Next(EventProcessorButton):
         callback: MessageCallback,
         button: Button,
         manager: DialogManager,
-    ):
+    ) -> None:
         if self.user_on_click:
             await self.user_on_click(callback, self, manager)
         await manager.next(self.show_mode)
@@ -104,7 +104,7 @@ class Back(EventProcessorButton):
         on_click: OnClick | None = None,
         show_mode: ShowMode | None = None,
         when: WhenCondition = None,
-    ):
+    ) -> None:
         super().__init__(
             text=text,
             on_click=self._on_click,
@@ -121,7 +121,7 @@ class Back(EventProcessorButton):
         callback: MessageCallback,
         button: Button,
         manager: DialogManager,
-    ):
+    ) -> None:
         if self.user_on_click:
             await self.user_on_click(callback, self, manager)
         await manager.back(self.show_mode)
@@ -136,7 +136,7 @@ class Cancel(EventProcessorButton):
         on_click: OnClick | None = None,
         when: WhenCondition = None,
         show_mode: ShowMode | None = None,
-    ):
+    ) -> None:
         super().__init__(
             text=text,
             on_click=self._on_click,
@@ -153,7 +153,7 @@ class Cancel(EventProcessorButton):
         callback: MessageCallback,
         button: Button,
         manager: DialogManager,
-    ):
+    ) -> None:
         if self.user_on_click:
             await self.user_on_click(callback, self, manager)
         await manager.done(self.result, show_mode=self.show_mode)
@@ -170,7 +170,7 @@ class Start(EventProcessorButton):
         show_mode: ShowMode | None = None,
         mode: StartMode = StartMode.NORMAL,
         when: WhenCondition = None,
-    ):
+    ) -> None:
         super().__init__(
             text=text,
             on_click=self._on_click,
@@ -189,7 +189,7 @@ class Start(EventProcessorButton):
         callback: MessageCallback,
         button: Button,
         manager: DialogManager,
-    ):
+    ) -> None:
         if self.user_on_click:
             await self.user_on_click(callback, self, manager)
         await manager.start(

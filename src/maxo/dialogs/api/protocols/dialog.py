@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Any, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Any, Optional, Protocol, runtime_checkable
 
 from maxo.dialogs.api.entities import (
     Data,
@@ -9,6 +9,9 @@ from maxo.dialogs.api.entities import (
 from maxo.fsm import State, StatesGroup
 
 from .manager import DialogManager
+
+if TYPE_CHECKING:
+    from maxo.dialogs.api.internal.widgets import Widget
 
 
 class CancelEventProcessing(Exception):
@@ -60,7 +63,7 @@ class DialogProtocol(Protocol):
         raise NotImplementedError
 
     @abstractmethod
-    def find(self, widget_id: str) -> Any:
+    def find(self, widget_id: str) -> Optional["Widget"]:
         raise NotImplementedError
 
     @abstractmethod

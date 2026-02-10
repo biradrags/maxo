@@ -1,6 +1,6 @@
 from abc import ABC
 from enum import Enum
-from typing import TypedDict
+from typing import TypedDict, cast
 
 from maxo.dialogs.api.internal import RawKeyboard
 from maxo.dialogs.api.protocols import DialogManager, DialogProtocol
@@ -48,7 +48,7 @@ class BasePager(Keyboard, ABC):
         scroll: str | Scroll | None,
         id: str,
         when: WhenCondition = None,
-    ):
+    ) -> None:
         super().__init__(id=id, when=when)
         if isinstance(scroll, str):
             self._scroll_id = scroll
@@ -60,7 +60,7 @@ class BasePager(Keyboard, ABC):
     def _find_scroll(self, manager: DialogManager) -> ManagedScroll:
         if self._scroll:
             return self._scroll.managed(manager)
-        return manager.find(self._scroll_id)
+        return cast(ManagedScroll, manager.find(self._scroll_id))
 
     async def _process_item_callback(
         self,
@@ -82,7 +82,7 @@ class SwitchPage(BasePager):
         id: str,
         text: Text,
         when: WhenCondition = None,
-    ):
+    ) -> None:
         super().__init__(id=id, scroll=scroll, when=when)
         self.page = page
         self.text = text
@@ -161,7 +161,7 @@ class LastPage(SwitchPage):
         id: str = DEFAULT_PAGER_ID,
         text: Text = DEFAULT_LAST_BUTTON_TEXT,
         when: WhenCondition = None,
-    ):
+    ) -> None:
         super().__init__(
             id=id,
             text=text,
@@ -178,7 +178,7 @@ class NextPage(SwitchPage):
         id: str = DEFAULT_PAGER_ID,
         text: Text = DEFAULT_NEXT_BUTTON_TEXT,
         when: WhenCondition = None,
-    ):
+    ) -> None:
         super().__init__(
             id=id,
             text=text,
@@ -195,7 +195,7 @@ class PrevPage(SwitchPage):
         id: str = DEFAULT_PAGER_ID,
         text: Text = DEFAULT_PREV_BUTTON_TEXT,
         when: WhenCondition = None,
-    ):
+    ) -> None:
         super().__init__(
             id=id,
             text=text,
@@ -212,7 +212,7 @@ class FirstPage(SwitchPage):
         id: str = DEFAULT_PAGER_ID,
         text: Text = DEFAULT_FIRST_BUTTON_TEXT,
         when: WhenCondition = None,
-    ):
+    ) -> None:
         super().__init__(
             id=id,
             text=text,
@@ -229,7 +229,7 @@ class CurrentPage(SwitchPage):
         id: str = DEFAULT_PAGER_ID,
         text: Text = DEFAULT_CURRENT_BUTTON_TEXT,
         when: WhenCondition = None,
-    ):
+    ) -> None:
         super().__init__(
             id=id,
             text=text,
@@ -248,7 +248,7 @@ class NumberedPager(BasePager):
         current_page_text: Text = DEFAULT_CURRENT_PAGE_TEXT,
         when: WhenCondition = None,
         length: int | None = None,
-    ):
+    ) -> None:
         super().__init__(id=id, scroll=scroll, when=when)
         self.page_text = page_text
         self.current_page_text = current_page_text

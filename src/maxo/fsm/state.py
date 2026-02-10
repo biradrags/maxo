@@ -2,13 +2,13 @@
 
 import inspect
 from collections.abc import Iterator
-from typing import Any, Final, no_type_check
+from typing import Any, Final, Optional, no_type_check
 
 
 class State:
     _state: str | None
     _group_name: str | None
-    _group: "type[StatesGroup] | None"
+    _group: type["StatesGroup"] | None
 
     __slots__ = ("_group", "_group_name", "_state")
 
@@ -64,7 +64,7 @@ class State:
 
 
 class StatesGroupMeta(type):
-    __parent__: "type[StatesGroup] | None"
+    __parent__: Optional["type[StatesGroup]"]
     __childs__: "tuple[type[StatesGroup], ...]"
     __states__: tuple[State, ...]
     __state_names__: tuple[str, ...]

@@ -136,7 +136,6 @@ class TestPayload:
             )
 
     def test_separator_in_value(self) -> None:
-
         class BadPayload(Payload, prefix="bad"):
             field: str
 
@@ -156,7 +155,6 @@ class TestPayload:
                 field: str
 
     def test_custom_separator(self) -> None:
-
         class CustomSep(Payload, prefix="custom", sep="|"):
             a: int
             b: str
@@ -178,7 +176,6 @@ class TestPayload:
             LongPayload(data=long_str).pack()
 
     def test_unsupported_type_in_pack(self) -> None:
-
         class UnsupportedPayload(Payload, prefix="uns"):
             data: list[int]
 
@@ -186,7 +183,6 @@ class TestPayload:
             UnsupportedPayload(data=[1, 2, 3]).pack()
 
     def test_nullable_check_helper(self) -> None:
-
         class TestNullable(Payload, prefix="test"):
             required: float
             optional: int | None = None
@@ -274,7 +270,6 @@ class TestPayload:
         assert MyPayload(foo="test", bar=42).pack() == "test:test:42"
 
     def test_pack_uuid(self) -> None:
-
         class MyPayloadWithUUID(Payload, prefix="test"):
             foo: str
             bar: UUID
@@ -287,7 +282,6 @@ class TestPayload:
         assert callback.pack() == "test:test:123e4567e89b12d3a456426655440000"
 
     def test_pack_optional(self) -> None:
-
         class MyPayload1(Payload, prefix="test1"):
             foo: str
             bar: int | None = None

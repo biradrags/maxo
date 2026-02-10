@@ -16,12 +16,12 @@ class Group(Keyboard):
         id: str | None = None,
         width: int | None = None,
         when: WhenCondition = None,
-    ):
+    ) -> None:
         super().__init__(id=id, when=when)
         self.buttons = buttons
         self.width = width
 
-    def find(self, widget_id):
+    def find(self, widget_id: str) -> Keyboard | None:
         widget = super().find(widget_id)
         if widget:
             return widget
@@ -82,7 +82,7 @@ class Row(Group):
         *buttons: Keyboard,
         id: str | None = None,
         when: WhenCondition = None,
-    ):
+    ) -> None:
         super().__init__(
             *buttons,
             id=id,
@@ -97,5 +97,5 @@ class Column(Group):
         *buttons: Keyboard,
         id: str | None = None,
         when: WhenCondition = None,
-    ):
+    ) -> None:
         super().__init__(*buttons, id=id, when=when, width=1)

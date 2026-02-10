@@ -1,6 +1,6 @@
 from collections.abc import Callable, Iterable
 
-from maxo import Router
+from maxo import Ctx, Router
 from maxo.dialogs.api.entities import DialogUpdateEvent
 from maxo.dialogs.api.exceptions import UnregisteredDialogError
 from maxo.dialogs.api.internal import DialogManagerFactory
@@ -47,7 +47,7 @@ def _register_event_handler(router: Router, callback: Callable) -> None:
 
 
 class DialogRegistry(DialogRegistryProtocol):
-    def __init__(self, router: Router):
+    def __init__(self, router: Router) -> None:
         self.router = router
         self._loaded = False
         self._dialogs = {}
@@ -91,7 +91,7 @@ class DialogRegistry(DialogRegistryProtocol):
 def _startup_callback(
     registry: DialogRegistry,
 ) -> Callable:
-    async def _setup_dialogs(ctx):
+    async def _setup_dialogs(ctx: Ctx) -> None:
         registry.refresh()
 
     return _setup_dialogs
@@ -103,7 +103,7 @@ def _register_middleware(
     bg_manager_factory: BgManagerFactory,
     stack_access_validator: StackAccessValidator,
     events_isolation: BaseEventIsolation,
-):
+) -> None:
     registry = DialogRegistry(router)
     manager_middleware = ManagerMiddleware(
         dialog_manager_factory=dialog_manager_factory,

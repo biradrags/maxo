@@ -28,7 +28,7 @@ class ListGroup(Keyboard):
         item_id_getter: ItemIdGetter,
         items: ItemsGetterVariant,
         when: WhenCondition = None,
-    ):
+    ) -> None:
         super().__init__(id=id, when=when)
         self.buttons = buttons
         self.item_id_getter = item_id_getter
@@ -108,7 +108,7 @@ class ListGroup(Keyboard):
 
 
 class ManagedListGroup(ManagedWidget[ListGroup]):
-    def find_for_item(self, widget_id: str, item_id: str) -> Any | None:
+    def find_for_item(self, widget_id: str, item_id: str) -> Widget | None:
         """Find widget for specific item_id."""
         widget = self.widget.find(widget_id)
         if widget:

@@ -9,10 +9,10 @@ class Progress(Text):
         self,
         field: str,
         width: int = 10,
-        filled="🟥",
-        empty="⬜",
+        filled: str = "🟥",
+        empty: str = "⬜",
         when: WhenCondition = None,
-    ):
+    ) -> None:
         super().__init__(when)
         self.field = field
         self.width = width

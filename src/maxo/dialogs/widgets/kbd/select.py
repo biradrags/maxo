@@ -40,7 +40,7 @@ class OnItemStateChanged(Protocol[ManagedT, T]):
         dialog_manager: DialogManager,
         data: T,
         /,
-    ):
+    ) -> None:
         raise NotImplementedError
 
 
@@ -53,7 +53,7 @@ class OnItemClick(Protocol[ManagedT, T]):
         dialog_manager: DialogManager,
         data: T,
         /,
-    ):
+    ) -> None:
         raise NotImplementedError
 
 
@@ -67,7 +67,7 @@ class Select(Keyboard, Generic[T]):
         type_factory: TypeFactory[T] = str,
         on_click: OnItemClick["Select[T]", T] | WidgetEventProcessor | None = None,
         when: WhenCondition = None,
-    ):
+    ) -> None:
         super().__init__(id=id, when=when)
         self.text = text
         self.type_factory = type_factory
@@ -145,7 +145,7 @@ class StatefulSelect(Select[T], ABC, Generic[T]):
             OnItemStateChanged[ManagedT, T] | WidgetEventProcessor | None
         ) = None,
         when: str | Callable | None = None,
-    ):
+    ) -> None:
         text = Case(
             {True: checked_text, False: unchecked_text},
             selector=self._is_text_checked,
@@ -167,7 +167,7 @@ class StatefulSelect(Select[T], ABC, Generic[T]):
         event: ChatEvent,
         item_id: str,
         manager: DialogManager,
-    ):
+    ) -> None:
         if self.on_state_changed:
             await self.on_state_changed.process_event(
                 event,
@@ -191,7 +191,7 @@ class StatefulSelect(Select[T], ABC, Generic[T]):
         select: ManagedWidget[Select],
         manager: DialogManager,
         item_id: str,
-    ):
+    ) -> None:
         if self.on_item_click:
             await self.on_item_click.process_event(
                 callback,
@@ -208,7 +208,7 @@ class StatefulSelect(Select[T], ABC, Generic[T]):
         select: ManagedWidget[Select],
         manager: DialogManager,
         item_id: str,
-    ):
+    ) -> None:
         raise NotImplementedError
 
     async def _process_item_callback(
@@ -243,7 +243,7 @@ class Radio(StatefulSelect[T], Generic[T]):
             OnItemStateChanged["ManagedRadio[T]", T] | WidgetEventProcessor | None
         ) = None,
         when: str | Callable | None = None,
-    ):
+    ) -> None:
         super().__init__(
             checked_text=checked_text,
             unchecked_text=unchecked_text,
@@ -308,7 +308,7 @@ class Radio(StatefulSelect[T], Generic[T]):
         select: Select,
         manager: DialogManager,
         item_id: str,
-    ):
+    ) -> None:
         await self.set_checked(callback, item_id, manager)
 
     def managed(self, manager: DialogManager) -> "ManagedRadio[T]":
@@ -354,7 +354,7 @@ class Multiselect(StatefulSelect[T], Generic[T]):
             OnItemStateChanged["ManagedMultiselect[T]", T] | WidgetEventProcessor | None
         ) = None,
         when: str | Callable | None = None,
-    ):
+    ) -> None:
         super().__init__(
             checked_text=checked_text,
             unchecked_text=unchecked_text,
@@ -430,7 +430,7 @@ class Multiselect(StatefulSelect[T], Generic[T]):
         select: Select,
         manager: DialogManager,
         item_id: str,
-    ):
+    ) -> None:
         await self.set_checked(
             callback,
             item_id,
@@ -451,7 +451,7 @@ class ManagedMultiselect(ManagedWidget[Multiselect[T]], Generic[T]):
         """Get a list of checked items ids."""
         return self.widget.get_checked(self.manager)
 
-    async def reset_checked(self):
+    async def reset_checked(self) -> None:
         """Reset all items to their default state."""
         return await self.widget.reset_checked(
             self.manager.event,
@@ -483,7 +483,7 @@ class Toggle(Radio[T], Generic[T]):
             OnItemStateChanged["ManagedToggle[T]", T] | WidgetEventProcessor | None
         ) = None,
         when: str | Callable | None = None,
-    ):
+    ) -> None:
         super().__init__(
             checked_text=text,
             unchecked_text=text,

@@ -16,7 +16,7 @@ class CombinedInput(BaseInput):
         self,
         *inputs: BaseInput,
         filter: Callable[..., Any] | None = None,
-    ):
+    ) -> None:
         super().__init__()
         self.inputs = inputs
         self.filters = []

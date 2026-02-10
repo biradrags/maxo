@@ -25,7 +25,7 @@ class List(Text, BaseScroll):
         id: str | None = None,
         page_size: int | None = None,
         on_page_changed: OnPageChangedVariants = None,
-    ):
+    ) -> None:
         Text.__init__(self, when=when)
         BaseScroll.__init__(self, id=id, on_page_changed=on_page_changed)
         self.field = field

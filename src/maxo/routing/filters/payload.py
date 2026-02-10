@@ -112,10 +112,7 @@ class Payload(MaxoType, slots=False):
 
         if origin in _UNION_TYPES and type(None) in args:
             non_none_types = [t for t in args if t is not type(None)]
-            if len(non_none_types) == 1:
-                field_type = non_none_types[0]
-            else:
-                field_type = str
+            field_type = non_none_types[0] if len(non_none_types) == 1 else str
 
         if field_type is int:
             return int(raw_value)

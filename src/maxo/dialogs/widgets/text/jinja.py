@@ -2,7 +2,6 @@ import warnings
 from collections.abc import Callable, Iterable, Mapping
 from typing import (
     Any,
-    Union,
 )
 
 from jinja2 import BaseLoader, Environment
@@ -16,11 +15,11 @@ from .base import Text
 JINJA_ENV_FIELD = "DialogsJinjaEnvironment"
 
 Filter = Callable[..., str]
-Filters = Union[Iterable[tuple[str, Filter]], Mapping[str, Filter]]
+Filters = Iterable[tuple[str, Filter]] | Mapping[str, Filter]
 
 
 class Jinja(Text):
-    def __init__(self, text: str, when: WhenCondition = None):
+    def __init__(self, text: str, when: WhenCondition = None) -> None:
         super().__init__(when=when)
         self.template_text = text
 
@@ -42,7 +41,11 @@ class Jinja(Text):
 
 
 class StubLoader(BaseLoader):
-    def get_source(self, environment, template):
+    def get_source(
+        self,
+        environment: Any,
+        template: Any,
+    ) -> tuple[Any, Any, Callable[[], bool]]:
         del environment  # unused
         return template, template, lambda: True
 

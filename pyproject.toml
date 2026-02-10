@@ -64,7 +64,7 @@ Documentation = "https://maxo.rtfd.io"
 Repository = "https://github.com/K1rL3s/maxo"
 
 [tool.mypy]
-files = ["src", "test", "examples"]
+files = ["src", "tests", "examples"]
 strict = true
 strict_bytes = true
 local_partial_types = true
@@ -112,6 +112,7 @@ ignore = [
     "D212",
     "D203",
 
+    "ANN401", # https://docs.astral.sh/ruff/rules/any-type/
     "EM", # https://docs.astral.sh/ruff/rules/#flake8-errmsg-em
     "FIX", # https://docs.astral.sh/ruff/rules/#flake8-fixme-fix
     "TD001", # https://docs.astral.sh/ruff/rules/invalid-todo-tag/
@@ -147,6 +148,10 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*.py" = ["S101", "ANN001"]
+"src/maxo/types/*.py" = ["E501", "D"]
+"src/maxo/enums/*.py" = ["E501", "D"]
+"src/maxo/bot/updates/*.py" = ["E501", "D"]
+"src/maxo/routing/updates/*.py" = ["E501", "D"]
 
 [tool.ruff.lint.isort]
 case-sensitive = true

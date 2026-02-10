@@ -1,7 +1,7 @@
 import json
 from collections.abc import Callable
 from datetime import datetime
-from typing import Any
+from typing import Any, Never
 from urllib.parse import urljoin
 
 import aiohttp
@@ -301,7 +301,7 @@ class MaxApiClient(AiohttpAsyncClient):
         except TimeoutError as e:
             raise RequestTimeoutError(str(e)) from e
 
-    def handle_error(self, response: HTTPResponse, method: BaseMethod[Any]):
+    def handle_error(self, response: HTTPResponse, method: BaseMethod[Any]) -> Never:
         code: str = response.data.get("code") or response.data.get("error_code", "")
         error: str = response.data.get("error") or response.data.get("error_data", "")
         message: str = response.data.get("message", "")

@@ -70,7 +70,6 @@ class Dispatcher(Router):
         start_time = loop.time()
 
         result = UNHANDLED
-
         try:
             result = await self.feed_update(update, bot)
         except Exception:

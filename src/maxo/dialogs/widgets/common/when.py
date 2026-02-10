@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Protocol, Union
+from typing import Protocol
 
 from magic_filter import MagicFilter
 
@@ -28,7 +28,7 @@ class Predicate(Protocol):
         raise NotImplementedError
 
 
-WhenCondition = Union[str, MagicFilter, Predicate, None]
+WhenCondition = str | MagicFilter | Predicate | None
 
 
 def new_when_field(fieldname: str) -> Predicate:
@@ -53,12 +53,12 @@ def new_when_magic(f: MagicFilter) -> Predicate:
     return when_magic
 
 
-def true_condition(data: dict, widget: Whenable, manager: DialogManager):
+def true_condition(data: dict, widget: Whenable, manager: DialogManager) -> bool:
     return True
 
 
 class Whenable:
-    def __init__(self, when: WhenCondition = None):
+    def __init__(self, when: WhenCondition = None) -> None:
         self.condition: Predicate
         if when is None:
             self.condition = true_condition
@@ -69,5 +69,5 @@ class Whenable:
         else:
             self.condition = when
 
-    def is_(self, data: dict, manager: DialogManager):
+    def is_(self, data: dict, manager: DialogManager) -> bool:
         return self.condition(data, self, manager)

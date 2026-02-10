@@ -204,7 +204,7 @@ class BgManager(BaseDialogManager):
 
 
 class BgManagerFactoryImpl(BgManagerFactory):
-    def __init__(self, router: BaseRouter):
+    def __init__(self, router: BaseRouter) -> None:
         self._router = router
 
     def bg(

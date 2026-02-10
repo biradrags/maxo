@@ -39,7 +39,7 @@ class Case(Text):
         texts: dict[Any, Text],
         selector: str | Selector | MagicFilter,
         when: WhenCondition = None,
-    ):
+    ) -> None:
         super().__init__(when=when)
         self.texts = texts
         if isinstance(selector, str):
@@ -50,7 +50,7 @@ class Case(Text):
             self.selector = selector
         self._has_default = ... in self.texts
 
-    async def _render_text(self, data, manager: DialogManager) -> str:
+    async def _render_text(self, data: dict, manager: DialogManager) -> str:
         selection = self.selector(data, self, manager)
         if selection not in self.texts:
             if self._has_default:

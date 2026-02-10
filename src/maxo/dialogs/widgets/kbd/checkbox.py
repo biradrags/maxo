@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
 from collections.abc import Awaitable, Callable
-from typing import Union
 
 from maxo.dialogs.api.entities import ChatEvent
 from maxo.dialogs.api.internal import RawKeyboard
@@ -19,11 +18,7 @@ OnStateChanged = Callable[
     [ChatEvent, "ManagedCheckbox", DialogManager],
     Awaitable,
 ]
-OnStateChangedVariant = Union[
-    OnStateChanged,
-    WidgetEventProcessor,
-    None,
-]
+OnStateChangedVariant = OnStateChanged | WidgetEventProcessor | None
 
 
 class BaseCheckbox(Keyboard, ABC):
@@ -35,7 +30,7 @@ class BaseCheckbox(Keyboard, ABC):
         on_click: OnStateChangedVariant = None,
         on_state_changed: OnStateChangedVariant = None,
         when: WhenCondition = None,
-    ):
+    ) -> None:
         super().__init__(id=id, when=when)
         self.text = Case(
             {True: checked_text, False: unchecked_text},
@@ -97,7 +92,7 @@ class BaseCheckbox(Keyboard, ABC):
         event: ChatEvent,
         checked: bool,
         manager: DialogManager,
-    ):
+    ) -> None:
         raise NotImplementedError
 
 
@@ -111,7 +106,7 @@ class Checkbox(BaseCheckbox):
         on_state_changed: OnStateChanged | None = None,
         default: bool = False,
         when: WhenCondition = None,
-    ):
+    ) -> None:
         super().__init__(
             checked_text=checked_text,
             unchecked_text=unchecked_text,
@@ -147,7 +142,7 @@ class ManagedCheckbox(ManagedWidget[Checkbox]):
         return self.widget.is_checked(self.manager)
 
     async def set_checked(self, checked: bool) -> None:
-        return await self.widget.set_checked(
+        await self.widget.set_checked(
             self.manager.event,
             checked,
             self.manager,

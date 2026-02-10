@@ -24,7 +24,7 @@ SEND_METHODS = {
     AttachmentType.IMAGE: "send_photo",
     AttachmentType.VIDEO: "send_video",
     AttachmentType.STICKER: "send_sticker",
-    AttachmentType.VOICE: "send_voice",
+#     AttachmentType.VOICE: "send_voice",
 }
 
 INPUT_MEDIA_TYPES = {}

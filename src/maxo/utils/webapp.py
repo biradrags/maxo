@@ -70,7 +70,7 @@ def parse_webapp_init_data(
         if (value.startswith("[") and value.endswith("]")) or (
             value.startswith("{") and value.endswith("}")
         ):
-            value = loads(value)
+            value = loads(value)  # noqa: PLW2901
         result[key] = value
 
     chat: dict[str, Any] = result.pop("chat", {})

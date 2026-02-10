@@ -22,7 +22,7 @@ class ScrollingGroup(Group, BaseScroll):
         on_page_changed: OnPageChangedVariants = None,
         hide_on_single_page: bool = False,
         hide_pager: bool = False,
-    ):
+    ) -> None:
         Group.__init__(self, *buttons, id=id, width=width, when=when)
         BaseScroll.__init__(self, id=id, on_page_changed=on_page_changed)
         self.height = height

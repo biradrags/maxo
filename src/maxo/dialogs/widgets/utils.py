@@ -1,5 +1,4 @@
 from collections.abc import Callable, Sequence
-from typing import Union
 
 from maxo.dialogs.api.exceptions import InvalidWidgetType
 from maxo.dialogs.api.internal import DataGetter, LinkPreviewWidget
@@ -12,23 +11,14 @@ from .media import Media
 from .text import Format, Multi, Text
 from .widget_event import WidgetEventProcessor
 
-WidgetSrc = Union[
-    str,
-    Text,
-    Keyboard,
-    MessageHandlerFunc,
-    Media,
-    BaseInput,
-    LinkPreviewBase,
-]
+WidgetSrc = (
+    str | Text | Keyboard | MessageHandlerFunc | Media | BaseInput | LinkPreviewBase
+)
 
-SingleGetterBase = Union[DataGetter, dict]
-GetterVariant = Union[
-    None,
-    SingleGetterBase,
-    list[SingleGetterBase],
-    tuple[SingleGetterBase, ...],
-]
+SingleGetterBase = DataGetter | dict
+GetterVariant = (
+    SingleGetterBase | list[SingleGetterBase] | tuple[SingleGetterBase, ...] | None
+)
 
 
 def ensure_text(widget: str | Text | Sequence[Text]) -> Text:

@@ -51,7 +51,7 @@ class Window(WindowProtocol):
         protect_content: bool | None = None,
         preview_add_transitions: list[Keyboard] | None = None,
         preview_data: GetterVariant = None,
-    ):
+    ) -> None:
         (
             self.text,
             self.keyboard,
@@ -204,7 +204,7 @@ class Window(WindowProtocol):
     def get_state(self) -> State:
         return self.state
 
-    def find(self, widget_id) -> Widget | None:
+    def find(self, widget_id: str) -> Widget | None:
         for root in (self.text, self.keyboard, self.on_message, self.media):
             if root and (found := root.find(widget_id)):
                 return found

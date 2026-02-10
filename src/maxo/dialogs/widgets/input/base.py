@@ -41,22 +41,24 @@ class MessageInput(BaseInput):
     def __init__(
         self,
         func: MessageHandlerFunc | WidgetEventProcessor | None,
-        content_types: Sequence[str] | str = AttachmentType.ANY,
+        content_types: Sequence[AttachmentType] | AttachmentType | None = None,
         filter: Callable[..., Any] | None = None,
         id: str | None = None,
-    ):
+    ) -> None:
         super().__init__(id=id)
         self.func = ensure_event_processor(func)
 
-        # TODO: Починить
+        # TODO: Починить. `F.content_type` не существует
         filters = []
-        if isinstance(content_types, str):
-            if content_types != AttachmentType.ANY:
+        if content_types is not None:
+            if isinstance(content_types, str):
                 filters.append(
                     FilterObject(MagicFilter(F.content_type == content_types)),
                 )
-        elif AttachmentType.ANY not in content_types:
-            filters.append(FilterObject(MagicFilter(F.content_type.in_(content_types))))
+            else:
+                filters.append(
+                    FilterObject(MagicFilter(F.content_type.in_(content_types))),
+                )
         if filter is not None:
             filters.append(FilterObject(filter))
         self.filters = filters

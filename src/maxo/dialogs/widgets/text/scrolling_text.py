@@ -16,7 +16,7 @@ class ScrollingText(Text, BaseScroll):
         page_size: int = 0,
         when: WhenCondition = None,
         on_page_changed: OnPageChangedVariants = None,
-    ):
+    ) -> None:
         Text.__init__(self, when=when)
         BaseScroll.__init__(self, id=id, on_page_changed=on_page_changed)
         self.text = text
@@ -35,7 +35,7 @@ class ScrollingText(Text, BaseScroll):
     ) -> str:
         return await self.text.render_text(data, manager)
 
-    async def _render_text(self, data, manager: DialogManager) -> str:
+    async def _render_text(self, data: dict, manager: DialogManager) -> str:
         text = await self._render_contents(data, manager)
         pages = self._get_page_count(text)
         page = await self.get_page(manager)

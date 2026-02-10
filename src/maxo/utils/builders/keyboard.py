@@ -61,7 +61,8 @@ class KeyboardValidator:
     def validate_size(self, size: int) -> int:
         if size not in range(self.min_width, self.max_width + 1):
             raise ValueError(
-                f"Row size {size} is not allowed, range: [{self.min_width}, {self.max_width}]",
+                f"Row size {size} is not allowed, "
+                f"range: [{self.min_width}, {self.max_width}]",
             )
         return size
 

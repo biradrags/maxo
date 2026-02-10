@@ -5,7 +5,7 @@ from maxo.dialogs.widgets.common import BaseWidget, WhenCondition, Whenable
 
 
 class LinkPreviewBase(Whenable, BaseWidget, LinkPreviewWidget):
-    def __init__(self, when: WhenCondition = None):
+    def __init__(self, when: WhenCondition = None) -> None:
         super().__init__(when=when)
 
     async def render_link_preview(
@@ -34,7 +34,7 @@ class LinkPreview(LinkPreviewBase):
         prefer_large_media: bool = False,
         show_above_text: bool = False,
         when: WhenCondition = None,
-    ):
+    ) -> None:
         super().__init__(when=when)
         self.url = url
         self.is_disabled = is_disabled

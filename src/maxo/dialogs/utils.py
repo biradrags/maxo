@@ -32,7 +32,7 @@ REPLY_CALLBACK_SYMBOLS: str = (
 )
 
 
-def _encode_reply_callback_byte(byte: int):
+def _encode_reply_callback_byte(byte: int) -> str:
     return (
         REPLY_CALLBACK_SYMBOLS[byte % len(REPLY_CALLBACK_SYMBOLS)]
         + REPLY_CALLBACK_SYMBOLS[byte // len(REPLY_CALLBACK_SYMBOLS)]
@@ -127,7 +127,7 @@ def intent_payload(
     return prefix + payload
 
 
-def add_intent_id(keyboard: RawKeyboard, intent_id: str):
+def add_intent_id(keyboard: RawKeyboard, intent_id: str) -> None:
     for row in keyboard:
         for button in row:
             if isinstance(button, CallbackButton):

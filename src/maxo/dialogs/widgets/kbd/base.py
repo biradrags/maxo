@@ -11,13 +11,13 @@ from maxo.routing.updates import MessageCallback
 
 
 class Keyboard(Actionable, Whenable, KeyboardWidget):
-    def __init__(self, id: str | None = None, when: WhenCondition = None):
+    def __init__(self, id: str | None = None, when: WhenCondition = None) -> None:
         Actionable.__init__(self, id=id)
         Whenable.__init__(self, when=when)
 
     async def render_keyboard(
         self,
-        data,
+        data: dict,
         manager: DialogManager,
     ) -> RawKeyboard:
         """
@@ -43,7 +43,7 @@ class Keyboard(Actionable, Whenable, KeyboardWidget):
         """
         raise NotImplementedError
 
-    def callback_prefix(self):
+    def callback_prefix(self) -> str | None:
         if not self.widget_id:
             return None
         return f"{self.widget_id}:"
@@ -52,7 +52,7 @@ class Keyboard(Actionable, Whenable, KeyboardWidget):
         """Create callback data for only button in widget."""
         return self.widget_id
 
-    def _item_payload(self, data: str | int):
+    def _item_payload(self, data: str | int) -> str:
         """Create callback data for widgets button if multiple."""
         return f"{self.callback_prefix()}{data}"
 
@@ -122,7 +122,7 @@ class Keyboard(Actionable, Whenable, KeyboardWidget):
 
 
 class Or(Keyboard):
-    def __init__(self, *widgets: Keyboard):
+    def __init__(self, *widgets: Keyboard) -> None:
         super().__init__()
         self.widgets = widgets
 

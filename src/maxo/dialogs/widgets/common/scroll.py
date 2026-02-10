@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from collections.abc import Awaitable, Callable, Sequence
-from typing import Protocol, Union
+from typing import Protocol
 
 from maxo.dialogs.api.entities import ChatEvent
 from maxo.dialogs.api.internal import Widget
@@ -56,7 +56,7 @@ OnPageChanged = Callable[
     [ChatEvent, ManagedScroll, DialogManager],
     Awaitable,
 ]
-OnPageChangedVariants = Union[OnPageChanged, WidgetEventProcessor, None]
+OnPageChangedVariants = OnPageChanged | WidgetEventProcessor | None
 
 
 class BaseScroll(Actionable, Scroll, ABC):
@@ -64,7 +64,7 @@ class BaseScroll(Actionable, Scroll, ABC):
         self,
         id: str,
         on_page_changed: OnPageChangedVariants = None,
-    ):
+    ) -> None:
         super().__init__(id=id)
         self.on_page_changed = ensure_event_processor(on_page_changed)
 

@@ -53,7 +53,7 @@ class StubScroll(Keyboard, BaseScroll):
         id: str,
         pages: str | int | PagesGetter | MagicFilter,
         on_page_changed: OnPageChangedVariants = None,
-    ):
+    ) -> None:
         Keyboard.__init__(self, id=id, when=None)
         BaseScroll.__init__(self, id=id, on_page_changed=on_page_changed)
         if isinstance(pages, str):

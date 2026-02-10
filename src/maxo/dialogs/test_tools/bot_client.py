@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from typing import Union
+from typing import Any, Union
 
 from maxo import Bot, Dispatcher
 from maxo.bot.state import RunningBotState
@@ -24,7 +24,7 @@ from .keyboard import InlineButtonLocator
 
 
 class FakeBot(Bot):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__("", None, False)
         info = BotInfo(
             user_id=1,
@@ -61,7 +61,7 @@ class BotClient:
         chat_id: int = 1,
         chat_type: ChatType = ChatType.CHAT,
         bot: Bot | None = None,
-    ):
+    ) -> None:
         self.chat = Chat(
             chat_id=chat_id,
             type=chat_type,
@@ -81,11 +81,11 @@ class BotClient:
         self.last_message_id = 1
         self.bot = bot or FakeBot()
 
-    def _new_update_id(self):
+    def _new_update_id(self) -> int:
         self.last_update_id += 1
         return self.last_update_id
 
-    def _new_message_id(self):
+    def _new_message_id(self) -> int:
         self.last_message_id += 1
         return self.last_message_id
 
@@ -93,7 +93,7 @@ class BotClient:
         self,
         text: str,
         reply_to: Message | None,
-    ):
+    ) -> Message:
         message_seq = self._new_message_id()
         return Message(
             sender=self.user,
@@ -124,7 +124,7 @@ class BotClient:
             url="https://max.ru/",
         )
 
-    async def send(self, text: str, reply_to: Message | None = None):
+    async def send(self, text: str, reply_to: Message | None = None) -> Any:
         return await self.dp.feed_max_update(
             MaxoUpdate(
                 update=MessageCreated(

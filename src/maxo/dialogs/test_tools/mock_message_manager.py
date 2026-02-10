@@ -63,12 +63,12 @@ MEDIA_CLASSES = {
 
 
 class MockMessageManager(MessageManagerProtocol):
-    def __init__(self):
+    def __init__(self) -> None:
         self.answered_callbacks: set[str] = set()
         self.sent_messages = []
         self.last_message_id = 0
 
-    def reset_history(self):
+    def reset_history(self) -> None:
         self.sent_messages.clear()
         self.answered_callbacks.clear()
 

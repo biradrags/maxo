@@ -13,7 +13,7 @@ class InlineButtonLocator(Protocol):
 
 
 class InlineButtonTextLocator:
-    def __init__(self, regex: str):
+    def __init__(self, regex: str) -> None:
         self.regex = re.compile(regex)
 
     def find_button(
@@ -33,7 +33,7 @@ class InlineButtonTextLocator:
 
 
 class InlineButtonPositionLocator:
-    def __init__(self, row: int, column: int):
+    def __init__(self, row: int, column: int) -> None:
         self.row = row
         self.column = column
 
@@ -53,7 +53,7 @@ class InlineButtonPositionLocator:
 
 
 class InlineButtonDataLocator:
-    def __init__(self, regex: str):
+    def __init__(self, regex: str) -> None:
         self.regex = re.compile(regex)
 
     def find_button(

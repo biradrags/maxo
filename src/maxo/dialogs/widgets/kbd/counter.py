@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Protocol, Union
+from typing import Protocol
 
 from maxo.dialogs.api.entities import ChatEvent
 from maxo.dialogs.api.internal import RawKeyboard
@@ -22,11 +22,11 @@ class OnCounterEvent(Protocol):
         event: ChatEvent,
         counter: "ManagedCounter",  # noqa: F841, RUF100
         dialog_manager: DialogManager,
-    ):
+    ) -> None:
         raise NotImplementedError
 
 
-OnCounterEventVariant = Union[OnCounterEvent, WidgetEventProcessor, None]
+OnCounterEventVariant = OnCounterEvent | WidgetEventProcessor | None
 
 PLUS_TEXT = Const("+")
 MINUS_TEXT = Const("-")
@@ -168,7 +168,7 @@ class Counter(Keyboard):
             )
         return True
 
-    def managed(self, manager: DialogManager):
+    def managed(self, manager: DialogManager) -> "ManagedCounter":
         return ManagedCounter(self, manager)
 
 

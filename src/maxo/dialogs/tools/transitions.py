@@ -24,7 +24,13 @@ if TYPE_CHECKING:
 ICON_PATH = os.path.join(os.path.dirname(__file__), "calculator.png")
 
 
-def widget_edges(nodes, dialog, starts, current_state, kbd):
+def widget_edges(
+    nodes: dict[State, Custom],
+    dialog: "Dialog",
+    starts: list[tuple[State, State]],
+    current_state: State,
+    kbd: Back | Cancel | Next | Start | SwitchTo | Group,
+) -> None:
     states = dialog.states()
     if isinstance(kbd, Start):
         nodes[current_state] >> Edge(color="#338a3e") >> nodes[kbd.state]
@@ -47,12 +53,12 @@ def widget_edges(nodes, dialog, starts, current_state, kbd):
 
 
 def walk_keyboard(
-    nodes,
-    dialog,
+    nodes: dict[State, Custom],
+    dialog: "Dialog",
     starts: list[tuple[State, State]],
     current_state: State,
     keyboards: Sequence,
-):
+) -> None:
     for kbd in keyboards:
         if isinstance(kbd, Group):
             walk_keyboard(nodes, dialog, starts, current_state, kbd.buttons)
@@ -61,7 +67,7 @@ def walk_keyboard(
 
 
 def find_starts(
-    current_state,
+    current_state: State,
     keyboards: Sequence,
 ) -> Iterable[tuple[State, State]]:
     for kbd in keyboards:
@@ -72,11 +78,11 @@ def find_starts(
 
 
 def render_window(
-    nodes: dict,
+    nodes: dict[State, Custom],
     dialog: "Dialog",
     starts: list[tuple[State, State]],
     window: WindowProtocol,
-):
+) -> None:
     walk_keyboard(
         nodes,
         dialog,
@@ -104,7 +110,7 @@ def render_transitions(
     title: str = "Maxo Dialog",
     filename: str = "maxo_dialog",
     format: str = "png",
-):
+) -> None:
     dialogs = list(collect_dialogs(router))
     with Diagram(title, filename=filename, outformat=format, show=False):
         nodes = {}

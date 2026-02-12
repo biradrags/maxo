@@ -17,10 +17,7 @@ class BackoffConfig:
 
 
 class Backoff:
-    def __init__(
-        self,
-        config: BackoffConfig,
-    ) -> None:
+    def __init__(self, config: BackoffConfig) -> None:
         self._config = config
         self._current_delay = 0.0
         self._next_delay = config.min_delay
@@ -42,10 +39,29 @@ class Backoff:
     def current_delay(self) -> float:
         return self._current_delay
 
+    @property
+    def min_delay(self) -> float:
+        return self._config.min_delay
+
+    @property
+    def max_delay(self) -> float:
+        return self._config.max_delay
+
+    @property
+    def factor(self) -> float:
+        return self._config.factor
+
+    @property
+    def jitter(self) -> float:
+        return self._config.jitter
+
+    @property
+    def next_delay(self) -> float:
+        return self._next_delay
+
     def calc_next_delay(self, current_delay: float) -> float:
-        config = self._config
-        mean = min(current_delay * config.factor, config.max_delay)
-        return normalvariate(mean, config.jitter)
+        mean = min(current_delay * self.factor, self.max_delay)
+        return normalvariate(mean, self.jitter)
 
     def next(self) -> None:
         self._counter += 1
@@ -55,4 +71,4 @@ class Backoff:
     def reset(self) -> None:
         self._counter = 0
         self._current_delay = 0.0
-        self._next_delay = self._config.min_delay
+        self._next_delay = self.min_delay

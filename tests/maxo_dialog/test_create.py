@@ -17,7 +17,7 @@ def test_register() -> None:
     )
 
     dp = Dispatcher()
-    dp.include_router(dialog)
+    dp.include(dialog)
     setup_dialogs(dp)
 
 

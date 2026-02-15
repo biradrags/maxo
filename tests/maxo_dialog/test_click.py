@@ -65,12 +65,11 @@ async def test_click() -> None:
     usecase = Mock()
     user_getter = Mock(side_effect=["Username"])
     dp = Dispatcher(
-        usecase=usecase,
-        user_getter=user_getter,
+        workflow_data={"usecase": usecase, "user_getter": user_getter},
         storage=JsonMemoryStorage(),
     )
-    dp.include_router(dialog)
-    dp.message.register(start, CommandStart())
+    dp.include(dialog)
+    dp.message_created.handler(start, CommandStart())
 
     client = BotClient(dp)
     message_manager = MockMessageManager()

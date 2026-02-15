@@ -95,7 +95,7 @@ async def start(message: Message, dialog_manager: DialogManager) -> None:
 async def test_click_buttons_in_group() -> None:
     dp = Dispatcher()
     dp.include(dialog)
-    dp.message_created.register(start, CommandStart())
+    dp.message_created.handler(start, CommandStart())
 
     client = BotClient(dp)
     message_manager = MockMessageManager()

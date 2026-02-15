@@ -46,9 +46,9 @@ async def test_click() -> None:
     dp = Dispatcher(
         storage=MemoryStorage(),
     )
-    dp.include_router(dialog)
-    dp.message.register(start_url, Command("url"))
-    dp.message.register(start_path, Command("path"))
+    dp.include(dialog)
+    dp.message_created.handler(start_url, Command("url"))
+    dp.message_created.handler(start_path, Command("path"))
 
     client = BotClient(dp)
     message_manager = MockMessageManager()

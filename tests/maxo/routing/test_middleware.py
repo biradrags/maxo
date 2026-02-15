@@ -12,7 +12,7 @@ from maxo.routing.routers.simple import Router
 from maxo.routing.sentinels import UNHANDLED
 from maxo.routing.signals import BeforeStartup
 from maxo.routing.updates.message_created import MessageCreated
-from maxo.types import Message, Recipient, User
+from maxo.types import Message, MessageBody, Recipient, User
 
 
 class MockBotInfo:
@@ -39,6 +39,7 @@ def bot() -> MockBot:
 def message_created_update() -> MessageCreated:
     return MessageCreated(
         message=Message(
+            body=MessageBody(mid="test", seq=1),
             recipient=Recipient(chat_type=ChatType.CHAT, chat_id=1),
             timestamp=datetime.now(UTC),
             sender=User(

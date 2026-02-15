@@ -46,7 +46,7 @@ def dp(message_manager: MockMessageManager) -> Dispatcher:
     event_isolation = SimpleEventIsolation(key_builder=key_builder)
     dp = Dispatcher(
         storage=JsonMemoryStorage(),
-        event_isolation=event_isolation,
+        events_isolation=event_isolation,
         key_builder=key_builder,
     )
     dp.message_created.handler(start, CommandStart())
@@ -126,7 +126,7 @@ async def test_next_back(bot, message_manager, client) -> None:
 
 
 @pytest.mark.asyncio
-async def test_finish_last(_bot, message_manager, client) -> None:
+async def test_finish_last(bot, message_manager, client) -> None:
     await client.send("/start")
     first_message = message_manager.one_message()
 
@@ -142,12 +142,12 @@ async def test_finish_last(_bot, message_manager, client) -> None:
 
 
 @pytest.mark.asyncio
-async def test_reset_stack(_bot, message_manager, client) -> None:
+async def test_reset_stack(bot, message_manager, client) -> None:
     for _ in range(200):
         message_manager.reset_history()
         await client.send("/start")
         first_message = message_manager.one_message()
-        assert first_message.text == "First"
+        assert first_message.unsafe_body.text == "First"
 
     message_manager.reset_history()
     callback_id = await client.click(

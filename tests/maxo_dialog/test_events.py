@@ -1,7 +1,6 @@
 from typing import Any
 
 import pytest
-from maxo.filters import CommandStart
 
 from maxo import Dispatcher
 from maxo.dialogs import (
@@ -15,6 +14,7 @@ from maxo.dialogs.test_tools import BotClient, MockMessageManager
 from maxo.dialogs.test_tools.memory_storage import JsonMemoryStorage
 from maxo.dialogs.widgets.text import Format
 from maxo.fsm.state import State, StatesGroup
+from maxo.routing.filters import CommandStart
 
 # from maxo.types import ChatMemberMember, ChatMemberOwner
 
@@ -41,7 +41,7 @@ def message_manager() -> MockMessageManager:
 @pytest.fixture
 def dp(message_manager) -> Dispatcher:
     dp = Dispatcher(storage=JsonMemoryStorage())
-    dp.include_router(Dialog(window))
+    dp.include(Dialog(window))
     setup_dialogs(dp, message_manager=message_manager)
     return dp
 
@@ -53,7 +53,7 @@ def client(dp) -> BotClient:
 
 @pytest.mark.asyncio
 async def test_click(dp, client, message_manager) -> None:
-    dp.message.register(start, CommandStart())
+    dp.message_created.handler(start, CommandStart())
     await client.send("/start")
     first_message = message_manager.one_message()
     assert first_message.text == "stub"
@@ -61,7 +61,7 @@ async def test_click(dp, client, message_manager) -> None:
 
 @pytest.mark.asyncio
 async def test_request_join(dp, client, message_manager) -> None:
-    dp.chat_join_request.register(start)
+    dp.user_added_to_chat.handler(start)
     await client.request_chat_join()
     first_message = message_manager.one_message()
     assert first_message.text == "stub"
@@ -70,7 +70,7 @@ async def test_request_join(dp, client, message_manager) -> None:
 # TODO: Fix
 @pytest.mark.asyncio
 async def test_my_chat_member_update(dp, client, message_manager) -> None:
-    dp.my_chat_member.register(start)
+    dp.bot_added_to_chat.handler(start)
     await client.my_chat_member_update(
         ChatMemberMember(user=client.user),
         ChatMemberOwner(user=client.user, is_anonymous=False),

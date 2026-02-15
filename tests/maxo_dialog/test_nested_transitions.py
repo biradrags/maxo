@@ -59,9 +59,9 @@ def client(dp) -> BotClient:
 @pytest.fixture
 def dp(message_manager: MockMessageManager) -> Dispatcher:
     dp = Dispatcher(storage=JsonMemoryStorage())
-    dp.message.register(start, CommandStart())
+    dp.message_created.handler(start, CommandStart())
 
-    dp.include_router(
+    dp.include(
         Dialog(
             Window(
                 Const("First"),
@@ -70,7 +70,7 @@ def dp(message_manager: MockMessageManager) -> Dispatcher:
             on_start=on_start_main,
         ),
     )
-    dp.include_router(
+    dp.include(
         Dialog(
             Window(
                 Format("Subdialog"),
@@ -81,7 +81,7 @@ def dp(message_manager: MockMessageManager) -> Dispatcher:
             on_start=on_start_sub,
         ),
     )
-    dp.include_router(
+    dp.include(
         Dialog(
             Window(
                 Format("Third"),

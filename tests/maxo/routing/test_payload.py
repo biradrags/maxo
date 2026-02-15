@@ -257,7 +257,7 @@ class TestPayload:
     )
     def test_encode_value_negative(self, value) -> None:
         callback = MyPayload(foo="test", bar=42)
-        with pytest.raises(ValueError, match=r"Cannot encode value .+"):
+        with pytest.raises(ValueError, match="can not be packed to callback data"):
             callback._encode_value("test", value)
 
     def test_pack(self) -> None:
@@ -313,7 +313,7 @@ class TestPayload:
         assert MyPayload.unpack("test:test:42") == MyPayload(foo="test", bar=42)
 
     def test_unpack_optional(self) -> None:
-        with pytest.raises(ValueError, match=r"Cannot unpack .+"):
+        with pytest.raises(ValueError, match=r"Cannot decode"):
             assert MyPayload.unpack("test:test:")
 
         class MyPayload1(Payload, prefix="test1"):

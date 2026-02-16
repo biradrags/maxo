@@ -38,7 +38,10 @@ class ExceptionTypeFilter(
         return self._handler(update.error)
 
 
-class ExceptionMessageFilter(BaseFilter[ErrorEvent[_ExceptionT, _UpdateT]]):
+class ExceptionMessageFilter(
+    BaseFilter[ErrorEvent[_ExceptionT, _UpdateT]],
+    Generic[_ExceptionT, _UpdateT],
+):
     __slots__ = ("_pattern",)
 
     def __init__(self, pattern: str | re.Pattern[str]) -> None:

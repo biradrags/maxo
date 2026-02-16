@@ -58,7 +58,8 @@ async def message_edited_handler(
     facade: MessageEditedFacade,
 ) -> None:
     await facade.send_message(
-        text=f"Я заметил, что ты отредактировал сообщение (ID: {update.message.unsafe_body.mid})\n"
+        "Я заметил, что ты отредактировал сообщение "
+        f"(ID: {update.message.unsafe_body.mid})\n"
         f"Новый текст: '{update.message.unsafe_body.text}'",
     )
 
@@ -71,7 +72,8 @@ async def message_callback_handler(
     await facade.callback_answer(notification="Ты нажал кнопку!")
     await facade.answer_text(
         f"Данные колбэка "
-        f"(ID: {update.callback.callback_id}, сообщение ID: {update.message.unsafe_body.mid}): "
+        f"(ID: {update.callback.callback_id}, "
+        f"сообщение ID: {update.unsafe_message.unsafe_body.mid}): "
         f"{update.callback.payload}",
     )
 

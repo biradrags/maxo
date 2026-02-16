@@ -1,12 +1,12 @@
-from typing import Any, TypeVar
+from typing import Any, TypeAlias, TypeVar
 
 from typing_extensions import TypeIs
-from unihttp.omitted import Omittable as UniOmittable, Omitted as UniOmitted
-
-Omitted = UniOmitted
-Omittable = UniOmittable
+from unihttp.omitted import Omitted as UniOmitted
 
 _OmittedValueT = TypeVar("_OmittedValueT")
+
+Omitted = UniOmitted
+Omittable: TypeAlias = _OmittedValueT | Omitted
 
 
 def is_omitted(value: Any) -> TypeIs[Omitted]:

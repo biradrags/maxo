@@ -41,7 +41,7 @@ class TestTextDecoration:
             (
                 markdown_decoration,
                 LinkMarkup(from_=0, length=5, url="https://aiogram.dev"),
-                "(test)(https://aiogram.dev)",
+                "[test](https://aiogram.dev)",
             ),
             (markdown_decoration, StrongMarkup(from_=0, length=5), "**test**"),
             (markdown_decoration, EmphasizedMarkup(from_=0, length=5), "_test_"),
@@ -51,7 +51,7 @@ class TestTextDecoration:
             (
                 markdown_decoration,
                 UserMentionMarkup(from_=0, length=5, user_id=42),
-                "(test)(max://user/42)",
+                "[test](max://user/42)",
             ),
         ],
     )
@@ -126,13 +126,13 @@ class TestTextDecoration:
             (
                 html_decoration,
                 "test1 test2 test3",
-                (StrongMarkup(from_=6, length=5)),
+                (StrongMarkup(from_=6, length=5),),
                 "test1 <b>test2</b> test3",
             ),
             (
                 html_decoration,
                 "test1 test2",
-                (StrongMarkup(from_=0, length=5)),
+                (StrongMarkup(from_=0, length=5),),
                 "<b>test1</b> test2",
             ),
             (
@@ -177,13 +177,13 @@ class TestTextDecoration:
             (
                 html_decoration,
                 "test te👍🏿st test",
-                (StrongMarkup(from_=5, length=8)),
+                (StrongMarkup(from_=5, length=8),),
                 "test <b>te👍🏿st</b> test",
             ),
             (
                 html_decoration,
                 "👋🏾 Hi!",
-                (StrongMarkup(from_=0, length=8)),
+                (StrongMarkup(from_=0, length=8),),
                 "<b>👋🏾 Hi!</b>",
             ),
         ],

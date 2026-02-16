@@ -32,7 +32,7 @@ classifiers = [
 ]
 requires-python = ">=3.12,<3.14"
 dependencies = [
-    "unihttp[aiohttp]>=0.2.1,<0.3.0",
+    "unihttp[aiohttp]>=0.2.5,<0.3.0",
     "anyio>=4.0.0,<5.0.0",
     "magic_filter>=1.0.0,<2.0.0",
     "cachetools>=4.0.0,<7.0.0",
@@ -61,6 +61,11 @@ lint = [
     "bandit==1.9.1",
     "slotscheck==0.19.1",
     "black==25.11.0",
+]
+dev = [
+    { include-group = "lint" },
+    { include-group = "tests" },
+    "maxo[dishka,redis]"
 ]
 
 [project.urls]

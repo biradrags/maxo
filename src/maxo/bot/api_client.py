@@ -2,23 +2,20 @@ import json
 from collections.abc import Callable
 from datetime import UTC, datetime
 from typing import Any, Never
-from urllib.parse import urljoin
 
-import aiohttp
 from adaptix import P, Retort, dumper, loader
-from aiohttp import ClientSession, FormData
+from aiohttp import ClientSession
 from unihttp.clients.aiohttp import AiohttpAsyncClient
-from unihttp.exceptions import NetworkError, RequestTimeoutError
-from unihttp.http import HTTPRequest, HTTPResponse
+from unihttp.http import HTTPResponse
 from unihttp.markers import QueryMarker
 from unihttp.method import BaseMethod
 from unihttp.middlewares import AsyncMiddleware
 from unihttp.serializers.adaptix import DEFAULT_RETORT, for_marker
 
+from maxo import loggers
 from maxo.__meta__ import __version__
 from maxo._internal._adaptix.concat_provider import concat_provider
 from maxo._internal._adaptix.has_tag_provider import has_tag_provider
-from maxo.bot.middlewares.status_patch import StatusPatchMiddleware
 from maxo.bot.warming_up import WarmingUpType, warming_up_retort
 from maxo.enums import (
     AttachmentRequestType,
@@ -38,7 +35,6 @@ from maxo.errors import (
     MaxBotTooManyRequestsError,
     MaxBotUnauthorizedError,
     MaxBotUnknownServerError,
-    RetvalReturnedServerException,
 )
 from maxo.omit import Omittable
 from maxo.routing.updates import (
@@ -197,7 +193,6 @@ class MaxApiClient(AiohttpAsyncClient):
 
         if middleware is None:
             middleware = []
-        middleware.insert(0, StatusPatchMiddleware())
 
         request_dumper = self._init_method_dumper()
         response_loader = self._init_response_loader()
@@ -256,53 +251,6 @@ class MaxApiClient(AiohttpAsyncClient):
 
         return retort
 
-    # Метод копипаста из AiohttpAsyncClient ради проверка на retval
-    async def make_request(self, request: HTTPRequest) -> HTTPResponse:
-        data: FormData | str | None = None
-
-        if request.form or request.file:
-            data = self._build_form_data(request)
-
-        if request.body:
-            if request.form or request.file:
-                raise ValueError(
-                    "Cannot use Body with Form or File. "
-                    "Use Form for fields in multipart requests.",
-                )
-
-            data = self.json_dumps(request.body)
-            if "Content-Type" not in request.header:
-                request.header["Content-Type"] = "application/json"
-
-        try:
-            async with self._session.request(
-                method=request.method,
-                url=urljoin(self.base_url, request.url),
-                headers=request.header,
-                params=request.query,
-                data=data,
-            ) as response:
-                response_data = None
-                content = await response.read()
-                if content:
-                    if content == b"<retval>1</retval>":
-                        # https://dev.max.ru/docs-api/methods/POST/uploads
-                        # "После загрузки видео или аудио сервер возвращает retval"
-                        raise RetvalReturnedServerException
-                    response_data = self.json_loads(content)
-
-                return HTTPResponse(
-                    status_code=response.status,
-                    headers=response.headers,
-                    cookies=response.cookies,
-                    data=response_data,
-                    raw_response=response,
-                )
-        except aiohttp.ClientConnectionError as e:
-            raise NetworkError(str(e)) from e
-        except TimeoutError as e:
-            raise RequestTimeoutError(str(e)) from e
-
     def handle_error(self, response: HTTPResponse, method: BaseMethod[Any]) -> Never:
         # ruff: noqa: PLR2004
         code: str = response.data.get("code") or response.data.get("error_code", "")
@@ -326,3 +274,18 @@ class MaxApiClient(AiohttpAsyncClient):
         if response.status_code == 503:
             raise MaxBotServiceUnavailableError(code, error, message)
         raise MaxBotApiError(code, error, message)
+
+    def validate_response(self, response: HTTPResponse, method: BaseMethod) -> None:
+        if (
+                response.ok
+                and isinstance(response.data, dict)
+                and (
+                response.data.get("error_code")
+                or response.data.get("success", None) is False
+        )
+        ):
+            loggers.bot_session.warning(
+                "Patch the status code from %d to 400 due to an error on the MAX API",
+                response.status_code,
+            )
+            response.status_code = 400

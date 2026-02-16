@@ -11,3 +11,4 @@ class MessageList(MaxoType):
     """
 
     messages: list[Message]
+    """Массив сообщений"""

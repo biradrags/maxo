@@ -22,13 +22,15 @@ class RemoveMember(MaxoMethod[SimpleQueryResult]):
         user_id: ID пользователя, которого нужно удалить из чата
 
     Источник: https://dev.max.ru/docs-api/methods/DELETE/chats/-chatId-/members
-
     """
 
     __url__ = "chats/{chat_id}/members"
     __method__ = "delete"
 
     chat_id: Path[int]
+    """ID чата"""
 
     user_id: Query[int]
+    """ID пользователя, которого нужно удалить из чата"""
     block: Query[Omittable[bool]] = Omitted()
+    """Если установлено в `true`, пользователь будет заблокирован в чате. Применяется только для чатов с публичной или приватной ссылкой. Игнорируется в остальных случаях"""

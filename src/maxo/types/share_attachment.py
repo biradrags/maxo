@@ -2,7 +2,8 @@ from dataclasses import field
 from typing import Self
 
 from maxo.enums.attachment_type import AttachmentType
-from maxo.omit import Omittable, Omitted
+from maxo.errors import AttributeIsEmptyError
+from maxo.omit import Omittable, Omitted, is_defined
 from maxo.types.attachment import Attachment
 from maxo.types.share_attachment_payload import ShareAttachmentPayload
 
@@ -22,8 +23,11 @@ class ShareAttachment(Attachment):
     payload: ShareAttachmentPayload = field(default_factory=ShareAttachmentPayload)
 
     description: Omittable[str | None] = Omitted()
+    """Описание предпросмотра ссылки"""
     image_url: Omittable[str | None] = Omitted()
+    """Изображение предпросмотра ссылки"""
     title: Omittable[str | None] = Omitted()
+    """Заголовок предпросмотра ссылки."""
 
     @classmethod
     def factory(
@@ -42,4 +46,34 @@ class ShareAttachment(Attachment):
             title=title,
             description=description,
             image_url=image_url,
+        )
+
+    @property
+    def unsafe_description(self) -> str:
+        if is_defined(self.description):
+            return self.description
+
+        raise AttributeIsEmptyError(
+            obj=self,
+            attr="description",
+        )
+
+    @property
+    def unsafe_image_url(self) -> str:
+        if is_defined(self.image_url):
+            return self.image_url
+
+        raise AttributeIsEmptyError(
+            obj=self,
+            attr="image_url",
+        )
+
+    @property
+    def unsafe_title(self) -> str:
+        if is_defined(self.title):
+            return self.title
+
+        raise AttributeIsEmptyError(
+            obj=self,
+            attr="title",
         )

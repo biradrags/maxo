@@ -9,3 +9,4 @@ class InlineKeyboardAttachmentRequestPayload(MaxoType):
     """
 
     buttons: list[list[InlineButtons]]
+    """Двумерный массив кнопок"""

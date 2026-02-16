@@ -4,8 +4,15 @@ from maxo.types.message import Message
 
 
 class MessageEdited(MaxUpdate):
-    """Вы получите этот `update`, как только сообщение будет отредактировано."""
+    """
+    Вы получите этот `update`, как только сообщение будет отредактировано
+
+    Args:
+        message: Отредактированное сообщение
+        type:
+    """
 
     type = UpdateType.MESSAGE_EDITED
 
     message: Message
+    """Отредактированное сообщение"""

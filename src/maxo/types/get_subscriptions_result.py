@@ -11,3 +11,4 @@ class GetSubscriptionsResult(MaxoType):
     """
 
     subscriptions: list[Subscription]
+    """Список текущих подписок"""

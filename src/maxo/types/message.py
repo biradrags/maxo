@@ -15,9 +15,7 @@ class Message(MaxoType):
     Сообщение в чате
 
     Args:
-        body: Содержимое сообщения. Текст + вложения. Может быть `null`, если сообщение содержит только пересланное сообщение.
-            Как показала практика, Message.body есть всегда,
-            но при Message.link.type = "FORWARD" в Message.body.text = ""
+        body: Содержимое сообщения. Текст + вложения. Может быть `null`, если сообщение содержит только пересланное сообщение
         link: Пересланное или ответное сообщение
         recipient: Получатель сообщения. Может быть пользователем или чатом
         sender: Пользователь, отправивший сообщение
@@ -27,13 +25,20 @@ class Message(MaxoType):
     """
 
     body: MessageBody
+    """Содержимое сообщения. Текст + вложения. Может быть `null`, если сообщение содержит только пересланное сообщение"""
     recipient: Recipient
+    """Получатель сообщения. Может быть пользователем или чатом"""
     timestamp: datetime
+    """Время создания сообщения в формате Unix-time"""
 
     link: Omittable[LinkedMessage | None] = Omitted()
+    """Пересланное или ответное сообщение"""
     sender: Omittable[User] = Omitted()
+    """Пользователь, отправивший сообщение"""
     stat: Omittable[MessageStat | None] = Omitted()
+    """Статистика сообщения."""
     url: Omittable[str | None] = Omitted()
+    """Публичная ссылка на пост в канале. Отсутствует для диалогов и групповых чатов"""
 
     @property
     def unsafe_link(self) -> LinkedMessage:
@@ -46,6 +51,16 @@ class Message(MaxoType):
         )
 
     @property
+    def unsafe_sender(self) -> User:
+        if is_defined(self.sender):
+            return self.sender
+
+        raise AttributeIsEmptyError(
+            obj=self,
+            attr="sender",
+        )
+
+    @property
     def unsafe_stat(self) -> MessageStat:
         if is_defined(self.stat):
             return self.stat
@@ -53,4 +68,14 @@ class Message(MaxoType):
         raise AttributeIsEmptyError(
             obj=self,
             attr="stat",
+        )
+
+    @property
+    def unsafe_url(self) -> str:
+        if is_defined(self.url):
+            return self.url
+
+        raise AttributeIsEmptyError(
+            obj=self,
+            attr="url",
         )

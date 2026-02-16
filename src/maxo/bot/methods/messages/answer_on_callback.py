@@ -46,13 +46,19 @@ class AnswerOnCallback(MaxoMethod[SimpleQueryResult]):
         notification: Заполните это, если хотите просто отправить одноразовое уведомление пользователю
 
     Источник: https://dev.max.ru/docs-api/methods/POST/answers
-
     """
 
     __url__ = "answers"
     __method__ = "post"
 
     callback_id: Query[str]
+    """
+    Идентификатор кнопки, по которой пользователь кликнул. Бот получает идентификатор как часть [Update](https://dev.max.ru/docs-api/objects/Update) с типом`message_callback`.
+
+    Можно получить из [GET:/updates](https://dev.max.ru/docs-api/methods/GET/updates) через поле `updates[i].callback.callback_id`
+    """
 
     message: Body[Omittable[NewMessageBody | None]] = Omitted()
+    """Заполните это, если хотите изменить текущее сообщение"""
     notification: Body[Omittable[str | None]] = Omitted()
+    """Заполните это, если хотите просто отправить одноразовое уведомление пользователю"""

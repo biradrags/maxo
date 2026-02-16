@@ -19,10 +19,10 @@ class GetMessageById(MaxoMethod[Message]):
         message_id: ID сообщения (`mid`), чтобы получить одно сообщение в чате
 
     Источник: https://dev.max.ru/docs-api/methods/GET/messages/-messageId-
-
     """
 
     __url__ = "messages/{message_id}"
     __method__ = "get"
 
     message_id: Path[str]
+    """ID сообщения (`mid`), чтобы получить одно сообщение в чате"""

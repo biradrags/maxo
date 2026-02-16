@@ -17,8 +17,10 @@ class StickerAttachment(Attachment):
     type: AttachmentType = AttachmentType.STICKER
 
     height: int
+    """Высота стикера"""
     payload: StickerAttachmentPayload
     width: int
+    """Ширина стикера"""
 
     @classmethod
     def factory(

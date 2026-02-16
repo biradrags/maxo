@@ -10,4 +10,6 @@ class NewMessageLink(MaxoType):
     """
 
     mid: str
+    """ID сообщения исходного сообщения"""
     type: MessageLinkType
+    """Тип ссылки сообщения"""

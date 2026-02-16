@@ -21,10 +21,10 @@ class DeleteMessage(MaxoMethod[SimpleQueryResult]):
         message_id: ID удаляемого сообщения
 
     Источник: https://dev.max.ru/docs-api/methods/DELETE/messages
-
     """
 
     __url__ = "messages"
     __method__ = "delete"
 
     message_id: Query[str]
+    """ID удаляемого сообщения"""

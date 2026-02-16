@@ -1,6 +1,7 @@
 from datetime import datetime
 
-from maxo.omit import Omittable, Omitted
+from maxo.errors import AttributeIsEmptyError
+from maxo.omit import Omittable, Omitted, is_defined
 from maxo.types.base import MaxoType
 
 
@@ -24,14 +25,21 @@ class User(MaxoType):
     """
 
     first_name: str
+    """Отображаемое имя пользователя или бота"""
     is_bot: bool
+    """`true`, если это бот"""
     last_activity_time: datetime
+    """Время последней активности пользователя или бота в MAX (Unix-время в миллисекундах). Если пользователь отключил в настройках профиля мессенджера MAX возможность видеть, что он в сети онлайн, поле может не возвращаться"""
     user_id: int
+    """Идентификатор пользователя или бота"""
 
     username: str | None = None
+    """Никнейм бота или уникальное публичное имя пользователя. В случае с пользователем может быть `null`, если тот недоступен или имя не задано"""
 
     last_name: Omittable[str | None] = Omitted()
+    """Отображаемая фамилия пользователя. Для ботов это поле не возвращается"""
     name: Omittable[str | None] = Omitted()
+    """_Устаревшее поле, скоро будет удалено_"""
 
     @property
     def id(self) -> int:
@@ -44,3 +52,33 @@ class User(MaxoType):
         if self.first_name:
             return self.first_name
         return None
+
+    @property
+    def unsafe_last_name(self) -> str:
+        if is_defined(self.last_name):
+            return self.last_name
+
+        raise AttributeIsEmptyError(
+            obj=self,
+            attr="last_name",
+        )
+
+    @property
+    def unsafe_name(self) -> str:
+        if is_defined(self.name):
+            return self.name
+
+        raise AttributeIsEmptyError(
+            obj=self,
+            attr="name",
+        )
+
+    @property
+    def unsafe_username(self) -> str:
+        if is_defined(self.username):
+            return self.username
+
+        raise AttributeIsEmptyError(
+            obj=self,
+            attr="username",
+        )

@@ -34,16 +34,21 @@ class EditMessage(MaxoMethod[SimpleQueryResult]):
         text: Новый текст сообщения
 
     Источник: https://dev.max.ru/docs-api/methods/PUT/messages
-
     """
 
     __url__ = "messages"
     __method__ = "put"
 
     message_id: Query[str]
+    """ID редактируемого сообщения"""
 
     attachments: Body[list[AttachmentRequest] | None] = None
+    """Вложения сообщения. Если пусто, все вложения будут удалены"""
     link: Body[NewMessageLink | None] = None
+    """Ссылка на сообщение"""
     text: Body[str | None] = None
+    """Новый текст сообщения"""
     format: Body[Omittable[TextFormat | None]] = Omitted()
+    """Если установлен, текст сообщения будет форматирован данным способом. Для подробной информации загляните в раздел [Форматирование](/docs-api#Форматирование%20текста)"""
     notify: Body[Omittable[bool]] = Omitted()
+    """Если false, участники чата не будут уведомлены (по умолчанию `true`)"""

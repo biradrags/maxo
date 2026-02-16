@@ -8,3 +8,4 @@ class StickerAttachmentPayload(AttachmentPayload):
     """
 
     code: str
+    """ID стикера"""

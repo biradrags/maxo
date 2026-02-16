@@ -18,10 +18,10 @@ class GetVideoAttachmentDetails(MaxoMethod[VideoAttachmentDetails]):
         video_token: Токен видео-вложения
 
     Источник: https://dev.max.ru/docs-api/methods/GET/videos/-videoToken-
-
     """
 
     __url__ = "videos/{video_token}"
     __method__ = "get"
 
     video_token: Path[str]
+    """Токен видео-вложения"""

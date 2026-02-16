@@ -14,3 +14,4 @@ class CallbackButton(Button):
     type: ButtonType = ButtonType.CALLBACK
 
     payload: str
+    """Токен кнопки"""

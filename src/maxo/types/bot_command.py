@@ -1,4 +1,5 @@
-from maxo.omit import Omittable, Omitted
+from maxo.errors import AttributeIsEmptyError
+from maxo.omit import Omittable, Omitted, is_defined
 from maxo.types.base import MaxoType
 
 
@@ -13,5 +14,17 @@ class BotCommand(MaxoType):
     """
 
     name: str
+    """Название команды"""
 
     description: Omittable[str | None] = Omitted()
+    """Описание команды"""
+
+    @property
+    def unsafe_description(self) -> str:
+        if is_defined(self.description):
+            return self.description
+
+        raise AttributeIsEmptyError(
+            obj=self,
+            attr="description",
+        )

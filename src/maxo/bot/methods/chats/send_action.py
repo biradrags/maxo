@@ -25,12 +25,12 @@ class SendAction(MaxoMethod[SimpleQueryResult]):
         chat_id: ID чата
 
     Источник: https://dev.max.ru/docs-api/methods/POST/chats/-chatId-/actions
-
     """
 
     __url__ = "chats/{chat_id}/actions"
     __method__ = "post"
 
     chat_id: Path[int]
+    """ID чата"""
 
     action: Body[SenderAction]

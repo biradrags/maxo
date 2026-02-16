@@ -14,3 +14,4 @@ class LinkMarkup(MarkupElement):
     type: MarkupElementType = MarkupElementType.LINK
 
     url: str
+    """URL ссылки"""

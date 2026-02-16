@@ -1,5 +1,6 @@
 from maxo.enums.button_type import ButtonType
-from maxo.omit import Omittable, Omitted
+from maxo.errors import AttributeIsEmptyError
+from maxo.omit import Omittable, Omitted, is_defined
 from maxo.types.button import Button
 
 
@@ -15,3 +16,14 @@ class MessageButton(Button):
     type: ButtonType = ButtonType.MESSAGE
 
     text: Omittable[str] = Omitted()
+    """Текст кнопки, который будет отправлен в чат от лица пользователя"""
+
+    @property
+    def unsafe_text(self) -> str:
+        if is_defined(self.text):
+            return self.text
+
+        raise AttributeIsEmptyError(
+            obj=self,
+            attr="text",
+        )

@@ -15,4 +15,6 @@ class LocationAttachmentRequest(AttachmentRequest):
     type: AttachmentRequestType = AttachmentRequestType.LOCATION
 
     latitude: float
+    """Широта"""
     longitude: float
+    """Долгота"""

@@ -20,11 +20,12 @@ class DeleteAdmin(MaxoMethod[SimpleQueryResult]):
         user_id: Идентификатор пользователя
 
     Источник: https://dev.max.ru/docs-api/methods/DELETE/chats/-chatId-/members/admins/-userId-
-
     """
 
     __url__ = "chats/{chat_id}/members/admins/{user_id}"
     __method__ = "delete"
 
     chat_id: Path[int]
+    """ID чата"""
     user_id: Path[int]
+    """Идентификатор пользователя"""

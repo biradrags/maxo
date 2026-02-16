@@ -49,18 +49,25 @@ class SendMessage(MaxoMethod[SendMessageResult]):
         user_id: Если вы хотите отправить сообщение пользователю, укажите его ID
 
     Источник: https://dev.max.ru/docs-api/methods/POST/messages
-
     """
 
     __url__ = "messages"
     __method__ = "post"
 
     chat_id: Query[Omittable[int]] = Omitted()
+    """Если сообщение отправляется в чат, укажите его ID"""
     disable_link_preview: Query[Omittable[bool]] = Omitted()
+    """Если `false`, сервер не будет генерировать превью для ссылок в тексте сообщения"""
     user_id: Query[Omittable[int]] = Omitted()
+    """Если вы хотите отправить сообщение пользователю, укажите его ID"""
 
     attachments: Body[list[AttachmentsRequests] | None] = None
+    """Вложения сообщения. Если пусто, все вложения будут удалены"""
     link: Body[NewMessageLink | None] = None
+    """Ссылка на сообщение"""
     text: Body[str | None] = None
+    """Новый текст сообщения"""
     format: Body[Omittable[TextFormat | None]] = Omitted()
+    """Если установлен, текст сообщения будет форматирован данным способом. Для подробной информации загляните в раздел [Форматирование](/docs-api#Форматирование%20текста)"""
     notify: Body[Omittable[bool]] = Omitted()
+    """Если false, участники чата не будут уведомлены (по умолчанию `true`)"""

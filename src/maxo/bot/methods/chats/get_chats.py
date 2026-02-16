@@ -21,11 +21,12 @@ class GetChats(MaxoMethod[ChatList]):
         marker: Указатель на следующую страницу данных. Для первой страницы передайте `null`
 
     Источник: https://dev.max.ru/docs-api/methods/GET/chats
-
     """
 
     __url__ = "chats"
     __method__ = "get"
 
     count: Query[Omittable[int]] = Omitted()
+    """Количество запрашиваемых чатов"""
     marker: Query[Omittable[int]] = Omitted()
+    """Указатель на следующую страницу данных. Для первой страницы передайте `null`"""

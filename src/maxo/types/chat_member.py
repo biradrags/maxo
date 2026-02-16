@@ -1,6 +1,8 @@
 from datetime import datetime
 
 from maxo.enums.chat_admin_permission import ChatAdminPermission
+from maxo.errors import AttributeIsEmptyError
+from maxo.omit import is_defined
 from maxo.types.user_with_photo import UserWithPhoto
 
 
@@ -26,9 +28,38 @@ class ChatMember(UserWithPhoto):
     """
 
     alias: str
+    """
+    Заголовок, который будет показан на клиенте
+
+    Если пользователь администратор или владелец и ему не установлено это название, то поле не передаётся, клиенты на своей стороне подменят на "владелец" или "админ"
+    """
     is_admin: bool
+    """Является ли пользователь администратором чата"""
     is_owner: bool
+    """Является ли пользователь владельцем чата"""
     join_time: datetime
+    """Дата присоединения к чату в формате Unix time"""
     last_access_time: datetime
+    """Время последней активности пользователя в чате. Может быть устаревшим для суперчатов (равно времени вступления)"""
 
     permissions: list[ChatAdminPermission] | None = None
+    """
+    Перечень прав пользователя. Возможные значения:
+        - `"read_all_messages"` — Читать все сообщения.
+        - `"add_remove_members"` — Добавлять/удалять участников.
+        - `"add_admins"` — Добавлять администраторов.
+        - `"change_chat_info"` — Изменять информацию о чате.
+        - `"pin_message"` — Закреплять сообщения.
+        - `"write"` — Писать сообщения.
+        - `"edit_link"` — Изменять ссылку на чат.
+    """
+
+    @property
+    def unsafe_permissions(self) -> list[ChatAdminPermission]:
+        if is_defined(self.permissions):
+            return self.permissions
+
+        raise AttributeIsEmptyError(
+            obj=self,
+            attr="permissions",
+        )

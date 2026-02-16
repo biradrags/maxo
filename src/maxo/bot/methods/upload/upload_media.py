@@ -15,7 +15,6 @@ class UploadMedia(MaxoMethod[UploadMediaResult]):
     Args:
         upload_url: URL для загрузки медиа.
         file: Загружаемый файл.
-
     """
 
     __url__ = "{upload_url}"

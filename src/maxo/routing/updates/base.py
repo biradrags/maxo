@@ -12,3 +12,7 @@ class BaseUpdate(MaxoType):
 class MaxUpdate(BaseUpdate):
     type: ClassVar[UpdateType]
     timestamp: datetime
+
+    @property
+    def update_type(self) -> UpdateType:
+        return self.type

@@ -13,4 +13,6 @@ class LocationAttachment(Attachment):
     type: AttachmentType = AttachmentType.LOCATION
 
     latitude: float
+    """Широта"""
     longitude: float
+    """Долгота"""

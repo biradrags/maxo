@@ -1,4 +1,5 @@
-from maxo.omit import Omittable, Omitted
+from maxo.errors import AttributeIsEmptyError
+from maxo.omit import Omittable, Omitted, is_defined
 from maxo.types.base import MaxoType
 from maxo.types.chat_admin import ChatAdmin
 
@@ -11,5 +12,17 @@ class ChatAdminsList(MaxoType):
     """
 
     admins: list[ChatAdmin]
+    """Список пользователей, которые получат права администратора чата"""
 
     marker: Omittable[int | None] = Omitted()
+    """Указатель на следующую страницу данных"""
+
+    @property
+    def unsafe_marker(self) -> int:
+        if is_defined(self.marker):
+            return self.marker
+
+        raise AttributeIsEmptyError(
+            obj=self,
+            attr="marker",
+        )

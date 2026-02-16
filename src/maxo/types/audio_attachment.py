@@ -1,7 +1,8 @@
 from typing import Self
 
 from maxo.enums.attachment_type import AttachmentType
-from maxo.omit import Omittable, Omitted
+from maxo.errors import AttributeIsEmptyError
+from maxo.omit import Omittable, Omitted, is_defined
 from maxo.types.attachment import Attachment
 from maxo.types.media_attachment_payload import MediaAttachmentPayload
 
@@ -19,6 +20,7 @@ class AudioAttachment(Attachment):
     payload: MediaAttachmentPayload
 
     transcription: Omittable[str | None] = Omitted()
+    """Аудио транскрипция"""
 
     @classmethod
     def factory(
@@ -42,4 +44,14 @@ class AudioAttachment(Attachment):
                 token=token,
             ),
             transcription=transcription,
+        )
+
+    @property
+    def unsafe_transcription(self) -> str:
+        if is_defined(self.transcription):
+            return self.transcription
+
+        raise AttributeIsEmptyError(
+            obj=self,
+            attr="transcription",
         )

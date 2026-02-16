@@ -133,10 +133,10 @@ class GetUploadUrl(MaxoMethod[UploadEndpoint]):
         type: Тип загружаемого файла. Возможные значения: `"image"`, `"video"`, `"audio"`, `"file"`
 
     Источник: https://dev.max.ru/docs-api/methods/POST/uploads
-
     """
 
     __url__ = "uploads"
     __method__ = "post"
 
     type: Query[UploadType]
+    """Тип загружаемого файла. Возможные значения: `"image"`, `"video"`, `"audio"`, `"file"`"""

@@ -10,4 +10,5 @@ class Button(MaxoType):
     """
 
     text: str
+    """Видимый текст кнопки"""
     type: ButtonType

@@ -1,4 +1,5 @@
-from maxo.omit import Omittable, Omitted
+from maxo.errors import AttributeIsEmptyError
+from maxo.omit import Omittable, Omitted, is_defined
 from maxo.types.attachments import Attachments
 from maxo.types.base import MaxoType
 from maxo.types.inline_keyboard_attachment import InlineKeyboardAttachment
@@ -24,12 +25,17 @@ class MessageBody(MaxoType):
     """
 
     mid: str
+    """Уникальный ID сообщения"""
     seq: int
+    """ID последовательности сообщения в чате"""
 
     attachments: list[Attachments] | None = None
+    """Вложения сообщения. Могут быть одним из типов `Attachment`. Смотрите описание схемы"""
     text: str | None = None
+    """Новый текст сообщения"""
 
     markup: Omittable[list[MarkupElements] | None] = Omitted()
+    """Разметка текста сообщения. Для подробной информации загляните в раздел [Форматирование](/docs-api#Форматирование%20текста)"""
 
     @property
     def id(self) -> str:
@@ -60,3 +66,33 @@ class MessageBody(MaxoType):
     @property
     def md_text(self) -> str:
         return self._unparse_entities(markdown_decoration)
+
+    @property
+    def unsafe_attachments(self) -> list[Attachments]:
+        if is_defined(self.attachments):
+            return self.attachments
+
+        raise AttributeIsEmptyError(
+            obj=self,
+            attr="attachments",
+        )
+
+    @property
+    def unsafe_markup(self) -> list[MarkupElements]:
+        if is_defined(self.markup):
+            return self.markup
+
+        raise AttributeIsEmptyError(
+            obj=self,
+            attr="markup",
+        )
+
+    @property
+    def unsafe_text(self) -> str:
+        if is_defined(self.text):
+            return self.text
+
+        raise AttributeIsEmptyError(
+            obj=self,
+            attr="text",
+        )

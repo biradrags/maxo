@@ -8,3 +8,4 @@ class FileAttachmentPayload(AttachmentPayload):
     """
 
     token: str
+    """Используйте `token`, если вы пытаетесь повторно использовать одно и то же вложение в другом сообщении."""

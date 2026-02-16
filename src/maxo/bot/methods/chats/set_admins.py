@@ -40,13 +40,15 @@ class SetAdmins(MaxoMethod[SimpleQueryResult]):
         marker: Указатель на следующую страницу данных
 
     Источник: https://dev.max.ru/docs-api/methods/POST/chats/-chatId-/members/admins
-
     """
 
     __url__ = "chats/{chat_id}/members/admins"
     __method__ = "post"
 
     chat_id: Path[int]
+    """ID чата"""
 
     admins: Body[list[ChatAdmin]]
+    """Список пользователей, которые получат права администратора чата"""
     marker: Body[Omittable[int | None]] = Omitted()
+    """Указатель на следующую страницу данных"""

@@ -27,13 +27,15 @@ class PinMessage(MaxoMethod[SimpleQueryResult]):
         notify: Если `true`, участники получат уведомление с системным сообщением о закреплении
 
     Источник: https://dev.max.ru/docs-api/methods/PUT/chats/-chatId-/pin
-
     """
 
     __url__ = "chats/{chat_id}/pin"
     __method__ = "put"
 
     chat_id: Path[int]
+    """ID чата, где должно быть закреплено сообщение"""
 
     message_id: Body[str]
+    """ID сообщения, которое нужно закрепить. Соответствует полю `Message.body.mid`"""
     notify: Body[Omittable[bool | None]] = Omitted()
+    """Если `true`, участники получат уведомление с системным сообщением о закреплении"""

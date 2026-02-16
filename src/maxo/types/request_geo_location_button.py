@@ -1,5 +1,6 @@
 from maxo.enums.button_type import ButtonType
-from maxo.omit import Omittable, Omitted
+from maxo.errors import AttributeIsEmptyError
+from maxo.omit import Omittable, Omitted, is_defined
 from maxo.types.button import Button
 
 
@@ -15,3 +16,14 @@ class RequestGeoLocationButton(Button):
     type: ButtonType = ButtonType.REQUEST_GEO_LOCATION
 
     quick: Omittable[bool] = Omitted()
+    """Если *true*, отправляет местоположение без запроса подтверждения пользователя"""
+
+    @property
+    def unsafe_quick(self) -> bool:
+        if is_defined(self.quick):
+            return self.quick
+
+        raise AttributeIsEmptyError(
+            obj=self,
+            attr="quick",
+        )

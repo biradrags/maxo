@@ -8,7 +8,6 @@ class Attachment(MaxoType):
 
     Args:
         type:
-
     """
 
     type: AttachmentType

@@ -8,3 +8,4 @@ class StickerAttachmentRequestPayload(MaxoType):
     """
 
     code: str
+    """Код стикера"""

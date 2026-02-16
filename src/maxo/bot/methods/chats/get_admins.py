@@ -19,10 +19,10 @@ class GetAdmins(MaxoMethod[ChatMembersList]):
         chat_id: ID чата
 
     Источник: https://dev.max.ru/docs-api/methods/GET/chats/-chatId-/members/admins
-
     """
 
     __url__ = "chats/{chat_id}/members/admins"
     __method__ = "get"
 
     chat_id: Path[int]
+    """ID чата"""

@@ -8,3 +8,4 @@ class VideoThumbnail(MaxoType):
     """
 
     url: str
+    """URL изображения"""

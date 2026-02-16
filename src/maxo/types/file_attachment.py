@@ -17,8 +17,10 @@ class FileAttachment(Attachment):
     type: AttachmentType = AttachmentType.FILE
 
     filename: str
+    """Имя загруженного файла"""
     payload: FileAttachmentPayload
     size: int
+    """Размер файла в байтах"""
 
     @classmethod
     def factory(

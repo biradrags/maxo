@@ -1,15 +1,40 @@
 from maxo.enums.update_type import UpdateType
-from maxo.omit import Omittable, Omitted
+from maxo.errors import AttributeIsEmptyError
+from maxo.omit import Omittable, Omitted, is_defined
 from maxo.routing.updates.base import MaxUpdate
 from maxo.types.user import User
 
 
 class UserRemovedFromChat(MaxUpdate):
-    """Вы получите это обновление, когда пользователь будет удалён из чата, где бот является администратором"""
+    """
+    Вы получите это обновление, когда пользователь будет удалён из чата, где бот является администратором
+
+    Args:
+        admin_id: Администратор, который удалил пользователя из чата. Может быть `null`, если пользователь покинул чат сам
+        chat_id: ID чата, где произошло событие
+        is_channel: Указывает, был ли пользователь удалён из канала или нет
+        type:
+        user: Пользователь, удалённый из чата
+    """
 
     type = UpdateType.USER_REMOVED
 
     chat_id: int
-    user: User
-    admin_id: Omittable[int] = Omitted()
+    """ID чата, где произошло событие"""
     is_channel: bool
+    """Указывает, был ли пользователь удалён из канала или нет"""
+    user: User
+    """Пользователь, удалённый из чата"""
+
+    admin_id: Omittable[int] = Omitted()
+    """Администратор, который удалил пользователя из чата. Может быть `null`, если пользователь покинул чат сам"""
+
+    @property
+    def unsafe_admin_id(self) -> int:
+        if is_defined(self.admin_id):
+            return self.admin_id
+
+        raise AttributeIsEmptyError(
+            obj=self,
+            attr="admin_id",
+        )

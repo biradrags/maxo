@@ -27,13 +27,16 @@ class GetUpdates(MaxoMethod[UpdateList]):
         types: Список типов обновлений, которые бот хочет получить (например, `message_created`, `message_callback`)
 
     Источник: https://dev.max.ru/docs-api/methods/GET/updates
-
     """
 
     __url__ = "updates"
     __method__ = "get"
 
     limit: Query[Omittable[int]] = Omitted()
+    """Максимальное количество обновлений для получения"""
     marker: Query[Omittable[int | None]] = Omitted()
+    """Если передан, бот получит обновления, которые еще не были получены. Если не передан, получит все новые обновления"""
     timeout: Query[Omittable[int]] = Omitted()
+    """Тайм-аут в секундах для долгого опроса"""
     types: Query[Omittable[list[str] | None]] = Omitted()
+    """Список типов обновлений, которые бот хочет получить (например, `message_created`, `message_callback`)"""

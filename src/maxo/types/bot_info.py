@@ -1,4 +1,5 @@
-from maxo.omit import Omittable, Omitted
+from maxo.errors import AttributeIsEmptyError
+from maxo.omit import Omittable, Omitted, is_defined
 from maxo.types.bot_command import BotCommand
 from maxo.types.user_with_photo import UserWithPhoto
 
@@ -12,3 +13,14 @@ class BotInfo(UserWithPhoto):
     """
 
     commands: Omittable[list[BotCommand] | None] = Omitted()
+    """Команды, поддерживаемые ботом"""
+
+    @property
+    def unsafe_commands(self) -> list[BotCommand]:
+        if is_defined(self.commands):
+            return self.commands
+
+        raise AttributeIsEmptyError(
+            obj=self,
+            attr="commands",
+        )

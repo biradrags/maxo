@@ -1,7 +1,8 @@
 from typing import Self
 
 from maxo.enums.attachment_type import AttachmentType
-from maxo.omit import Omittable, Omitted, is_not_omitted
+from maxo.errors import AttributeIsEmptyError
+from maxo.omit import Omittable, Omitted, is_defined, is_not_omitted
 from maxo.types.attachment import Attachment
 from maxo.types.media_attachment_payload import MediaAttachmentPayload
 from maxo.types.video_thumbnail import VideoThumbnail
@@ -23,9 +24,13 @@ class VideoAttachment(Attachment):
     payload: MediaAttachmentPayload
 
     duration: Omittable[int | None] = Omitted()
+    """Длина видео в секундах"""
     height: Omittable[int | None] = Omitted()
+    """Высота видео"""
     thumbnail: Omittable[VideoThumbnail | None] = Omitted()
+    """Миниатюра видео"""
     width: Omittable[int | None] = Omitted()
+    """Ширина видео"""
 
     @classmethod
     def factory(
@@ -47,7 +52,6 @@ class VideoAttachment(Attachment):
             width: Ширина видео
             height: Высота видео
             duration: Длина видео в секундах
-
         """
         thumbnail: Omittable[VideoThumbnail]
 
@@ -65,4 +69,44 @@ class VideoAttachment(Attachment):
             width=width,
             height=height,
             duration=duration,
+        )
+
+    @property
+    def unsafe_duration(self) -> int:
+        if is_defined(self.duration):
+            return self.duration
+
+        raise AttributeIsEmptyError(
+            obj=self,
+            attr="duration",
+        )
+
+    @property
+    def unsafe_height(self) -> int:
+        if is_defined(self.height):
+            return self.height
+
+        raise AttributeIsEmptyError(
+            obj=self,
+            attr="height",
+        )
+
+    @property
+    def unsafe_thumbnail(self) -> VideoThumbnail:
+        if is_defined(self.thumbnail):
+            return self.thumbnail
+
+        raise AttributeIsEmptyError(
+            obj=self,
+            attr="thumbnail",
+        )
+
+    @property
+    def unsafe_width(self) -> int:
+        if is_defined(self.width):
+            return self.width
+
+        raise AttributeIsEmptyError(
+            obj=self,
+            attr="width",
         )

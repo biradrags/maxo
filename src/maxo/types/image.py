@@ -10,3 +10,4 @@ class Image(MaxoType):
     """
 
     url: str
+    """URL изображения"""

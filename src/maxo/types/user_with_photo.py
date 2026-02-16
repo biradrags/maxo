@@ -1,4 +1,5 @@
-from maxo.omit import Omittable, Omitted
+from maxo.errors import AttributeIsEmptyError
+from maxo.omit import Omittable, Omitted, is_defined
 from maxo.types.user import User
 
 
@@ -13,5 +14,38 @@ class UserWithPhoto(User):
     """
 
     avatar_url: Omittable[str] = Omitted()
+    """URL аватара пользователя или бота в уменьшенном размере"""
     description: Omittable[str | None] = Omitted()
+    """Описание пользователя или бота. В случае с пользователем может принимать значение `null`, если описание не заполнено"""
     full_avatar_url: Omittable[str] = Omitted()
+    """URL аватара пользователя или бота в полном размере"""
+
+    @property
+    def unsafe_avatar_url(self) -> str:
+        if is_defined(self.avatar_url):
+            return self.avatar_url
+
+        raise AttributeIsEmptyError(
+            obj=self,
+            attr="avatar_url",
+        )
+
+    @property
+    def unsafe_description(self) -> str:
+        if is_defined(self.description):
+            return self.description
+
+        raise AttributeIsEmptyError(
+            obj=self,
+            attr="description",
+        )
+
+    @property
+    def unsafe_full_avatar_url(self) -> str:
+        if is_defined(self.full_avatar_url):
+            return self.full_avatar_url
+
+        raise AttributeIsEmptyError(
+            obj=self,
+            attr="full_avatar_url",
+        )

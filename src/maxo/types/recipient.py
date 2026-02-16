@@ -1,4 +1,6 @@
 from maxo.enums.chat_type import ChatType
+from maxo.errors import AttributeIsEmptyError
+from maxo.omit import is_defined
 from maxo.types.base import MaxoType
 
 
@@ -13,6 +15,29 @@ class Recipient(MaxoType):
     """
 
     chat_type: ChatType
+    """Тип чата"""
 
     chat_id: int | None = None
+    """ID чата"""
     user_id: int | None = None
+    """ID пользователя, если сообщение было отправлено пользователю"""
+
+    @property
+    def unsafe_chat_id(self) -> int:
+        if is_defined(self.chat_id):
+            return self.chat_id
+
+        raise AttributeIsEmptyError(
+            obj=self,
+            attr="chat_id",
+        )
+
+    @property
+    def unsafe_user_id(self) -> int:
+        if is_defined(self.user_id):
+            return self.user_id
+
+        raise AttributeIsEmptyError(
+            obj=self,
+            attr="user_id",
+        )

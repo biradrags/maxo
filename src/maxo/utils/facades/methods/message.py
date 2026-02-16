@@ -52,8 +52,8 @@ class MessageMethodsFacade(AttachmentsFacade, ABC):
         )
 
         result = await self.bot.send_message(
-            chat_id=chat_id or Omitted(),
-            user_id=user_id or Omitted(),
+            chat_id=chat_id,
+            user_id=user_id,
             text=text,
             attachments=attachments,
             link=link,

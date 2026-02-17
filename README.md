@@ -163,4 +163,4 @@ if __name__ == "__main__":
 ```
 
 ## Связь
-Если у вас есть вопросы, вы можете задать их в Телеграм чате [\@maxo_py](https://t.me/maxo_py)
+Если у вас есть вопросы, вы можете задать их в Телеграме [\@maxo_py](https://t.me/maxo_py) или [Максе](https://max.ru/join/rwJmWA4B5AipBiJdWRkORGjxFmqnJPUhJbQxxmscrnc)

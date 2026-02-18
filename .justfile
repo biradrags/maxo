@@ -13,7 +13,7 @@ lint:
     bandit src -r
     slotscheck src
 
-static:
+mypy:
     mypy
 
 test:
@@ -24,5 +24,5 @@ test-all:
 
 all:
     just lint
-    just static
+    just mypy
     just test-all

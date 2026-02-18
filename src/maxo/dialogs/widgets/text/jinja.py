@@ -60,7 +60,7 @@ def _create_env(
     kwargs.setdefault("trim_blocks", True)
     if "loader" not in kwargs:
         kwargs["loader"] = StubLoader()
-    env = Environment(*args, **kwargs)
+    env = Environment(*args, **kwargs)  # noqa: S701
     if filters is not None:
         env.filters.update(filters)
     return env

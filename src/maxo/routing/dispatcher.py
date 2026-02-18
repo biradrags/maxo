@@ -72,7 +72,7 @@ class Dispatcher(Router):
         result = UNHANDLED
         try:
             result = await self.feed_update(update, bot)
-        except Exception:
+        except Exception:  # noqa: BLE001
             duration = (loop.time() - start_time) * 1000
             loggers.dispatcher.exception(
                 "%s update failed. Update type=%r marker=%r. Duration %d ms",

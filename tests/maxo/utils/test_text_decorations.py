@@ -1,5 +1,3 @@
-# ruff: noqa: ERA001
-
 import pytest
 
 from maxo.types import (

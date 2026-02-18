@@ -219,7 +219,7 @@ class MessageManager(MessageManagerProtocol):
             ):
                 pass
             else:
-                raise err
+                raise
 
     async def remove_message_safe(
         self,
@@ -231,7 +231,6 @@ class MessageManager(MessageManagerProtocol):
             await bot.delete_message(
                 message_id=old_message.message_id,
             )
-            return None
         except MaxBotBadRequestError as err:
             if "message to delete not found" in err.message:
                 pass

@@ -159,7 +159,7 @@ class Dialog(Router, DialogProtocol):
         dialog_manager: DialogManager,
     ) -> None:
         old_context = dialog_manager.current_context()
-        intent_id, payload = remove_intent_id(callback.callback.payload)
+        _, payload = remove_intent_id(callback.callback.payload)
 
         cleaned_callback = dataclasses.replace(callback.callback, payload=payload)
         cleaned_event = dataclasses.replace(callback, callback=cleaned_callback)

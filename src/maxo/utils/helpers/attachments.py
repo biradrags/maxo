@@ -1,3 +1,5 @@
+# ruff: noqa: E501
+
 from decimal import Decimal
 from typing import assert_never
 

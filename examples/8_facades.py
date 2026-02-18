@@ -38,6 +38,8 @@ from maxo.utils.facades import (
 )
 from maxo.utils.long_polling import LongPolling
 
+logger = logging.getLogger(__name__)
+
 bot = Bot(token=os.environ["TOKEN"])
 dispatcher = Dispatcher()
 
@@ -105,7 +107,7 @@ async def bot_stopped_handler(
     update: BotStopped,
     facade: BotStoppedFacade,
 ) -> None:
-    logging.info(
+    logger.info(
         "Пользователь (ID: %s) остановил бота в чате (ID: %s)",
         facade.user.user_id,
         facade.chat_id,
@@ -130,7 +132,7 @@ async def bot_removed_from_chat_handler(
     update: BotRemovedFromChat,
     facade: BotRemovedFromChatFacade,
 ) -> None:
-    logging.info(
+    logger.info(
         "Бот был удален из чата (ID: %s) пользователем (ID: %s)",
         facade.chat_id,
         facade.user.user_id,
@@ -177,7 +179,8 @@ async def dialog_cleared_handler(
     facade: DialogClearedFacade,
 ) -> None:
     await facade.send_message(
-        f"Диалог с пользователем (ID: {facade.user.user_id}) в чате (ID: {facade.chat_id}) был очищен",
+        f"Диалог с пользователем (ID: {facade.user.user_id}) в чате "
+        f"(ID: {facade.chat_id}) был очищен",
     )
 
 
@@ -187,7 +190,8 @@ async def dialog_muted_handler(
     facade: DialogMutedFacade,
 ) -> None:
     await facade.send_message(
-        f"Диалог с пользователем (ID: {facade.user.user_id}) в чате (ID: {facade.chat_id}) заглушен до {facade.muted_until}",
+        f"Диалог с пользователем (ID: {facade.user.user_id}) в чате "
+        f"(ID: {facade.chat_id}) заглушен до {facade.muted_until}",
     )
 
 
@@ -196,7 +200,7 @@ async def dialog_removed_handler(
     update: DialogRemoved,
     facade: DialogRemovedFacade,
 ) -> None:
-    logging.info(
+    logger.info(
         "Диалог с пользователем (ID: %s) был удален из чата (ID: %s)",
         facade.user.user_id,
         facade.chat_id,
@@ -209,7 +213,8 @@ async def dialog_unmuted_handler(
     facade: DialogUnmutedFacade,
 ) -> None:
     await facade.send_message(
-        f"Диалог с пользователем (ID: {facade.user.user_id}) в чате (ID: {facade.chat_id}) был разглушен",
+        f"Диалог с пользователем (ID: {facade.user.user_id}) в чате "
+        f"(ID: {facade.chat_id}) был разглушен",
     )
 
 

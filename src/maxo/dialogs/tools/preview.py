@@ -1,3 +1,5 @@
+# ruff: noqa: SLF001 BLE001
+
 import html
 import logging
 from dataclasses import dataclass
@@ -5,6 +7,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Optional
 
+import anyio
 from jinja2 import Environment, PackageLoader, select_autoescape
 
 from maxo.dialogs.api.entities import (
@@ -41,6 +44,9 @@ from maxo.types.message import Message
 if TYPE_CHECKING:
     from maxo.dialogs.api.internal.widgets import Widget
     from maxo.dialogs.dialog import Dialog
+
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -281,7 +287,7 @@ async def create_button(
     try:
         await dialog._callback_handler(callback, dialog_manager=manager)
     except Exception:
-        logging.debug("Click %s", callback)
+        logger.debug("Click %s", callback)
     state = manager.current_context().state
     return RenderButton(title=title, state=state.state)
 
@@ -309,12 +315,12 @@ async def render_input(
     try:
         await dialog._message_handler(message, dialog_manager=manager)
     except Exception:
-        logging.debug("Input %s", content_type)
+        logger.debug("Input %s", content_type)
 
     if state == manager.current_context().state:
-        logging.debug("State not changed")
+        logger.debug("State not changed")
         return None
-    logging.debug(
+    logger.debug(
         "State changed %s >> %s",
         state,
         manager.current_context().state,
@@ -413,7 +419,7 @@ async def create_window(
     return RenderWindow(
         message=text.replace("\n", "<br>"),
         state=state.state,
-        state_name=state._state,  # noqa: SLF001
+        state_name=state._state,
         photo=create_photo(media=message.media),
         keyboard=keyboard,
         reply_keyboard=reply_keyboard,
@@ -486,5 +492,5 @@ async def render_preview(
     simulate_events: bool = False,
 ) -> None:
     res = await render_preview_content(router, simulate_events)
-    with Path(file).open("w", encoding="utf-8") as f:
+    async with anyio.open_file(Path(file), "w", encoding="utf-8") as f:
         f.write(res)

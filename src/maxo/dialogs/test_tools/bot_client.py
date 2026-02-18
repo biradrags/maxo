@@ -1,6 +1,6 @@
 import uuid
 from datetime import UTC, datetime
-from typing import Any, Union
+from typing import Any
 
 from maxo import Bot, Dispatcher
 from maxo.bot.state import RunningBotState
@@ -30,7 +30,7 @@ from .keyboard import InlineButtonLocator
 
 class FakeBot(Bot):
     def __init__(self) -> None:
-        super().__init__("", None, False)
+        super().__init__("", None, warming_up=False)
         info = BotInfo(
             user_id=1,
             first_name="bot",
@@ -45,17 +45,6 @@ class FakeBot(Bot):
 
     def __eq__(self, other: object) -> bool:
         return self is other
-
-
-ChatMember = Union[
-    None,
-    # ChatMemberOwner,
-    # ChatMemberAdministrator,
-    # ChatMemberMember,
-    # ChatMemberRestricted,
-    # ChatMemberLeft,
-    # ChatMemberBanned,
-]
 
 
 class BotClient:

@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 from typing import Final, Protocol
 
 DESTINY_DEFAULT: Final = "default"
@@ -14,7 +14,7 @@ class StorageKey:
     destiny: str = DESTINY_DEFAULT
 
 
-class StorageKeyType(str, Enum):
+class StorageKeyType(StrEnum):
     DATA = "data"
     STATE = "state"
     LOCK = "lock"
@@ -71,6 +71,6 @@ class DefaultKeyBuilder(BaseKeyBuilder):
             )
 
         if type_:
-            parts.append(type_.value)
+            parts.append(type_)
 
         return self.separator.join(parts)

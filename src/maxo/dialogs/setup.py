@@ -12,6 +12,7 @@ from maxo.dialogs.api.protocols import (
     MessageManagerProtocol,
     StackAccessValidator,
 )
+from maxo.dialogs.context.access_validator import DefaultAccessValidator
 from maxo.dialogs.context.intent_middleware import (
     IntentErrorMiddleware,
     IntentMiddlewareFactory,
@@ -28,13 +29,12 @@ from maxo.dialogs.manager.manager_middleware import (
 from maxo.dialogs.manager.message_manager import MessageManager
 from maxo.dialogs.manager.update_handler import handle_update
 from maxo.fsm import State, StatesGroup
+from maxo.fsm.key_builder import DefaultKeyBuilder
 from maxo.fsm.state import any_state
 from maxo.fsm.storages.base import BaseEventIsolation
 from maxo.fsm.storages.memory import SimpleEventIsolation
 from maxo.routing.interfaces import BaseRouter
 from maxo.routing.observers import UpdateObserver
-
-from .context.access_validator import DefaultAccessValidator
 
 
 def _setup_event_observer(router: Router) -> None:
@@ -182,7 +182,7 @@ def _prepare_events_isolation(
 ) -> BaseEventIsolation:
     if events_isolation:
         return events_isolation
-    return SimpleEventIsolation()
+    return SimpleEventIsolation(DefaultKeyBuilder(with_destiny=True))
 
 
 def collect_dialogs(router: BaseRouter) -> Iterable[DialogProtocol]:

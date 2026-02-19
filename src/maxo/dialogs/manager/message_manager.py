@@ -1,3 +1,5 @@
+import warnings
+from collections.abc import Sequence
 from logging import getLogger
 
 from maxo import Bot
@@ -14,7 +16,18 @@ from maxo.dialogs.api.protocols import (
 from maxo.enums import AttachmentType
 from maxo.errors import MaxBotApiError, MaxBotBadRequestError
 from maxo.omit import Omitted
-from maxo.types import Callback, Message
+from maxo.types import (
+    AttachmentsRequests,
+    AudioAttachmentRequest,
+    Callback,
+    FileAttachmentRequest,
+    InlineButtons,
+    MediaAttachmentsRequests,
+    Message,
+    PhotoAttachmentRequest,
+    VideoAttachmentRequest,
+)
+from maxo.utils.facades import AttachmentsFacade
 from maxo.utils.helpers import attachment_to_request
 from maxo.utils.upload_media import FSInputFile, InputFile
 
@@ -67,11 +80,11 @@ class MessageManager(MessageManagerProtocol):
         media: MediaAttachment,
         bot: Bot,
     ) -> InputFile | str:
-        if media.file_id:
-            return media.file_id.file_id
+        # TODO: Нужно ли? Починить или убрать
+        if media.media_id and media.media_id.token:
+            return media.media_id.token
         if media.url:
             if media.use_pipe:
-                # TODO: Нужно ли? Починить или убрать
                 return URLInputFile(media.url, bot=bot)
             return media.url
         return FSInputFile(media.path)
@@ -265,12 +278,16 @@ class MessageManager(MessageManagerProtocol):
         new_message: NewMessage,
         old_message: OldMessage,
     ) -> Message:
-        # TODO: Отправка медиа в несколько шагов
+        attachments = await self._build_attachments(
+            bot,
+            new_message.keyboard,
+            new_message.media,
+        )
         await bot.edit_message(
             link=new_message.link_to,
             message_id=old_message.message_id,
             text=new_message.text,
-            attachments=new_message.attachments,
+            attachments=attachments,
             format=new_message.parse_mode,
         )
         return await bot.get_message_by_id(message_id=old_message.message_id)
@@ -284,15 +301,74 @@ class MessageManager(MessageManagerProtocol):
         else:
             disable_link_preview = new_message.link_preview_options.is_disabled
 
-        # TODO: Отправка медиа в несколько шагов
+        attachments = await self._build_attachments(
+            bot,
+            new_message.keyboard,
+            new_message.media,
+        )
         result = await bot.send_message(
             chat_id=new_message.recipient.chat_id,
             user_id=new_message.recipient.user_id,
             text=new_message.text,
             link=new_message.link_to,
             notify=True,
-            attachments=new_message.attachments,
+            attachments=attachments,
             format=new_message.parse_mode,
             disable_link_preview=disable_link_preview,
         )
         return result.message
+
+    async def _build_attachments(
+        self,
+        bot: Bot,
+        keyboard: Sequence[Sequence[InlineButtons]] | None,
+        media: MediaAttachment | None,
+    ) -> Sequence[AttachmentsRequests]:
+        file = await self._media_attachment_to_file(media) if media else None
+        if isinstance(file, FSInputFile):
+            base = []
+            media_ = [file]
+        elif isinstance(file, MediaAttachmentsRequests):
+            base = [file]
+            media_ = None
+        else:
+            base = []
+            media_ = None
+
+        facade = AttachmentsFacade(bot)
+        return await facade.build_attachments(
+            base=base,
+            keyboard=keyboard,
+            media=media_,
+        )
+
+    def _media_attachment_to_file(
+        self,
+        media: MediaAttachment,
+    ) -> InputFile | MediaAttachmentsRequests | None:
+        if media.media_id:
+            token = media.media_id.token
+            url = None
+        elif media.url:
+            token = None
+            url = media.url
+        elif media.path:
+            return FSInputFile(media.path, media.type)
+        else:
+            return None
+
+        if media.type == AttachmentType.IMAGE:
+            return PhotoAttachmentRequest.factory(token=token, url=url)
+        if media.type == AttachmentType.VIDEO:
+            return VideoAttachmentRequest.factory(token=token)
+        if media.type == AttachmentType.AUDIO:
+            return AudioAttachmentRequest.factory(token=token)
+        if media.type == AttachmentType.FILE:
+            return FileAttachmentRequest.factory(token=token)
+
+        warnings.warn(
+            f"Unknown media attachment type: {media.type}",
+            category=RuntimeWarning,
+            stacklevel=2,
+        )
+        return None

@@ -14,6 +14,7 @@ from maxo.dialogs.api.entities import (
     Data,
     EventContext,
     LaunchMode,
+    MediaId,
     NewMessage,
     OldMessage,
     ShowMode,
@@ -49,9 +50,7 @@ from maxo.enums import ChatStatus, ChatType
 from maxo.fsm import State
 from maxo.routing.interfaces import BaseRouter
 from maxo.routing.middlewares.update_context import UPDATE_CONTEXT_KEY
-from maxo.routing.updates import MessageCallback
-from maxo.routing.updates.error import ErrorEvent
-from maxo.routing.updates.message_created import MessageCreated
+from maxo.routing.updates import ErrorEvent, MessageCallback, MessageCreated
 from maxo.types import (
     Chat,
     Message,
@@ -369,7 +368,7 @@ class ManagerImpl(DialogManager):
             return  # no limitations for default stack
         if any(
             isinstance(button, MessageButton)
-            for button in itertools.chain(*new_message.keyboard)
+            for button in itertools.chain(*(new_message.keyboard or []))
         ):
             raise InvalidKeyboardType(
                 "Cannot use ReplyKeyboardMarkup in non default stack",
@@ -389,6 +388,8 @@ class ManagerImpl(DialogManager):
             if new_message.show_mode is ShowMode.AUTO:
                 new_message.show_mode = self._calc_show_mode()
 
+            await self._fix_cached_media_id(new_message)
+
             self._ensure_stack_compatible(stack, new_message)
 
             try:
@@ -403,10 +404,40 @@ class ManagerImpl(DialogManager):
                 logger.debug("MessageNotModified, not storing ids")
             else:
                 self._save_last_message(sent_message)
+                if not new_message.media:
+                    return
+
+                sent_media_attach = next(
+                    (
+                        attachment
+                        for attachment in sent_message.attachments
+                        if attachment.type == new_message.media.type
+                    ),
+                    None,
+                )
+                if not sent_media_attach:
+                    return
+
+                await self.media_id_storage.save_media_id(
+                    path=new_message.media.path,
+                    url=new_message.media.url,
+                    type=new_message.media.type,
+                    media_id=MediaId(token=sent_media_attach.payload.token),
+                )
         except Exception as e:
             current_state = self.current_context().state
-            e.add_note(f"maxo-dialog state: {current_state}")
+            e.add_note(f"maxo.dialogs state: {current_state}")
             raise
+
+    async def _fix_cached_media_id(self, new_message: NewMessage) -> None:
+        media = new_message.media
+        if media is None or media.media_id:
+            return
+        media.media_id = await self.media_id_storage.get_media_id(
+            path=media.path,
+            url=media.url,
+            type=media.type,
+        )
 
     def is_event_simulated(self) -> bool:
         return bool(self.middleware_data.get(EVENT_SIMULATED))
@@ -472,7 +503,7 @@ class ManagerImpl(DialogManager):
     def _calc_show_mode(self) -> ShowMode:
         if self.show_mode is not ShowMode.AUTO:
             return self.show_mode
-        if self.middleware_data[UPDATE_CONTEXT_KEY].chat_type != ChatType.CHAT:
+        if self.middleware_data[UPDATE_CONTEXT_KEY].chat_type != ChatType.DIALOG:
             return ShowMode.EDIT
         if self.current_stack().id != DEFAULT_STACK_ID:
             return ShowMode.EDIT

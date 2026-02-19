@@ -4,7 +4,7 @@ from uuid import uuid4
 
 from maxo import Bot
 from maxo.dialogs import ShowMode
-from maxo.dialogs.api.entities import MediaAttachment, NewMessage, OldMessage
+from maxo.dialogs.api.entities import NewMessage, OldMessage
 from maxo.dialogs.api.protocols import (
     MessageManagerProtocol,
     MessageNotModified,
@@ -22,29 +22,17 @@ from maxo.types import (
 )
 
 
-def file_id(media: MediaAttachment) -> str:
-    file_id_ = None
-    if media.file_id:
-        file_id_ = media.file_id.file_id
-    return file_id_ or str(uuid4())
-
-
-def file_unique_id(media: MediaAttachment) -> str:
-    file_unique_id_ = None
-    if media.file_id:
-        file_unique_id_ = media.file_id.file_unique_id
-    return file_unique_id_ or str(uuid4())
-
-
 class MockMessageManager(MessageManagerProtocol):
     def __init__(self) -> None:
         self.answered_callbacks: set[str] = set()
         self.sent_messages = []
         self.last_message_id = 0
+        self.show_message_calls = []
 
     def reset_history(self) -> None:
         self.sent_messages.clear()
         self.answered_callbacks.clear()
+        self.show_message_calls.clear()
 
     def assert_one_message(self) -> None:
         assert len(self.sent_messages) == 1
@@ -58,6 +46,23 @@ class MockMessageManager(MessageManagerProtocol):
     def one_message(self) -> Message:
         self.assert_one_message()
         return self.first_message()
+
+    def assert_show_message(
+        self,
+        text: str | None = None,
+        attachments: list | None = None,
+    ) -> None:
+        assert len(self.show_message_calls) == 1
+        new_message: NewMessage = self.show_message_calls[0][1]
+        if text is not None:
+            assert new_message.text == text
+        if attachments is not None:
+            assert len(new_message.attachments) == len(attachments)
+            for new_att, expected_att in zip(new_message.attachments, attachments):
+                assert new_att.type == expected_att.type
+                assert new_att.path == expected_att.path
+                assert new_att.url == expected_att.url
+                assert new_att.media_id == expected_att.media_id
 
     async def remove_kbd(
         self,
@@ -82,7 +87,7 @@ class MockMessageManager(MessageManagerProtocol):
             recipient=Recipient(
                 chat_type=ChatType.CHAT,
                 chat_id=old_message.recipient.chat_id,
-                user_id=old_message.recipient.chat_id,
+                user_id=old_message.recipient.user_id,
             ),
             body=MessageBody(
                 mid=old_message.message_id,
@@ -110,34 +115,42 @@ class MockMessageManager(MessageManagerProtocol):
         new_message: NewMessage,
         old_message: OldMessage | None,
     ) -> OldMessage:
+        self.show_message_calls.append((bot, new_message, old_message))
         assert isinstance(new_message, NewMessage)
         assert isinstance(old_message, (OldMessage, type(None)))
         if new_message.show_mode is ShowMode.NO_UPDATE:
+            raise MessageNotModified
+        if (
+            old_message
+            and new_message.text == old_message.text
+            and new_message.media == old_message.media
+            and new_message.keyboard == old_message.keyboard
+        ):
             raise MessageNotModified
 
         message_id = self.last_message_id + 1
         self.last_message_id = message_id
 
         converted_attachments = []
-        for new_attachment in new_message.attachments:
-            if new_attachment.type == AttachmentType.IMAGE:
-                converted_attachments.append(
-                    PhotoAttachment(
-                        payload=PhotoAttachmentPayload(
-                            photo_id=random.randint(1, 1_000_000),
-                            token=new_attachment.file_id or str(uuid4()),
-                            url=new_attachment.url,
+        media = new_message.media
+        if media and media.type == AttachmentType.IMAGE:
+            converted_attachments.append(
+                PhotoAttachment(
+                    payload=PhotoAttachmentPayload(
+                        photo_id=random.randint(1, 1_000_000),
+                        token=(
+                            media.media_id.token if media.media_id else str(uuid4())
                         ),
+                        url=media.url,
                     ),
-                )
-            elif new_attachment.type == AttachmentType.INLINE_KEYBOARD:
-                converted_attachments.append(
-                    InlineKeyboardAttachment(
-                        payload=Keyboard(buttons=new_attachment.payload.buttons),
-                    ),
-                )
-            else:
-                converted_attachments.append(new_attachment)
+                ),
+            )
+
+        keyboard = new_message.keyboard
+        if keyboard:
+            converted_attachments.append(
+                InlineKeyboardAttachment(payload=Keyboard(buttons=keyboard)),
+            )
 
         self.sent_messages.append(
             Message(

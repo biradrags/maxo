@@ -31,7 +31,7 @@ class ChatMethodsFacade(AttachmentsFacade, ABC):
         keyboard: Sequence[Sequence[InlineButtons]] | None = None,
         media: Sequence[InputFile] | None = None,
     ) -> Message:
-        attachments = await self._build_attachments(
+        attachments = await self.build_attachments(
             base=[],
             keyboard=keyboard,
             media=media,

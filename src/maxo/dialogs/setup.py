@@ -129,22 +129,50 @@ def _register_middleware(
     router.message_created.middleware.outer(intent_middleware.process_message)
     router.message_callback.middleware.outer(intent_middleware.process_callback)
     router.bot_started.middleware.outer(intent_middleware.process_bot_started)
+    router.bot_stopped.middleware.outer(intent_middleware.process_bot_stopped)
+    router.user_added_to_chat.middleware.outer(
+        intent_middleware.process_user_added_to_chat,
+    )
+    router.user_removed_from_chat.middleware.outer(
+        intent_middleware.process_user_removed_from_chat,
+    )
+    router.bot_added_to_chat.middleware.outer(
+        intent_middleware.process_bot_added_to_chat,
+    )
+    router.bot_removed_from_chat.middleware.outer(
+        intent_middleware.process_bot_removed_from_chat,
+    )
     update_handler.middleware.outer(intent_middleware.process_aiogd_update)
 
     router.message_created.middleware.outer(context_unlocker_middleware)
     router.message_callback.middleware.outer(context_unlocker_middleware)
     router.bot_started.middleware.outer(context_unlocker_middleware)
+    router.bot_stopped.middleware.outer(context_unlocker_middleware)
+    router.user_added_to_chat.middleware.outer(context_unlocker_middleware)
+    router.user_removed_from_chat.middleware.outer(context_unlocker_middleware)
+    router.bot_added_to_chat.middleware.outer(context_unlocker_middleware)
+    router.bot_removed_from_chat.middleware.outer(context_unlocker_middleware)
     update_handler.middleware.outer(context_unlocker_middleware)
 
     router.message_created.middleware.inner(manager_middleware)
     router.message_callback.middleware.inner(manager_middleware)
     router.bot_started.middleware.inner(manager_middleware)
+    router.bot_stopped.middleware.inner(manager_middleware)
+    router.user_added_to_chat.middleware.inner(manager_middleware)
+    router.user_removed_from_chat.middleware.inner(manager_middleware)
+    router.bot_added_to_chat.middleware.inner(manager_middleware)
+    router.bot_removed_from_chat.middleware.inner(manager_middleware)
     update_handler.middleware.inner(manager_middleware)
     router.exception.middleware.inner(manager_middleware)
 
     router.message_created.middleware.inner(context_saver_middleware)
     router.message_callback.middleware.inner(context_saver_middleware)
     router.bot_started.middleware.inner(context_saver_middleware)
+    router.bot_stopped.middleware.inner(context_saver_middleware)
+    router.user_added_to_chat.middleware.inner(context_saver_middleware)
+    router.user_removed_from_chat.middleware.inner(context_saver_middleware)
+    router.bot_added_to_chat.middleware.inner(context_saver_middleware)
+    router.bot_removed_from_chat.middleware.inner(context_saver_middleware)
     update_handler.middleware.inner(context_saver_middleware)
 
     bg_factory_middleware = BgFactoryMiddleware(bg_manager_factory)

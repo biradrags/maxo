@@ -24,7 +24,7 @@ from maxo.utils.upload_media import InputFile
 
 
 class AttachmentsFacade(BotMethodsFacade):
-    async def _build_attachments(
+    async def build_attachments(
         self,
         base: Sequence[AttachmentsRequests],
         keyboard: Sequence[Sequence[InlineButtons]] | None = None,
@@ -44,12 +44,12 @@ class AttachmentsFacade(BotMethodsFacade):
             # maxo.errors.api.MaxBotBadRequestError:
             # ('attachment.not.ready',
             # 'Key: errors.process.attachment.file.not.processed')
-            attachments.extend(await self._build_media_attachments(media))
+            attachments.extend(await self.build_media_attachments(media))
             await asyncio.sleep(0.5)
 
         return attachments
 
-    async def _build_media_attachments(
+    async def build_media_attachments(
         self,
         media: Sequence[InputFile],
     ) -> Sequence[MediaAttachmentsRequests]:

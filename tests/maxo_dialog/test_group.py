@@ -17,6 +17,7 @@ from maxo.dialogs.test_tools.keyboard import InlineButtonTextLocator
 from maxo.dialogs.test_tools.memory_storage import JsonMemoryStorage
 from maxo.dialogs.widgets.kbd import Button
 from maxo.dialogs.widgets.text import Const, Format
+from maxo.enums import ChatType
 from maxo.fsm.key_builder import DefaultKeyBuilder
 from maxo.fsm.state import State, StatesGroup
 from maxo.fsm.storages.memory import SimpleEventIsolation
@@ -74,12 +75,12 @@ def dp(message_manager) -> Dispatcher:
 
 @pytest.fixture
 def client(dp) -> BotClient:
-    return BotClient(dp, chat_id=-1, user_id=1, chat_type="group")
+    return BotClient(dp, chat_id=-1, user_id=1, chat_type=ChatType.CHAT)
 
 
 @pytest.fixture
 def second_client(dp) -> BotClient:
-    return BotClient(dp, chat_id=-1, user_id=2, chat_type="group")
+    return BotClient(dp, chat_id=-1, user_id=2, chat_type=ChatType.CHAT)
 
 
 @pytest.mark.asyncio

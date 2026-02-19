@@ -33,10 +33,15 @@ from maxo.routing.middlewares.update_context import (
 )
 from maxo.routing.sentinels import UNHANDLED
 from maxo.routing.updates.base import MaxUpdate
+from maxo.routing.updates.bot_added_to_chat import BotAddedToChat
+from maxo.routing.updates.bot_removed_from_chat import BotRemovedFromChat
 from maxo.routing.updates.bot_started import BotStarted
+from maxo.routing.updates.bot_stopped import BotStopped
 from maxo.routing.updates.error import ErrorEvent
 from maxo.routing.updates.message_callback import MessageCallback
 from maxo.routing.updates.message_created import MessageCreated
+from maxo.routing.updates.user_added_to_chat import UserAddedToChat
+from maxo.routing.updates.user_removed_from_chat import UserRemovedFromChat
 from maxo.utils.facades import MessageCallbackFacade
 
 from .storage import StorageProxy
@@ -68,13 +73,16 @@ def event_context_from_message(
         bot=ctx["bot"],
         user=user,
         user_id=user_id,
-        chat=None,
         chat_id=event.message.recipient.chat_id,
         chat_type=event.message.recipient.chat_type,
+        chat=None,
     )
 
 
-def event_context_from_bot_started(event: BotStarted, ctx: Ctx) -> EventContext:
+def event_context_from_bot_started(
+    event: BotStarted | BotStopped,
+    ctx: Ctx,
+) -> EventContext:
     return EventContext(
         bot=ctx["bot"],
         user=event.user,
@@ -83,6 +91,28 @@ def event_context_from_bot_started(event: BotStarted, ctx: Ctx) -> EventContext:
         chat_type=ChatType.DIALOG,
         chat=None,
     )
+
+
+event_context_from_bot_stopped = event_context_from_bot_started
+
+
+def event_context_from_user_added_to_chat(
+    event: UserAddedToChat | UserRemovedFromChat | BotAddedToChat | BotRemovedFromChat,
+    ctx: Ctx,
+) -> EventContext:
+    return EventContext(
+        bot=ctx["bot"],
+        user=event.user,
+        user_id=event.user.user_id,
+        chat_id=event.chat_id,
+        chat_type=ChatType.CHANNEL if event.is_channel else ChatType.CHAT,
+        chat=None,
+    )
+
+
+event_context_from_user_removed_from_chat = event_context_from_user_added_to_chat
+event_context_from_bot_added_to_chat = event_context_from_user_added_to_chat
+event_context_from_bot_removed_from_chat = event_context_from_user_added_to_chat
 
 
 def event_context_from_aiogd(event: DialogUpdateEvent) -> EventContext:
@@ -105,6 +135,16 @@ def event_context_from_error(event: ErrorEvent, ctx: Ctx) -> EventContext:
         return event_context_from_aiogd(event.event.aiogd_update)
     if isinstance(event.event, BotStarted):
         return event_context_from_bot_started(event.event, ctx)
+    if isinstance(event.event, BotStopped):
+        return event_context_from_bot_stopped(event.event, ctx)
+    if isinstance(event.event, UserAddedToChat):
+        return event_context_from_user_added_to_chat(event.event, ctx)
+    if isinstance(event.event, UserRemovedFromChat):
+        return event_context_from_user_removed_from_chat(event.event, ctx)
+    if isinstance(event.event, BotAddedToChat):
+        return event_context_from_bot_added_to_chat(event.event, ctx)
+    if isinstance(event.event, BotRemovedFromChat):
+        return event_context_from_bot_removed_from_chat(event.event, ctx)
     raise ValueError(f"Unsupported event type in ErrorEvent.update: {event.event}")
 
 
@@ -337,11 +377,86 @@ class IntentMiddlewareFactory:
         await self._load_default_context(update, ctx, event_context)
         return await next(ctx)
 
+    async def process_bot_stopped(
+        self,
+        update: BotStopped,
+        ctx: Ctx,
+        next: NextMiddleware,
+    ) -> Any:
+        if UPDATE_CONTEXT_KEY not in ctx:
+            return await next(ctx)
+
+        event_context = event_context_from_bot_stopped(update, ctx)
+        ctx[EVENT_CONTEXT_KEY] = event_context
+        await self._load_default_context(update, ctx, event_context)
+        return await next(ctx)
+
+    async def process_user_added_to_chat(
+        self,
+        update: UserAddedToChat,
+        ctx: Ctx,
+        next: NextMiddleware,
+    ) -> Any:
+        if UPDATE_CONTEXT_KEY not in ctx:
+            return await next(ctx)
+
+        event_context = event_context_from_user_added_to_chat(update, ctx)
+        ctx[EVENT_CONTEXT_KEY] = event_context
+        await self._load_default_context(update, ctx, event_context)
+        return await next(ctx)
+
+    async def process_user_removed_from_chat(
+        self,
+        update: UserRemovedFromChat,
+        ctx: Ctx,
+        next: NextMiddleware,
+    ) -> Any:
+        if UPDATE_CONTEXT_KEY not in ctx:
+            return await next(ctx)
+
+        event_context = event_context_from_user_removed_from_chat(update, ctx)
+        ctx[EVENT_CONTEXT_KEY] = event_context
+        await self._load_default_context(update, ctx, event_context)
+        return await next(ctx)
+
+    async def process_bot_added_to_chat(
+        self,
+        update: BotAddedToChat,
+        ctx: Ctx,
+        next: NextMiddleware,
+    ) -> Any:
+        if UPDATE_CONTEXT_KEY not in ctx:
+            return await next(ctx)
+
+        event_context = event_context_from_bot_added_to_chat(update, ctx)
+        ctx[EVENT_CONTEXT_KEY] = event_context
+        await self._load_default_context(update, ctx, event_context)
+        return await next(ctx)
+
+    async def process_bot_removed_from_chat(
+        self,
+        update: BotRemovedFromChat,
+        ctx: Ctx,
+        next: NextMiddleware,
+    ) -> Any:
+        if UPDATE_CONTEXT_KEY not in ctx:
+            return await next(ctx)
+
+        event_context = event_context_from_bot_removed_from_chat(update, ctx)
+        ctx[EVENT_CONTEXT_KEY] = event_context
+        await self._load_default_context(update, ctx, event_context)
+        return await next(ctx)
+
 
 SUPPORTED_ERROR_EVENTS = (
     MessageCreated,
     MessageCallback,
     BotStarted,
+    BotStopped,
+    UserAddedToChat,
+    UserRemovedFromChat,
+    BotAddedToChat,
+    BotRemovedFromChat,
     DialogUpdateEvent,
     ErrorEvent,
 )

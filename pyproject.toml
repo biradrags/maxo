@@ -172,6 +172,8 @@ ignore = [
     "PLR", # complexity
     "FBT003",
     "SLF001",
+    "S105",
+    "S106",
 ]
 "examples/**/*.py" = ["T201", "D"]
 "src/maxo/types/*.py" = ["E501", "D", "W291", "W293"]

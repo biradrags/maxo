@@ -5,6 +5,7 @@ from maxo.omit import is_defined
 from maxo.routing.ctx import Ctx
 from maxo.routing.interfaces.middleware import BaseMiddleware, NextMiddleware
 from maxo.routing.signals.update import MaxoUpdate
+from maxo.routing.updates import BotStopped
 from maxo.routing.updates.bot_added_to_chat import BotAddedToChat
 from maxo.routing.updates.bot_removed_from_chat import BotRemovedFromChat
 from maxo.routing.updates.bot_started import BotStarted
@@ -41,6 +42,7 @@ class UpdateContextMiddleware(BaseMiddleware[MaxoUpdate[Any]]):
     def _resolve_update_context(self, update: Any) -> UpdateContext:
         chat_id = None
         user_id = None
+        chat_type = ChatType.DIALOG
 
         if isinstance(
             update,
@@ -48,6 +50,7 @@ class UpdateContextMiddleware(BaseMiddleware[MaxoUpdate[Any]]):
                 BotAddedToChat,
                 BotRemovedFromChat,
                 BotStarted,
+                BotStopped,
                 ChatTitleChanged,
                 UserAddedToChat,
                 UserRemovedFromChat,
@@ -55,12 +58,15 @@ class UpdateContextMiddleware(BaseMiddleware[MaxoUpdate[Any]]):
         ):
             chat_id = update.chat_id
             user_id = update.user.user_id
+            if hasattr(update, "is_channel"):
+                chat_type = ChatType.CHANNEL if update.is_channel else ChatType.CHAT
         elif isinstance(update, MessageCallback):
             user_id = update.user.user_id
             if update.message is not None and update.message.body is not None:
                 chat_id = (
                     update.message.recipient.chat_id or update.message.recipient.user_id
                 )
+                chat_type = update.message.recipient.chat_type
 
         elif isinstance(update, (MessageEdited, MessageCreated)):
             user_id = (
@@ -73,11 +79,12 @@ class UpdateContextMiddleware(BaseMiddleware[MaxoUpdate[Any]]):
                 chat_id = (
                     update.message.recipient.chat_id or update.message.recipient.user_id
                 )
+                chat_type = update.message.recipient.chat_type
 
         return UpdateContext(
             chat_id=chat_id,
             user_id=user_id,
-            type=ChatType.DIALOG,  # TODO: Узнать тип чата
+            type=chat_type,
         )
 
     def _resolve_user(
@@ -88,7 +95,17 @@ class UpdateContextMiddleware(BaseMiddleware[MaxoUpdate[Any]]):
             return update.message.sender
         if isinstance(update, MessageCallback):
             return update.callback.user
-        if isinstance(update, BotStarted):
+        if isinstance(
+            update,
+            (
+                UserAddedToChat,
+                UserRemovedFromChat,
+                BotAddedToChat,
+                BotRemovedFromChat,
+                BotStarted,
+                BotStopped,
+            ),
+        ):
             return update.user
         # TODO: Остальные ивенты
         return None

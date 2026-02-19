@@ -70,8 +70,8 @@ async def test_click(dp, client, message_manager) -> None:
 async def test_request_join(dp, client, message_manager) -> None:
     dp.user_added_to_chat.handler(start)
 
-    await dp.feed_signal(BeforeStartup())
-    await dp.feed_signal(AfterStartup())
+    await dp.feed_signal(BeforeStartup(), client.bot)
+    await dp.feed_signal(AfterStartup(), client.bot)
 
     await client.user_added_to_chat()
     first_message = message_manager.one_message()
@@ -82,8 +82,8 @@ async def test_request_join(dp, client, message_manager) -> None:
 async def test_my_chat_member_update(dp, client, message_manager) -> None:
     dp.bot_added_to_chat.handler(start)
 
-    await dp.feed_signal(BeforeStartup())
-    await dp.feed_signal(AfterStartup())
+    await dp.feed_signal(BeforeStartup(), client.bot)
+    await dp.feed_signal(AfterStartup(), client.bot)
 
     await client.bot_added_to_chat()
     first_message = message_manager.one_message()

@@ -51,6 +51,7 @@ from maxo.routing.interfaces import BaseRouter
 from maxo.routing.middlewares.update_context import UPDATE_CONTEXT_KEY
 from maxo.routing.updates import MessageCallback
 from maxo.routing.updates.error import ErrorEvent
+from maxo.routing.updates.message_created import MessageCreated
 from maxo.types import (
     Chat,
     Message,
@@ -496,7 +497,6 @@ class ManagerImpl(DialogManager):
     def _get_fake_user(self, user_id: int | None = None) -> User:
         """Get User if we have info about him or FakeUser instead."""
         # TODO: Сделать нормально, это нейрослоп
-        from maxo.routing.updates import MessageCreated
 
         if isinstance(self.event, MessageCreated):
             current_user = self.event.message.unsafe_sender

@@ -164,8 +164,8 @@ async def test_change_settings_bg(dp, client, second_client, message_manager) ->
 async def test_same_user(dp, client, message_manager) -> None:
     dp.message_created.handler(start, CommandStart())
 
-    await dp.feed_signal(BeforeStartup())
-    await dp.feed_signal(AfterStartup())
+    await dp.feed_signal(BeforeStartup(), client.bot)
+    await dp.feed_signal(AfterStartup(), client.bot)
 
     await client.send("/start")
     first_message = message_manager.one_message()

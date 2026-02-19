@@ -21,7 +21,8 @@ class HelloFilter(BaseFilter[MessageCreated]):
         update: MessageCreated,
         ctx: Ctx,
     ) -> bool:
-        if update.message.body.text.casefold() == "hello":
+        text = update.message.body.text
+        if text is not None and text.casefold() == "hello":
             user: User = ctx["event_from_user"]
             ctx["name"] = user.fullname
             return True

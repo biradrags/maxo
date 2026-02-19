@@ -101,8 +101,8 @@ async def test_start(bot, message_manager, client) -> None:
 
 @pytest.mark.asyncio
 async def test_next_back(dp, bot, message_manager, client) -> None:
-    await dp.feed_signal(BeforeStartup())
-    await dp.feed_signal(AfterStartup())
+    await dp.feed_signal(BeforeStartup(), client.bot)
+    await dp.feed_signal(AfterStartup(), client.bot)
 
     await client.send("/start")
     first_message = message_manager.one_message()
@@ -131,8 +131,8 @@ async def test_next_back(dp, bot, message_manager, client) -> None:
 
 @pytest.mark.asyncio
 async def test_finish_last(dp, bot, message_manager, client) -> None:
-    await dp.feed_signal(BeforeStartup())
-    await dp.feed_signal(AfterStartup())
+    await dp.feed_signal(BeforeStartup(), client.bot)
+    await dp.feed_signal(AfterStartup(), client.bot)
 
     await client.send("/start")
     first_message = message_manager.one_message()
@@ -150,8 +150,8 @@ async def test_finish_last(dp, bot, message_manager, client) -> None:
 
 @pytest.mark.asyncio
 async def test_reset_stack(dp, bot, message_manager, client) -> None:
-    await dp.feed_signal(BeforeStartup())
-    await dp.feed_signal(AfterStartup())
+    await dp.feed_signal(BeforeStartup(), client.bot)
+    await dp.feed_signal(AfterStartup(), client.bot)
 
     for _ in range(200):
         message_manager.reset_history()
@@ -171,8 +171,8 @@ async def test_reset_stack(dp, bot, message_manager, client) -> None:
 
 @pytest.mark.asyncio
 async def test_subdialog(dp, bot, message_manager, client) -> None:
-    await dp.feed_signal(BeforeStartup())
-    await dp.feed_signal(AfterStartup())
+    await dp.feed_signal(BeforeStartup(), client.bot)
+    await dp.feed_signal(AfterStartup(), client.bot)
 
     await client.send("/start")
     first_message = message_manager.one_message()

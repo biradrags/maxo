@@ -493,4 +493,4 @@ async def render_preview(
 ) -> None:
     res = await render_preview_content(router, simulate_events)
     async with anyio.open_file(Path(file), "w", encoding="utf-8") as f:
-        f.write(res)
+        await f.write(res)

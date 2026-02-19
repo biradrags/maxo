@@ -32,11 +32,12 @@ async def handle_invalid_age_exception(
     """
     This handler receives only error events with `InvalidAge` exception type.
     """
-    assert isinstance(event.error, InvalidAge)
+    assert isinstance(event.error, InvalidAge)  # noqa: S101
     logger.error("Error caught: %r while processing %r", event.error, event.update)
 
     # Bot instance is passed to the handler as a keyword argument.
-    # We can use `bot.send_message` method to send a message to the user, logging the error.
+    # We can use `bot.send_message` method to send a message to the user,
+    # logging the error.
     text = f"Error caught: {event.error!r}"
     await facade.answer_text(text)
 
@@ -66,7 +67,8 @@ async def handle_set_age(message: MessageCreated, facade: MessageCreatedFacade) 
     the `InvalidAge` exception will be raised and the `handle_invalid_age_exception`
     handler will be called.
     """
-    # To get the command object you can use `command` keyword argument with `CommandObject` type.
+    # To get the command object
+    # you can use `command` keyword argument with `CommandObject` type.
     # To get the command arguments you can use `command.args` property.
     age = (
         message.message.body.text.split(" ", 1)[1]
@@ -95,7 +97,8 @@ async def handle_set_name(
     """
     This handler receives only messages with `/name` command.
     """
-    # To get the command object you can use `command` keyword argument with `CommandObject` type.
+    # To get the command object
+    # you can use `command` keyword argument with `CommandObject` type.
     # To get the command arguments you can use `command.args` property.
     name = (
         message.message.body.text.split(" ", 1)[1]

@@ -1,3 +1,4 @@
+import random
 from datetime import UTC, datetime
 from uuid import uuid4
 
@@ -123,7 +124,7 @@ class MockMessageManager(MessageManagerProtocol):
                 converted_attachments.append(
                     PhotoAttachment(
                         payload=PhotoAttachmentPayload(
-                            photo_id=new_attachment.file_id or str(uuid4()),
+                            photo_id=random.randint(1, 1_000_000),
                             token=new_attachment.file_id or str(uuid4()),
                             url=new_attachment.url,
                         ),

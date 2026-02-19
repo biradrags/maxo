@@ -1,5 +1,6 @@
 import logging
 import os.path
+from pathlib import Path
 from typing import Any
 
 from maxo import Bot, Dispatcher
@@ -23,7 +24,7 @@ from maxo.routing.updates import MessageCallback, MessageCreated
 from maxo.utils.facades import MessageCallbackFacade, MessageCreatedFacade
 from maxo.utils.long_polling import LongPolling
 
-src_dir = os.path.normpath(os.path.join(__file__, os.path.pardir))
+BASE_DIR = Path(__file__).resolve().parent
 
 key_builder = DefaultKeyBuilder(with_destiny=True)
 dp = Dispatcher(key_builder=key_builder)
@@ -98,7 +99,7 @@ dialog = Dialog(
     Window(
         Const("Greetings! Please, introduce yourself:"),
         StaticMedia(
-            path=os.path.join(os.path.dirname(__file__), "files/watermelon.jpg"),
+            path=BASE_DIR / "files" / "watermelon.jpg",
         ),
         MessageInput(name_handler, content_types=AttachmentType.TEXT),
         MessageInput(other_type_handler),

@@ -82,8 +82,8 @@ async def test_click() -> None:
     message_manager = MockMessageManager()
     setup_dialogs(dp, message_manager=message_manager, events_isolation=event_isolation)
 
-    await dp.feed_signal(BeforeStartup())
-    await dp.feed_signal(AfterStartup())
+    await dp.feed_signal(BeforeStartup(), client.bot)
+    await dp.feed_signal(AfterStartup(), client.bot)
 
     # start
     await client.send("/start")

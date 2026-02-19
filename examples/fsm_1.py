@@ -14,6 +14,8 @@ from maxo.utils.builders import KeyboardBuilder
 from maxo.utils.facades import MessageCreatedFacade
 from maxo.utils.long_polling import LongPolling
 
+logger = logging.getLogger(__name__)
+
 dp = Dispatcher()
 
 
@@ -43,7 +45,7 @@ async def cancel_handler(
     if current_state is None:
         return
 
-    logging.info("Cancelling state %r", current_state)
+    logger.info("Cancelling state %r", current_state)
     await fsm_context.clear()
     await facade.answer_text("Cancelled.")
 

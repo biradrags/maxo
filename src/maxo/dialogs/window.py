@@ -15,7 +15,7 @@ from maxo.routing.updates import MessageCallback, MessageCreated
 from maxo.types import Recipient
 from maxo.types.update_context import UpdateContext
 
-from .api.entities import Data
+from .api.entities import Data, LinkPreviewOptions
 from .api.internal.widgets import MarkupFactory
 from .api.protocols import DialogManager, DialogProtocol
 from .dialog import OnResultEvent
@@ -112,7 +112,7 @@ class Window(WindowProtocol):
         self,
         data: dict,
         manager: DialogManager,
-    ) -> LinkPreview | None:
+    ) -> LinkPreviewOptions | None:
         if self.link_preview:
             return await self.link_preview.render_link_preview(data, manager)
         return None

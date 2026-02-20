@@ -16,6 +16,7 @@ from maxo.types import (
     InlineKeyboardAttachmentRequestPayload,
     MediaAttachmentsRequests,
     PhotoAttachmentRequest,
+    UploadEndpoint,
     UploadMediaResult,
     VideoAttachmentRequest,
 )
@@ -73,7 +74,7 @@ class AttachmentsFacade(BotMethodsFacade):
         return attachments
 
     async def upload_media(self, file: InputFile) -> tuple[UploadType, str]:
-        result = await self.bot.get_upload_url(type=file.type)
+        result: UploadEndpoint = await self.bot.get_upload_url(type=file.type)
 
         upload_result: UploadMediaResult | None
         try:

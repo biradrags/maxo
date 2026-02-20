@@ -346,6 +346,13 @@ class MessageManager(MessageManagerProtocol):
             token = None
             url = media.url
         elif media.path:
+            if media.type not in (
+                AttachmentType.IMAGE,
+                AttachmentType.VIDEO,
+                AttachmentType.AUDIO,
+                AttachmentType.FILE,
+            ):
+                raise ValueError(f"Unsupported media type for file path: {media.type}")
             return FSInputFile(media.path, UploadType(media.type))
         else:
             return None

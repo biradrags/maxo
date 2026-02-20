@@ -117,7 +117,7 @@ class MockMessageManager(MessageManagerProtocol):
         converted_attachments = []
         for media in new_message.media:
             if media.type == AttachmentType.IMAGE:
-                converted_attachments.append(  # noqa: PERF401
+                converted_attachments.append(
                     PhotoAttachment(
                         payload=PhotoAttachmentPayload(
                             photo_id=random.randint(1, 1_000_000),
@@ -127,6 +127,10 @@ class MockMessageManager(MessageManagerProtocol):
                             url=media.url,
                         ),
                     ),
+                )
+            else:
+                raise NotImplementedError(
+                    f"Unsupported media type in mock: {media.type}",
                 )
 
         keyboard = new_message.keyboard

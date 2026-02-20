@@ -74,20 +74,6 @@ class MessageManager(MessageManagerProtocol):
             else:
                 raise
 
-    async def get_media_source(
-        self,
-        media: MediaAttachment,
-        bot: Bot,
-    ) -> InputFile | str:
-        # TODO: Нужно ли? Починить или убрать
-        if media.media_id and media.media_id.token:
-            return media.media_id.token
-        if media.url:
-            if media.use_pipe:
-                return URLInputFile(media.url, bot=bot)
-            return media.url
-        return FSInputFile(media.path)
-
     def had_media(self, old_message: OldMessage) -> bool:
         # TODO: Нужно ли? Починить или убрать
         return old_message.media_id is not None
@@ -95,23 +81,6 @@ class MessageManager(MessageManagerProtocol):
     def need_media(self, new_message: NewMessage) -> bool:
         # TODO: Нужно ли? Починить или убрать
         return bool(new_message.media)
-
-    def need_reply_keyboard(self, new_message: NewMessage | None) -> bool:
-        ## TODO: Нужно ли? Починить или убрать
-        if not new_message:
-            return False
-        return isinstance(new_message.reply_markup, ReplyKeyboardMarkup)
-
-    def had_voice(self, old_message: OldMessage) -> bool:
-        # TODO: Нужно ли? Починить или убрать
-        return old_message.content_type == AttachmentType.VOICE
-
-    def need_voice(self, new_message: NewMessage) -> bool:
-        # TODO: Нужно ли? Починить или убрать
-        return (
-            new_message.media is not None
-            and new_message.media.type == AttachmentType.VOICE
-        )
 
     def _message_changed(
         self,

@@ -503,7 +503,7 @@ class ManagerImpl(DialogManager):
             return ShowMode.EDIT
         if self.current_stack().id != DEFAULT_STACK_ID:
             return ShowMode.EDIT
-        if isinstance(self.event, Message):
+        if isinstance(self.event, MessageCreated):
             return ShowMode.SEND
         return ShowMode.EDIT
 

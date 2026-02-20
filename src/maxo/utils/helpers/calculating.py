@@ -11,9 +11,13 @@ def calculate_chat_id_and_user_id(
 ) -> tuple[Omittable[int], Omittable[int]]:
     # TODO: Узнать пофиксить
     if chat_type is ChatType.CHAT:
-        return chat_id or Omitted(), user_id or Omitted()
+        # Если мы в чате, то нам не надо отправлять сообщение юзеру,
+        # поэтому остаётся только chat_id
+        return chat_id or Omitted(), Omitted()
     if chat_type is ChatType.DIALOG:
+        # Если мы в личке, то API хавает и чат, и юзера
         return chat_id or Omitted(), user_id or Omitted()
     if chat_type is ChatType.CHANNEL:
-        return chat_id or Omitted(), user_id or Omitted()
+        # То же, что ChatType.CHAT
+        return chat_id or Omitted(), Omitted()
     assert_never(chat_type)

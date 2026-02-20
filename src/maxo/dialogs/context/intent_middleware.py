@@ -172,6 +172,7 @@ class IntentMiddlewareFactory:
             state_groups=self.registry.states_groups(),
             user_id=event_context.user.id,
             chat_id=event_context.chat_id,
+            chat_type=event_context.chat_type,
         )
 
     def _check_outdated(self, intent_id: str, stack: Stack) -> None:

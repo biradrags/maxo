@@ -53,7 +53,7 @@ class BotClient:
         dp: Dispatcher,
         user_id: int = 1,
         chat_id: int = 1,
-        chat_type: ChatType = ChatType.CHAT,
+        chat_type: ChatType = ChatType.DIALOG,
         bot: Bot | None = None,
     ) -> None:
         self.chat = Chat(

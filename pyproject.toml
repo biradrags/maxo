@@ -85,6 +85,8 @@ select = [
     "ALL",
 ]
 ignore = [
+    "COM812",
+    "COM819",
     "RUF001", # https://docs.astral.sh/ruff/rules/ambiguous-unicode-character-string/
     "RUF002", # https://docs.astral.sh/ruff/rules/ambiguous-unicode-character-docstring/
     "RUF003", # https://docs.astral.sh/ruff/rules/ambiguous-unicode-character-comment/

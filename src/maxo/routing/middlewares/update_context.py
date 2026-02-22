@@ -41,20 +41,6 @@ _EVENTS_WITH_CHAT_AND_USER = (
     UserRemovedFromChat,
 )
 
-_EVENTS_WITH_USER = {
-    BotAddedToChat,
-    BotRemovedFromChat,
-    BotStarted,
-    BotStopped,
-    ChatTitleChanged,
-    DialogCleared,
-    DialogMuted,
-    DialogRemoved,
-    DialogUnmuted,
-    UserAddedToChat,
-    UserRemovedFromChat,
-}
-
 
 class UpdateContextMiddleware(BaseMiddleware[MaxoUpdate[Any]]):
     """
@@ -170,6 +156,6 @@ class UpdateContextMiddleware(BaseMiddleware[MaxoUpdate[Any]]):
             return update.message.sender
         if isinstance(update, MessageCallback):
             return update.callback.user
-        if type(update) in _EVENTS_WITH_USER:
+        if isinstance(update, _EVENTS_WITH_CHAT_AND_USER):
             return update.user
         return None

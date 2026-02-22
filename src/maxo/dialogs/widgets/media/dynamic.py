@@ -13,7 +13,7 @@ from maxo.dialogs.api.entities import MediaAttachment
 from maxo.dialogs.widgets.common import WhenCondition
 from maxo.dialogs.widgets.media import Media
 
-MediaSelector = Callable[[dict], MediaAttachment]
+MediaSelector = Callable[[dict], list[MediaAttachment]]
 
 
 class DynamicMedia(Media):
@@ -32,6 +32,6 @@ class DynamicMedia(Media):
         self,
         data: dict,
         manager: DialogManager,
-    ) -> MediaAttachment | None:
-        media: MediaAttachment | None = self.selector(data)
+    ) -> list[MediaAttachment]:
+        media: list[MediaAttachment] = self.selector(data)
         return media

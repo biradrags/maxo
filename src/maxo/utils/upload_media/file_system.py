@@ -28,6 +28,10 @@ class FSInputFile(InputFile):
         self._file_name = file_name
 
     @property
+    def path(self) -> str | Path:
+        return self._path
+
+    @property
     def type(self) -> UploadType:
         return self._type
 

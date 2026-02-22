@@ -71,7 +71,7 @@ async def test_resolve_message_created_without_enrich() -> None:
     assert uc.user_id == 5
     assert uc.chat is None
     assert uc.user is msg.message.sender
-    assert uc.type is None
+    assert uc.type == ChatType.CHAT
     assert ctx[EVENT_FROM_USER_KEY] is msg.message.sender
 
 
@@ -88,6 +88,7 @@ async def test_resolve_message_removed_without_enrich() -> None:
     assert uc.user_id == 7
     assert uc.chat is None
     assert uc.user is None
+    assert uc.type is None
     assert EVENT_FROM_USER_KEY not in ctx
 
 

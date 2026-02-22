@@ -1,3 +1,5 @@
+import warnings
+from collections.abc import Sequence
 from logging import getLogger
 
 from maxo import Bot
@@ -8,13 +10,26 @@ from maxo.dialogs.api.entities import (
     ShowMode,
 )
 from maxo.dialogs.api.protocols import (
+    MediaIdStorageProtocol,
     MessageManagerProtocol,
     MessageNotModified,
 )
-from maxo.enums import AttachmentType
+from maxo.dialogs.manager.attachment_facade import DialogAttachmentsFacade
+from maxo.enums import AttachmentType, UploadType
 from maxo.errors import MaxBotApiError, MaxBotBadRequestError
 from maxo.omit import Omitted
-from maxo.types import Callback, Message
+from maxo.types import (
+    AttachmentsRequests,
+    AudioAttachmentRequest,
+    Callback,
+    FileAttachmentRequest,
+    InlineButtons,
+    MediaAttachments,
+    MediaAttachmentsRequests,
+    Message,
+    PhotoAttachmentRequest,
+    VideoAttachmentRequest,
+)
 from maxo.utils.helpers import attachment_to_request
 from maxo.utils.upload_media import FSInputFile, InputFile
 
@@ -25,7 +40,6 @@ SEND_METHODS = {
     AttachmentType.IMAGE: "send_photo",
     AttachmentType.VIDEO: "send_video",
     AttachmentType.STICKER: "send_sticker",
-    # AttachmentType.VOICE: "send_voice",
 }
 
 INPUT_MEDIA_TYPES = {}
@@ -46,6 +60,9 @@ def _combine(sent_message: NewMessage, message_result: Message) -> OldMessage:
 
 
 class MessageManager(MessageManagerProtocol):
+    def __init__(self, media_id_storage: MediaIdStorageProtocol) -> None:
+        self.media_id_storage = media_id_storage
+
     async def answer_callback(
         self,
         bot: Bot,
@@ -62,44 +79,13 @@ class MessageManager(MessageManagerProtocol):
             else:
                 raise
 
-    async def get_media_source(
-        self,
-        media: MediaAttachment,
-        bot: Bot,
-    ) -> InputFile | str:
-        if media.file_id:
-            return media.file_id.file_id
-        if media.url:
-            if media.use_pipe:
-                # TODO: Нужно ли? Починить или убрать
-                return URLInputFile(media.url, bot=bot)
-            return media.url
-        return FSInputFile(media.path)
-
     def had_media(self, old_message: OldMessage) -> bool:
-        # TODO: Нужно ли? Починить или убрать
-        return old_message.media_id is not None
+        return any(
+            isinstance(media, MediaAttachments) for media in old_message.attachments
+        )
 
     def need_media(self, new_message: NewMessage) -> bool:
-        # TODO: Нужно ли? Починить или убрать
         return bool(new_message.media)
-
-    def need_reply_keyboard(self, new_message: NewMessage | None) -> bool:
-        ## TODO: Нужно ли? Починить или убрать
-        if not new_message:
-            return False
-        return isinstance(new_message.reply_markup, ReplyKeyboardMarkup)
-
-    def had_voice(self, old_message: OldMessage) -> bool:
-        # TODO: Нужно ли? Починить или убрать
-        return old_message.content_type == AttachmentType.VOICE
-
-    def need_voice(self, new_message: NewMessage) -> bool:
-        # TODO: Нужно ли? Починить или убрать
-        return (
-            new_message.media is not None
-            and new_message.media.type == AttachmentType.VOICE
-        )
 
     def _message_changed(
         self,
@@ -108,7 +94,7 @@ class MessageManager(MessageManagerProtocol):
     ) -> bool:
         if (
             (new_message.text != old_message.text)
-            or (new_message.keyboard)
+            or new_message.keyboard
             or
             # we do not know if link preview changed
             new_message.link_preview_options
@@ -148,10 +134,8 @@ class MessageManager(MessageManagerProtocol):
                 bool(old_message),
             )
             await self._remove_kbd(bot, old_message, new_message)
-            return _combine(
-                new_message,
-                await self.send_message(bot, new_message),
-            )
+            sent_message = await self.send_message(bot, new_message)
+            return _combine(new_message, sent_message)
 
         if not self._message_changed(new_message, old_message):
             logger.debug("Message dit not change")
@@ -160,14 +144,10 @@ class MessageManager(MessageManagerProtocol):
 
         if not self._can_edit(new_message, old_message):
             await self.remove_message_safe(bot, old_message, new_message)
-            return _combine(
-                new_message,
-                await self.send_message(bot, new_message),
-            )
-        return _combine(
-            new_message,
-            await self.edit_message_safe(bot, new_message, old_message),
-        )
+            sent_message = await self.send_message(bot, new_message)
+            return _combine(new_message, sent_message)
+        sent_message = await self.edit_message_safe(bot, new_message, old_message)
+        return _combine(new_message, sent_message)
 
     # Clear
     async def remove_kbd(
@@ -265,34 +245,99 @@ class MessageManager(MessageManagerProtocol):
         new_message: NewMessage,
         old_message: OldMessage,
     ) -> Message:
-        # TODO: Отправка медиа в несколько шагов
+        attachments = await self._build_attachments(
+            bot,
+            new_message.keyboard,
+            new_message.media,
+        )
         await bot.edit_message(
             link=new_message.link_to,
             message_id=old_message.message_id,
             text=new_message.text,
-            attachments=new_message.attachments,
+            attachments=attachments,
             format=new_message.parse_mode,
         )
         return await bot.get_message_by_id(message_id=old_message.message_id)
 
     async def send_message(self, bot: Bot, new_message: NewMessage) -> Message:
-        if (
-            new_message.link_preview_options is None
-            or new_message.link_preview_options.is_disabled is None
-        ):
-            disable_link_preview = Omitted()
-        else:
+        if new_message.link_preview_options:
             disable_link_preview = new_message.link_preview_options.is_disabled
+        else:
+            disable_link_preview = Omitted()
 
-        # TODO: Отправка медиа в несколько шагов
+        attachments = await self._build_attachments(
+            bot,
+            new_message.keyboard,
+            new_message.media,
+        )
         result = await bot.send_message(
             chat_id=new_message.recipient.chat_id,
             user_id=new_message.recipient.user_id,
             text=new_message.text,
             link=new_message.link_to,
             notify=True,
-            attachments=new_message.attachments,
+            attachments=attachments,
             format=new_message.parse_mode,
             disable_link_preview=disable_link_preview,
         )
         return result.message
+
+    async def _build_attachments(
+        self,
+        bot: Bot,
+        keyboard: Sequence[Sequence[InlineButtons]] | None,
+        media: list[MediaAttachment],
+    ) -> Sequence[AttachmentsRequests]:
+        converted_media = [self._convert_media(m) for m in media]
+        base: list[MediaAttachmentsRequests] = []
+        files: list[InputFile] = []
+        for attach in converted_media:
+            if isinstance(attach, InputFile):
+                files.append(attach)
+            elif isinstance(attach, MediaAttachmentsRequests):
+                base.append(attach)
+
+        facade = DialogAttachmentsFacade(bot, media_id_storage=self.media_id_storage)
+        return await facade.build_attachments(base=base, keyboard=keyboard, files=files)
+
+    def _convert_media(
+        self,
+        media: MediaAttachment,
+    ) -> InputFile | MediaAttachmentsRequests | None:
+        if media.media_id:
+            token = media.media_id.token
+            url = None
+        elif media.url:
+            if media.type != AttachmentType.IMAGE:
+                raise ValueError(
+                    f"URL is supported only for IMAGE media, got: {media.type}",
+                )
+            token = None
+            url = media.url
+        elif media.path:
+            if media.type not in (
+                AttachmentType.IMAGE,
+                AttachmentType.VIDEO,
+                AttachmentType.AUDIO,
+                AttachmentType.FILE,
+            ):
+                raise ValueError(f"Unsupported media type for file path: {media.type}")
+            return FSInputFile(media.path, UploadType(media.type))
+        else:
+            return None
+
+        if media.type == AttachmentType.IMAGE:
+            return PhotoAttachmentRequest.factory(token=token, url=url)
+        if media.type == AttachmentType.VIDEO:
+            return VideoAttachmentRequest.factory(token=token)
+        if media.type == AttachmentType.AUDIO:
+            return AudioAttachmentRequest.factory(token=token)
+        if media.type == AttachmentType.FILE:
+            return FileAttachmentRequest.factory(token=token)
+
+        warnings.warn(
+            f"Unknown media attachment type: {media.type}",
+            category=RuntimeWarning,
+            stacklevel=2,
+        )
+        return None

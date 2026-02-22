@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from pathlib import Path
 from typing import Protocol
 
 from maxo.dialogs.api.entities import MediaId
@@ -9,7 +10,7 @@ class MediaIdStorageProtocol(Protocol):
     @abstractmethod
     async def get_media_id(
         self,
-        path: str | None,
+        path: Path | str | None,
         url: str | None,
         type: AttachmentType,
     ) -> MediaId | None:
@@ -18,7 +19,7 @@ class MediaIdStorageProtocol(Protocol):
     @abstractmethod
     async def save_media_id(
         self,
-        path: str | None,
+        path: Path | str | None,
         url: str | None,
         type: AttachmentType,
         media_id: MediaId,

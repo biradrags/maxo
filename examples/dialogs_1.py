@@ -98,9 +98,8 @@ async def on_age_changed(
 dialog = Dialog(
     Window(
         Const("Greetings! Please, introduce yourself:"),
-        StaticMedia(
-            path=BASE_DIR / "files" / "watermelon.jpg",
-        ),
+        StaticMedia(path=BASE_DIR / "files" / "watermelon.jpg"),
+        StaticMedia(path=BASE_DIR / "files" / "naked-watermelon.png"),
         MessageInput(name_handler, content_types=AttachmentType.TEXT),
         MessageInput(other_type_handler),
         state=DialogSG.greeting,

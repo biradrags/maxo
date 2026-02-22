@@ -41,6 +41,20 @@ _EVENTS_WITH_CHAT_AND_USER = (
     UserRemovedFromChat,
 )
 
+_EVENTS_WITH_USER = {
+    BotAddedToChat,
+    BotRemovedFromChat,
+    BotStarted,
+    BotStopped,
+    ChatTitleChanged,
+    DialogCleared,
+    DialogMuted,
+    DialogRemoved,
+    DialogUnmuted,
+    UserAddedToChat,
+    UserRemovedFromChat,
+}
+
 
 class UpdateContextMiddleware(BaseMiddleware[MaxoUpdate[Any]]):
     """
@@ -107,24 +121,30 @@ class UpdateContextMiddleware(BaseMiddleware[MaxoUpdate[Any]]):
                         update_context.user = members_list.members[0]
                 except Exception as exc:
                     logger.warning("Не удалось загрузить участника чата: %s", exc, exc_info=True)
-            elif update_context.chat.type == ChatType.DIALOG and is_defined(
-                update_context.chat.dialog_with_user
+            elif (
+                update_context.chat is not None
+                and update_context.chat.type == ChatType.DIALOG
+                and is_defined(update_context.chat.dialog_with_user)
             ):
                 update_context.user = update_context.chat.unsafe_dialog_with_user
 
     def _resolve_update_context(self, update: Any) -> UpdateContext:
         chat_id = None
         user_id = None
+        chat_type: ChatType | None = ChatType.DIALOG
 
         if isinstance(update, _EVENTS_WITH_CHAT_AND_USER):
             chat_id = update.chat_id
             user_id = update.user.user_id
+            if hasattr(update, "is_channel"):
+                chat_type = ChatType.CHANNEL if update.is_channel else ChatType.CHAT
         elif isinstance(update, MessageCallback):
             user_id = update.user.user_id
             if update.message is not None:
                 chat_id = (
                     update.message.recipient.chat_id or update.message.recipient.user_id
                 )
+                chat_type = update.message.recipient.chat_type
         elif isinstance(update, (MessageEdited, MessageCreated)):
             user_id = (
                 update.message.sender.user_id
@@ -135,23 +155,21 @@ class UpdateContextMiddleware(BaseMiddleware[MaxoUpdate[Any]]):
                 chat_id = (
                     update.message.recipient.chat_id or update.message.recipient.user_id
                 )
+                chat_type = update.message.recipient.chat_type
         elif isinstance(update, MessageRemoved):
             chat_id = update.chat_id
             user_id = update.user_id
+            chat_type = None
 
-        return UpdateContext(chat_id=chat_id, user_id=user_id, type=None)
+        return UpdateContext(chat_id=chat_id, user_id=user_id, type=chat_type)
 
     def _resolve_user(self, update: Any) -> User | None:
-        if isinstance(update, MessageCreated):
+        if isinstance(update, MessageCreated) and is_defined(update.message.sender):
             return update.message.sender
         if isinstance(update, MessageEdited) and is_defined(update.message.sender):
             return update.message.sender
         if isinstance(update, MessageCallback):
             return update.callback.user
-        if isinstance(update, (BotStarted, BotStopped, BotAddedToChat, BotRemovedFromChat)):
-            return update.user
-        if isinstance(update, (UserAddedToChat, UserRemovedFromChat, ChatTitleChanged)):
-            return update.user
-        if isinstance(update, (DialogCleared, DialogMuted, DialogUnmuted, DialogRemoved)):
+        if type(update) in _EVENTS_WITH_USER:
             return update.user
         return None

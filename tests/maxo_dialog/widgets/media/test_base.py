@@ -17,23 +17,23 @@ class Static(Media):
         self,
         data,
         manager: DialogManager,
-    ) -> MediaAttachment:
-        return MediaAttachment(AttachmentType.IMAGE, path=self.path)
+    ) -> list[MediaAttachment]:
+        return [MediaAttachment(AttachmentType.IMAGE, path=self.path)]
 
 
 @pytest.mark.asyncio
 async def test_or(mock_manager) -> None:
     text = Static("a") | Static("b")
     res = await text.render_media({}, mock_manager)
-    assert res == MediaAttachment(AttachmentType.IMAGE, path="a")
+    assert res == [MediaAttachment(AttachmentType.IMAGE, path="a")]
 
 
 @pytest.mark.asyncio
 async def test_or_condition(mock_manager) -> None:
     text = Static("A", when=F["a"]) | Static("B", when=F["b"]) | Static("C")
     res = await text.render_media({"a": True}, mock_manager)
-    assert res == MediaAttachment(AttachmentType.IMAGE, path="A")
+    assert res == [MediaAttachment(AttachmentType.IMAGE, path="A")]
     res = await text.render_media({"b": True}, mock_manager)
-    assert res == MediaAttachment(AttachmentType.IMAGE, path="B")
+    assert res == [MediaAttachment(AttachmentType.IMAGE, path="B")]
     res = await text.render_media({}, mock_manager)
-    assert res == MediaAttachment(AttachmentType.IMAGE, path="C")
+    assert res == [MediaAttachment(AttachmentType.IMAGE, path="C")]

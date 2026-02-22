@@ -19,7 +19,7 @@ from maxo.fsm.key_builder import DefaultKeyBuilder
 from maxo.fsm.state import State, StatesGroup
 from maxo.routing.filters import CommandStart
 from maxo.routing.signals import AfterStartup, BeforeStartup
-from maxo.types import Message
+from maxo.routing.updates import MessageCreated
 
 
 @pytest.mark.asyncio
@@ -90,7 +90,7 @@ dialog = Dialog(
 )
 
 
-async def start(message: Message, dialog_manager: DialogManager) -> None:
+async def start(message: MessageCreated, dialog_manager: DialogManager) -> None:
     await dialog_manager.start(MainSG.start, mode=StartMode.RESET_STACK)
 
 

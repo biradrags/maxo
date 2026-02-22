@@ -31,10 +31,10 @@ from maxo.dialogs.api.internal import (
     EVENT_SIMULATED,
     STACK_KEY,
     STORAGE_KEY,
-    FakeRecipient,
     FakeUser,
     Widget,
 )
+from maxo.dialogs.api.internal.fake_data import FakeChat
 from maxo.dialogs.api.protocols import (
     BaseDialogManager,
     DialogManager,
@@ -49,11 +49,8 @@ from maxo.enums import ChatStatus, ChatType
 from maxo.fsm import State
 from maxo.routing.interfaces import BaseRouter
 from maxo.routing.middlewares.update_context import UPDATE_CONTEXT_KEY
-from maxo.routing.updates import MessageCallback
-from maxo.routing.updates.error import ErrorEvent
-from maxo.routing.updates.message_created import MessageCreated
+from maxo.routing.updates import ErrorEvent, MessageCallback, MessageCreated
 from maxo.types import (
-    Chat,
     Message,
     MessageButton,
     Recipient,
@@ -369,7 +366,7 @@ class ManagerImpl(DialogManager):
             return  # no limitations for default stack
         if any(
             isinstance(button, MessageButton)
-            for button in itertools.chain(*new_message.keyboard)
+            for button in itertools.chain(*(new_message.keyboard or []))
         ):
             raise InvalidKeyboardType(
                 "Cannot use ReplyKeyboardMarkup in non default stack",
@@ -389,6 +386,8 @@ class ManagerImpl(DialogManager):
             if new_message.show_mode is ShowMode.AUTO:
                 new_message.show_mode = self._calc_show_mode()
 
+            await self._load_cached_media(new_message)
+
             self._ensure_stack_compatible(stack, new_message)
 
             try:
@@ -403,10 +402,21 @@ class ManagerImpl(DialogManager):
                 logger.debug("MessageNotModified, not storing ids")
             else:
                 self._save_last_message(sent_message)
+
         except Exception as e:
             current_state = self.current_context().state
-            e.add_note(f"maxo-dialog state: {current_state}")
+            e.add_note(f"maxo.dialogs state: {current_state}")
             raise
+
+    async def _load_cached_media(self, new_message: NewMessage) -> None:
+        for attachment in new_message.media:
+            if attachment.media_id:
+                continue
+            attachment.media_id = await self.media_id_storage.get_media_id(
+                path=attachment.path,
+                url=attachment.url,
+                type=attachment.type,
+            )
 
     def is_event_simulated(self) -> bool:
         return bool(self.middleware_data.get(EVENT_SIMULATED))
@@ -472,11 +482,11 @@ class ManagerImpl(DialogManager):
     def _calc_show_mode(self) -> ShowMode:
         if self.show_mode is not ShowMode.AUTO:
             return self.show_mode
-        if self.middleware_data[UPDATE_CONTEXT_KEY].chat_type != ChatType.CHAT:
+        if self.middleware_data[UPDATE_CONTEXT_KEY].chat_type != ChatType.DIALOG:
             return ShowMode.EDIT
         if self.current_stack().id != DEFAULT_STACK_ID:
             return ShowMode.EDIT
-        if isinstance(self.event, Message):
+        if isinstance(self.event, MessageCreated):
             return ShowMode.SEND
         return ShowMode.EDIT
 
@@ -497,11 +507,10 @@ class ManagerImpl(DialogManager):
     def _get_fake_user(self, user_id: int | None = None) -> User:
         """Get User if we have info about him or FakeUser instead."""
         # TODO: Сделать нормально, это нейрослоп
-
         if isinstance(self.event, MessageCreated):
             current_user = self.event.message.unsafe_sender
         else:
-            current_user = self.event.sender
+            current_user = self.event.user
         ###
 
         if user_id is None or user_id == current_user.id:
@@ -513,16 +522,23 @@ class ManagerImpl(DialogManager):
             last_activity_time=datetime.now(UTC),
         )
 
-    def _get_fake_chat(self, chat_id: int | None = None) -> Chat:
+    def _get_fake_chat(self, chat_id: int | None = None) -> FakeChat:
         """Get Chat if we have info about him or FakeChat instead."""
-        if current_chat := self._ctx.get(UPDATE_CONTEXT_KEY):
-            if chat_id in (None, current_chat.chat_id):
-                return current_chat
+        if update_context := self._ctx.get(UPDATE_CONTEXT_KEY):
+            if chat_id is None or chat_id == update_context.chat_id:
+                return FakeChat(
+                    chat_id=update_context.chat_id,
+                    type=update_context.chat_type,
+                    is_public=False,
+                    last_event_time=datetime.now(UTC),
+                    participants_count=1,
+                    status=ChatStatus.ACTIVE,
+                )
         elif chat_id is None:
             raise ValueError(
                 "Explicit `chat_id` is required for events without current chat",
             )
-        return FakeRecipient(
+        return FakeChat(
             chat_id=chat_id,
             type="",
             is_public=False,
@@ -551,7 +567,7 @@ class ManagerImpl(DialogManager):
             user_id=user.id,
             chat=chat,
             chat_type=chat.type,
-            chat_id=chat_id,
+            chat_id=chat.id,
         )
 
         if stack_id is None:

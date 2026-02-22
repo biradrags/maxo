@@ -31,7 +31,7 @@ class MediaScroll(Media, BaseScroll):
         self,
         data: dict,
         manager: DialogManager,
-    ) -> MediaAttachment | None:
+    ) -> list[MediaAttachment]:
         items = self.items_getter(data)
         pages = len(items)
         current_page = min(await self.get_page(manager), pages)

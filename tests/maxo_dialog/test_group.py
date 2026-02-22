@@ -17,6 +17,7 @@ from maxo.dialogs.test_tools.keyboard import InlineButtonTextLocator
 from maxo.dialogs.test_tools.memory_storage import JsonMemoryStorage
 from maxo.dialogs.widgets.kbd import Button
 from maxo.dialogs.widgets.text import Const, Format
+from maxo.enums import ChatType
 from maxo.fsm.key_builder import DefaultKeyBuilder
 from maxo.fsm.state import State, StatesGroup
 from maxo.fsm.storages.memory import SimpleEventIsolation
@@ -74,12 +75,12 @@ def dp(message_manager) -> Dispatcher:
 
 @pytest.fixture
 def client(dp) -> BotClient:
-    return BotClient(dp, chat_id=-1, user_id=1, chat_type="group")
+    return BotClient(dp, chat_id=-1, user_id=1, chat_type=ChatType.CHAT)
 
 
 @pytest.fixture
 def second_client(dp) -> BotClient:
-    return BotClient(dp, chat_id=-1, user_id=2, chat_type="group")
+    return BotClient(dp, chat_id=-1, user_id=2, chat_type=ChatType.CHAT)
 
 
 @pytest.mark.asyncio
@@ -102,6 +103,9 @@ async def test_second_user(dp, client, second_client, message_manager) -> None:
 async def test_change_settings(dp, client, second_client, message_manager) -> None:
     dp.message_created.handler(start, CommandStart())
     dp.message_created.handler(add_shared, Command("add"))
+
+    await dp.feed_signal(BeforeStartup(), client.bot)
+    await dp.feed_signal(AfterStartup(), client.bot)
 
     await client.send("/start")
     message_manager.reset_history()
@@ -133,6 +137,9 @@ async def test_change_settings(dp, client, second_client, message_manager) -> No
 async def test_change_settings_bg(dp, client, second_client, message_manager) -> None:
     dp.message_created.handler(start, CommandStart())
     dp.message_created.handler(add_shared, Command("add"))
+
+    await dp.feed_signal(BeforeStartup(), client.bot)
+    await dp.feed_signal(AfterStartup(), client.bot)
 
     await client.send("/start")
     message_manager.reset_history()
@@ -184,8 +191,12 @@ async def test_same_user(dp, client, message_manager) -> None:
 @pytest.mark.asyncio
 async def test_shared_stack(dp, client, second_client, message_manager) -> None:
     dp.message_created.handler(start_shared, CommandStart())
+
+    await dp.feed_signal(BeforeStartup(), client.bot)
+    await dp.feed_signal(AfterStartup(), client.bot)
+
     await client.send("/start")
-    await asyncio.sleep(0.02)  # synchronization workaround, fixme
+    await asyncio.sleep(0.1)  # synchronization workaround, fixme
 
     first_message = message_manager.one_message()
     assert first_message.body.text == "stub"

@@ -51,8 +51,7 @@ class AttachmentsFacade(BotMethodsFacade):
         return attachments
 
     async def build_media_attachments(
-        self,
-        files: Sequence[InputFile],
+        self, files: Sequence[InputFile]
     ) -> Sequence[MediaAttachmentsRequests]:
         attachments: list[MediaAttachmentsRequests] = []
 

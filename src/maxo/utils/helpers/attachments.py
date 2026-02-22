@@ -32,17 +32,14 @@ from maxo.types import (
 def request_to_attachment(request: AttachmentsRequests) -> Attachments:
     if isinstance(request, InlineKeyboardAttachmentRequest):
         return InlineKeyboardAttachment(
-            payload=Keyboard(buttons=request.payload.buttons),
+            payload=Keyboard(buttons=request.payload.buttons)
         )
     if isinstance(request, LocationAttachmentRequest):
         return LocationAttachment(
-            latitude=float(request.latitude),
-            longitude=float(request.longitude),
+            latitude=float(request.latitude), longitude=float(request.longitude)
         )
     if isinstance(request, ShareAttachmentRequest):
-        return ShareAttachment(
-            payload=request.payload,
-        )
+        return ShareAttachment(payload=request.payload)
 
     if isinstance(
         request,
@@ -78,7 +75,7 @@ def attachment_to_request(attachment: Attachments) -> AttachmentsRequests:
         return StickerAttachmentRequest.factory(code=attachment.payload.code)
     if isinstance(attachment, InlineKeyboardAttachment):
         return InlineKeyboardAttachmentRequest.factory(
-            buttons=attachment.payload.buttons,
+            buttons=attachment.payload.buttons
         )
     if isinstance(attachment, LocationAttachment):
         return LocationAttachmentRequest(
@@ -87,8 +84,7 @@ def attachment_to_request(attachment: Attachments) -> AttachmentsRequests:
         )
     if isinstance(attachment, ShareAttachment):
         return ShareAttachmentRequest.factory(
-            url=attachment.payload.url,
-            token=attachment.payload.token,
+            url=attachment.payload.url, token=attachment.payload.token
         )
     if isinstance(attachment, ContactAttachment):
         contact_id = (
@@ -97,8 +93,7 @@ def attachment_to_request(attachment: Attachments) -> AttachmentsRequests:
             else None
         )
         return ContactAttachmentRequest.factory(
-            contact_id=contact_id,
-            vcf_info=attachment.payload.vcf_info,
+            contact_id=contact_id, vcf_info=attachment.payload.vcf_info
         )
 
     assert_never(attachment)

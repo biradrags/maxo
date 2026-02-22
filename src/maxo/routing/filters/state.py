@@ -11,8 +11,7 @@ class StateFilter(BaseFilter[Any]):
     __slots__ = ("_states",)
 
     def __init__(
-        self,
-        *states: State | StatesGroup | type[StatesGroup] | None | str,
+        self, *states: State | StatesGroup | type[StatesGroup] | None | str
     ) -> None:
         self._states = states
 

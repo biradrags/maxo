@@ -13,9 +13,7 @@ _ReturnT_co = TypeVar("_ReturnT_co", covariant=True)
 
 class SignalObserver(
     BaseObserver[
-        _SignalT,
-        SignalHandler[_SignalT, Any],
-        SignalHandlerFn[_SignalT, Any],
+        _SignalT, SignalHandler[_SignalT, Any], SignalHandlerFn[_SignalT, Any]
     ],
     Generic[_SignalT],
 ):
@@ -44,7 +42,5 @@ class SignalObserver(
     if TYPE_CHECKING:
 
         async def execute_handler(
-            self,
-            ctx: Ctx,
-            handler: SignalHandler[_SignalT, _ReturnT_co],
+            self, ctx: Ctx, handler: SignalHandler[_SignalT, _ReturnT_co]
         ) -> _ReturnT_co: ...

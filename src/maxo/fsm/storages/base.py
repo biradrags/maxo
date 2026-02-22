@@ -15,11 +15,7 @@ class BaseStorage(ABC):
     __slots__ = ()
 
     @abstractmethod
-    async def set_state(
-        self,
-        key: StorageKey,
-        state: State | None = None,
-    ) -> None:
+    async def set_state(self, key: StorageKey, state: State | None = None) -> None:
         raise NotImplementedError
 
     @abstractmethod
@@ -27,11 +23,7 @@ class BaseStorage(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    async def set_data(
-        self,
-        key: StorageKey,
-        data: MutableMapping[str, Any],
-    ) -> None:
+    async def set_data(self, key: StorageKey, data: MutableMapping[str, Any]) -> None:
         raise NotImplementedError
 
     @abstractmethod
@@ -43,18 +35,13 @@ class BaseStorage(ABC):
         raise NotImplementedError
 
     async def get_value(
-        self,
-        storage_key: StorageKey,
-        value_key: str,
-        default: Any | None = None,
+        self, storage_key: StorageKey, value_key: str, default: Any | None = None
     ) -> Any | None:
         data = await self.get_data(storage_key)
         return copy(data.get(value_key, default))
 
     async def update_data(
-        self,
-        key: StorageKey,
-        data: MutableMapping[str, Any],
+        self, key: StorageKey, data: MutableMapping[str, Any]
     ) -> MutableMapping[str, Any]:
         current_data = await self.get_data(key=key)
         current_data.update(data)

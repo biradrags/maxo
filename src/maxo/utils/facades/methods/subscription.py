@@ -17,10 +17,7 @@ class SubscriptionMethodsFacade(BotMethodsFacade):
         types: Omittable[list[str] | None] = Omitted(),
     ) -> UpdateList:
         return await self.bot.get_updates(
-            limit=limit,
-            marker=marker,
-            timeout=timeout,
-            types=types,
+            limit=limit, marker=marker, timeout=timeout, types=types
         )
 
     async def subscribe(
@@ -30,9 +27,7 @@ class SubscriptionMethodsFacade(BotMethodsFacade):
         update_types: Omittable[list[str]] = Omitted(),
     ) -> SimpleQueryResult:
         return await self.bot.subscribe(
-            url=url,
-            secret=secret,
-            update_types=update_types,
+            url=url, secret=secret, update_types=update_types
         )
 
     async def unsubscribe(self, url: str) -> SimpleQueryResult:

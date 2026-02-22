@@ -10,8 +10,7 @@ _UpdateT = TypeVar("_UpdateT", bound=BaseUpdate)
 
 
 class ErrorEventFacade(
-    BaseUpdateFacade[ErrorEvent[_ExceptionT, _UpdateT]],
-    Generic[_ExceptionT, _UpdateT],
+    BaseUpdateFacade[ErrorEvent[_ExceptionT, _UpdateT]], Generic[_ExceptionT, _UpdateT]
 ):
     @property
     def exception(self) -> _ExceptionT:

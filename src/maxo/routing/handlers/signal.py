@@ -22,10 +22,7 @@ class SignalHandlerFn(Protocol[_SignalT, _ReturnT_co]):
     ) -> _ReturnT_co: ...
 
 
-class SignalHandler(
-    Handler[_SignalT, _ReturnT_co],
-    Generic[_SignalT, _ReturnT_co],
-):
+class SignalHandler(Handler[_SignalT, _ReturnT_co], Generic[_SignalT, _ReturnT_co]):
     __slots__ = (
         "_awaitable",
         "_filter",

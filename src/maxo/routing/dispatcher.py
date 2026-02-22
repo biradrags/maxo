@@ -58,13 +58,10 @@ class Dispatcher(Router):
         self.update.middleware.outer(FSMContextMiddleware(storage, events_isolation))
 
         # Facade settings
-
         self.update.middleware.outer(FacadeMiddleware())
 
     async def feed_max_update(
-        self,
-        update: MaxoUpdate[Any],
-        bot: Bot | None = None,
+        self, update: MaxoUpdate[Any], bot: Bot | None = None
     ) -> Any:
         loop = asyncio.get_running_loop()
         start_time = loop.time()
@@ -101,10 +98,7 @@ class Dispatcher(Router):
         ctx["ctx"] = ctx
         return await self.trigger(ctx)
 
-    async def _feed_update_handler(
-        self,
-        ctx: Ctx,
-    ) -> Any:
+    async def _feed_update_handler(self, ctx: Ctx) -> Any:
         ctx["update"] = ctx["update"].update
         return await self.trigger(ctx)
 

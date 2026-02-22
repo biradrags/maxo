@@ -3,10 +3,7 @@ from urllib.parse import urlencode, urljoin
 
 
 def _format_url(
-    url: str,
-    *path: str,
-    fragment_: str | None = None,
-    **query: Any,
+    url: str, *path: str, fragment_: str | None = None, **query: Any
 ) -> str:
     url = urljoin(url, "/".join(path), allow_fragments=True)
     if query:

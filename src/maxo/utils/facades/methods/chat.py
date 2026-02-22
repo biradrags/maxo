@@ -32,9 +32,7 @@ class ChatMethodsFacade(AttachmentsFacade, ABC):
         media: Sequence[InputFile] | None = None,
     ) -> Message:
         attachments = await self.build_attachments(
-            base=[],
-            keyboard=keyboard,
-            media=media,
+            base=[], keyboard=keyboard, media=media
         )
 
         result = await self.bot.send_message(
@@ -58,10 +56,7 @@ class ChatMethodsFacade(AttachmentsFacade, ABC):
         user_ids: Omittable[list[int] | None] = Omitted(),
     ) -> ChatMembersList:
         return await self.bot.get_members(
-            chat_id=self.chat_id,
-            count=count,
-            marker=marker,
-            user_ids=user_ids,
+            chat_id=self.chat_id, count=count, marker=marker, user_ids=user_ids
         )
 
     async def leave_chat(self) -> SimpleQueryResult:

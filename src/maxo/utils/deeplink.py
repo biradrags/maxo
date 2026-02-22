@@ -81,9 +81,7 @@ def create_deep_link(
         deep_link = create_telegram_link(username, **{cast(str, link_type): payload})
     else:
         deep_link = create_telegram_link(
-            username,
-            app_name,
-            **{cast(str, link_type): payload},
+            username, app_name, **{cast(str, link_type): payload}
         )
 
     return deep_link

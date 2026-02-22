@@ -6,8 +6,7 @@ from maxo.routing.updates.base import MaxUpdate
 
 
 def collect_used_updates(
-    router: BaseRouter,
-    used_updates: set[UpdateType] | None = None,
+    router: BaseRouter, used_updates: set[UpdateType] | None = None
 ) -> Sequence[str]:
     if used_updates is None:
         used_updates = set()

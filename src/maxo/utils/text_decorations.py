@@ -89,11 +89,8 @@ class TextDecoration(ABC):
                 entity,
                 "".join(
                     self._unparse_entities(
-                        text,
-                        sub_entities,
-                        offset=start,
-                        length=offset,
-                    ),
+                        text, sub_entities, offset=start, length=offset
+                    )
                 ),
             )
 

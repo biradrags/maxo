@@ -14,15 +14,10 @@ _UpdateT = TypeVar("_UpdateT", bound=BaseUpdate)
 
 
 def _partial_middleware(
-    middleware: BaseMiddleware[_UpdateT],
-    next: NextMiddleware[_UpdateT],
+    middleware: BaseMiddleware[_UpdateT], next: NextMiddleware[_UpdateT]
 ) -> NextMiddleware[_UpdateT]:
     async def wrapper(ctx: Ctx) -> Any:
-        return await middleware(
-            update=ctx["update"],
-            ctx=ctx,
-            next=next,
-        )
+        return await middleware(update=ctx["update"], ctx=ctx, next=next)
 
     return wrapper
 
@@ -45,8 +40,7 @@ class MiddlewareManager(Generic[_UpdateT]):
         self.middlewares.extend(middlewares)
 
     def wrap_middlewares(
-        self,
-        trigger: Callable[[Ctx], Awaitable[_ReturnT]],
+        self, trigger: Callable[[Ctx], Awaitable[_ReturnT]]
     ) -> NextMiddleware[_UpdateT]:
         middleware = cast("NextMiddleware[_UpdateT]", trigger)
 
@@ -60,10 +54,7 @@ class MiddlewareManagerFacade(Generic[_UpdateT]):
     _inner: MiddlewareManager[_UpdateT]
     _outer: MiddlewareManager[_UpdateT]
 
-    __slots__ = (
-        "_inner",
-        "_outer",
-    )
+    __slots__ = ("_inner", "_outer")
 
     def __init__(self) -> None:
         self._inner = MiddlewareManager()

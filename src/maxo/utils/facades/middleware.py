@@ -68,10 +68,7 @@ _FACADES_MAP: Mapping[type[Any], type[BaseUpdateFacade[Any]]] = {
 class FacadeMiddleware(BaseMiddleware[MaxoUpdate[Any]]):
     @final
     async def __call__(
-        self,
-        update: MaxoUpdate[Any],
-        ctx: Ctx,
-        next: NextMiddleware[MaxoUpdate[Any]],
+        self, update: MaxoUpdate[Any], ctx: Ctx, next: NextMiddleware[MaxoUpdate[Any]]
     ) -> Any:
         facade = self._facade_cls_factory(type(update.update))
         if facade:
@@ -80,7 +77,6 @@ class FacadeMiddleware(BaseMiddleware[MaxoUpdate[Any]]):
         return await next(ctx)
 
     def _facade_cls_factory(
-        self,
-        update_tp: type[BaseUpdate],
+        self, update_tp: type[BaseUpdate]
     ) -> type[BaseUpdateFacade[Any]] | None:
         return _FACADES_MAP.get(update_tp)

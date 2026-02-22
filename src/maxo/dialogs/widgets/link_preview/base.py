@@ -2,6 +2,7 @@ from maxo.dialogs import DialogManager
 from maxo.dialogs.api.entities.link_preview import LinkPreviewOptions
 from maxo.dialogs.api.internal import LinkPreviewWidget, TextWidget
 from maxo.dialogs.widgets.common import BaseWidget, WhenCondition, Whenable
+from maxo.omit import Omittable
 
 
 class LinkPreviewBase(Whenable, BaseWidget, LinkPreviewWidget):
@@ -29,18 +30,12 @@ class LinkPreview(LinkPreviewBase):
     def __init__(
         self,
         url: TextWidget | None = None,
-        is_disabled: bool = False,
-        prefer_small_media: bool = False,
-        prefer_large_media: bool = False,
-        show_above_text: bool = False,
+        is_disabled: Omittable[bool] = False,
         when: WhenCondition = None,
     ) -> None:
         super().__init__(when=when)
         self.url = url
         self.is_disabled = is_disabled
-        self.prefer_small_media = prefer_small_media
-        self.prefer_large_media = prefer_large_media
-        self.show_above_text = show_above_text
 
     async def render_link_preview(
         self,
@@ -59,7 +54,4 @@ class LinkPreview(LinkPreviewBase):
         return LinkPreviewOptions(
             url=(await self.url.render_text(data, manager) if self.url else None),
             is_disabled=self.is_disabled,
-            prefer_small_media=self.prefer_small_media,
-            prefer_large_media=self.prefer_large_media,
-            show_above_text=self.show_above_text,
         )

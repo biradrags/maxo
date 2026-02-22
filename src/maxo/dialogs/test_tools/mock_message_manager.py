@@ -4,12 +4,12 @@ from uuid import uuid4
 
 from maxo import Bot
 from maxo.dialogs import ShowMode
-from maxo.dialogs.api.entities import MediaAttachment, NewMessage, OldMessage
+from maxo.dialogs.api.entities import NewMessage, OldMessage
 from maxo.dialogs.api.protocols import (
     MessageManagerProtocol,
     MessageNotModified,
 )
-from maxo.enums import AttachmentType, ChatType
+from maxo.enums import AttachmentType
 from maxo.types import (
     Callback,
     InlineKeyboardAttachment,
@@ -20,20 +20,6 @@ from maxo.types import (
     PhotoAttachmentPayload,
     Recipient,
 )
-
-
-def file_id(media: MediaAttachment) -> str:
-    file_id_ = None
-    if media.file_id:
-        file_id_ = media.file_id.file_id
-    return file_id_ or str(uuid4())
-
-
-def file_unique_id(media: MediaAttachment) -> str:
-    file_unique_id_ = None
-    if media.file_id:
-        file_unique_id_ = media.file_id.file_unique_id
-    return file_unique_id_ or str(uuid4())
 
 
 class MockMessageManager(MessageManagerProtocol):
@@ -80,9 +66,9 @@ class MockMessageManager(MessageManagerProtocol):
         message = Message(
             timestamp=datetime.now(UTC),
             recipient=Recipient(
-                chat_type=ChatType.CHAT,
+                chat_type=old_message.recipient.chat_type,
                 chat_id=old_message.recipient.chat_id,
-                user_id=old_message.recipient.chat_id,
+                user_id=old_message.recipient.user_id,
             ),
             body=MessageBody(
                 mid=old_message.message_id,
@@ -119,25 +105,29 @@ class MockMessageManager(MessageManagerProtocol):
         self.last_message_id = message_id
 
         converted_attachments = []
-        for new_attachment in new_message.attachments:
-            if new_attachment.type == AttachmentType.IMAGE:
+        for media in new_message.media:
+            if media.type == AttachmentType.IMAGE:
                 converted_attachments.append(
                     PhotoAttachment(
                         payload=PhotoAttachmentPayload(
                             photo_id=random.randint(1, 1_000_000),
-                            token=new_attachment.file_id or str(uuid4()),
-                            url=new_attachment.url,
+                            token=(
+                                media.media_id.token if media.media_id else str(uuid4())
+                            ),
+                            url=media.url,
                         ),
                     ),
                 )
-            elif new_attachment.type == AttachmentType.INLINE_KEYBOARD:
-                converted_attachments.append(
-                    InlineKeyboardAttachment(
-                        payload=Keyboard(buttons=new_attachment.payload.buttons),
-                    ),
-                )
             else:
-                converted_attachments.append(new_attachment)
+                raise NotImplementedError(
+                    f"Unsupported media type in mock: {media.type}",
+                )
+
+        keyboard = new_message.keyboard
+        if keyboard:
+            converted_attachments.append(
+                InlineKeyboardAttachment(payload=Keyboard(buttons=keyboard)),
+            )
 
         self.sent_messages.append(
             Message(

@@ -39,7 +39,7 @@ class StaticMedia(Media):
         self,
         data: dict,
         manager: DialogManager,
-    ) -> MediaAttachment | None:
+    ) -> list[MediaAttachment]:
         if self.url:
             url = await self.url.render_text(data, manager)
         else:
@@ -49,10 +49,12 @@ class StaticMedia(Media):
         else:
             path = None
 
-        return MediaAttachment(
-            type=self.type,
-            url=url,
-            path=path,
-            use_pipe=self.use_pipe,
-            **self.media_params,
-        )
+        return [
+            MediaAttachment(
+                type=self.type,
+                url=url,
+                path=path,
+                use_pipe=self.use_pipe,
+                **self.media_params,
+            ),
+        ]

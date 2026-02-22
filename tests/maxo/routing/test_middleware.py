@@ -40,7 +40,7 @@ def message_created_update() -> MessageCreated:
     return MessageCreated(
         message=Message(
             body=MessageBody(mid="test", seq=1),
-            recipient=Recipient(chat_type=ChatType.CHAT, chat_id=1),
+            recipient=Recipient(chat_type=ChatType.DIALOG, chat_id=1),
             timestamp=datetime.now(UTC),
             sender=User(
                 user_id=1,

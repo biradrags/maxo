@@ -5,8 +5,13 @@ from maxo.fsm.key_builder import StorageKey
 from maxo.fsm.storages.base import BaseEventIsolation, BaseStorage
 from maxo.routing.ctx import Ctx
 from maxo.routing.interfaces.middleware import BaseMiddleware, NextMiddleware
+from maxo.routing.middlewares.update_context import UPDATE_CONTEXT_KEY
 from maxo.routing.signals.update import MaxoUpdate
 from maxo.types.update_context import UpdateContext
+
+FSM_STORAGE_KEY = "fsm_storage"  # and "storage" too
+FSM_CONTEXT_KEY = "fsm_context"
+RAW_STATE_KEY = "raw_state"
 
 
 class FSMContextMiddleware(BaseMiddleware[MaxoUpdate[Any]]):
@@ -29,9 +34,11 @@ class FSMContextMiddleware(BaseMiddleware[MaxoUpdate[Any]]):
         ctx: Ctx,
         next: NextMiddleware[MaxoUpdate[Any]],
     ) -> Any:
+        ctx[FSM_STORAGE_KEY] = self._storage
+
         storage_key = self.make_storage_key(
             bot_id=ctx["bot"].state.info.user_id,
-            update_context=ctx["update_context"],
+            update_context=ctx[UPDATE_CONTEXT_KEY],
         )
         if storage_key is None:
             return await next(ctx)
@@ -41,10 +48,8 @@ class FSMContextMiddleware(BaseMiddleware[MaxoUpdate[Any]]):
                 key=storage_key,
                 storage=self._storage,
             )
-            ctx["storage"] = self._storage
-            ctx["fsm_context"] = fsm_context
-            ctx["fsm_storage"] = self._storage
-            ctx["raw_state"] = await fsm_context.get_state()
+            ctx[FSM_CONTEXT_KEY] = fsm_context
+            ctx[RAW_STATE_KEY] = await fsm_context.get_state()
 
             return await next(ctx)
 

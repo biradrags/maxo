@@ -43,6 +43,8 @@ from maxo.utils.facades import (
     UserRemovedFromChatFacade,
 )
 
+FACADE_KEY = "facade"
+
 _FACADES_MAP: Mapping[type[Any], type[BaseUpdateFacade[Any]]] = {
     MessageCreated: MessageCreatedFacade,
     MessageCallback: MessageCallbackFacade,
@@ -73,7 +75,7 @@ class FacadeMiddleware(BaseMiddleware[MaxoUpdate[Any]]):
     ) -> Any:
         facade = self._facade_cls_factory(type(update.update))
         if facade:
-            ctx["facade"] = facade(ctx["bot"], update.update)
+            ctx[FACADE_KEY] = facade(ctx["bot"], update.update)
 
         return await next(ctx)
 

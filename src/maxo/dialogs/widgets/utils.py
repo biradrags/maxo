@@ -7,8 +7,8 @@ from .data.data_context import CompositeGetter, StaticGetter
 from .input import BaseInput, CombinedInput, MessageHandlerFunc, MessageInput
 from .kbd import Group, Keyboard
 from .link_preview import LinkPreviewBase
-from .media import Media
-from .text import Format, Multi, Text
+from .media import Media, MultiMedia
+from .text import Format, Multi as MultiText, Text
 from .widget_event import WidgetEventProcessor
 
 WidgetSrc = (
@@ -27,7 +27,7 @@ def ensure_text(widget: str | Text | Sequence[Text]) -> Text:
     if isinstance(widget, Sequence):
         if len(widget) == 1:
             return widget[0]
-        return Multi(*widget)
+        return MultiText(*widget)
     return widget
 
 
@@ -56,10 +56,10 @@ def ensure_input(
 def ensure_media(widget: Media | Sequence[Media]) -> Media:
     if isinstance(widget, Media):
         return widget
-    if len(widget) > 1:  # TODO: Case selection of media
-        raise ValueError("Only one media widget is supported")
     if len(widget) == 1:
         return widget[0]
+    if len(widget) > 1:
+        return MultiMedia(*widget)
     return Media()
 
 

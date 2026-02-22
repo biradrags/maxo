@@ -16,6 +16,7 @@
 [![GitHub Repo stars](https://img.shields.io/github/stars/K1rL3s/maxo?style=flat)](https://github.com/K1rL3s/maxo/stargazers)
 [![Supported python versions](https://img.shields.io/pypi/pyversions/maxo.svg?style=flat)](https://pypi.org/project/maxo/)
 [![Tests](https://img.shields.io/github/actions/workflow/status/K1rL3s/maxo/analyze.yml?style=flat&label=tests)](https://github.com/K1rL3s/maxo/actions)
+[![Coverage](https://codecov.io/gh/K1rL3s/maxo/graph/badge.svg?style=flat)](https://codecov.io/gh/K1rL3s/maxo)
 
 </div>
 

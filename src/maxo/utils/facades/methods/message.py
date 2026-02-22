@@ -45,10 +45,10 @@ class MessageMethodsFacade(AttachmentsFacade, ABC):
             chat_type=recipient.chat_type,
         )
 
-        attachments = await self._build_attachments(
+        attachments = await self.build_attachments(
             base=[],
             keyboard=keyboard,
-            media=media,
+            files=media,
         )
 
         result = await self.bot.send_message(
@@ -133,10 +133,10 @@ class MessageMethodsFacade(AttachmentsFacade, ABC):
         if text is None:
             text = self.message.body.text
 
-        attachments = await self._build_attachments(
+        attachments = await self.build_attachments(
             base=[],
             keyboard=keyboard,
-            media=media,
+            files=media,
         )
 
         return await self.bot.edit_message(

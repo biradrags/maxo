@@ -3,20 +3,31 @@ from typing import Any
 
 from maxo import Bot
 from maxo.enums import ChatType
-from maxo.routing.updates import MessageCallback, MessageCreated
-from maxo.routing.updates.bot_started import BotStarted
-from maxo.routing.updates.error import ErrorEvent
+from maxo.routing.updates import (
+    BotAddedToChat,
+    BotRemovedFromChat,
+    BotStarted,
+    BotStopped,
+    ErrorEvent,
+    MessageCallback,
+    MessageCreated,
+    UserAddedToChat,
+    UserRemovedFromChat,
+)
 from maxo.types import Chat, User
 
 from .update_event import DialogUpdateEvent
 
-# TODO: Добавить остальные ивенты
-#  (добавление бота, удаление бота, добавление юзера, удаление юзера)
 ChatEvent = (
     MessageCreated
     | MessageCallback
     | BotStarted
+    | BotStopped
     | DialogUpdateEvent
+    | UserAddedToChat
+    | UserRemovedFromChat
+    | BotAddedToChat
+    | BotRemovedFromChat
     | ErrorEvent[Any, Any]
 )
 

@@ -9,6 +9,7 @@ from maxo.dialogs.api.entities import (
     Stack,
 )
 from maxo.dialogs.api.exceptions import UnknownIntent, UnknownState
+from maxo.enums import ChatType
 from maxo.fsm import State, StatesGroup
 from maxo.fsm.key_builder import StorageKey
 from maxo.fsm.storages.base import BaseEventIsolation, BaseStorage
@@ -21,6 +22,7 @@ class StorageProxy:
         events_isolation: BaseEventIsolation,
         user_id: int | None,
         chat_id: int | None,
+        chat_type: ChatType | None,
         bot: Bot,
         state_groups: dict[str, type[StatesGroup]],
     ) -> None:
@@ -29,6 +31,7 @@ class StorageProxy:
         self.state_groups = state_groups
         self.user_id = user_id
         self.chat_id = chat_id
+        self.chat_type = chat_type
         self.bot = bot
         self.lock_stack = AsyncExitStack()
 
@@ -116,12 +119,14 @@ class StorageProxy:
         return StorageKey(
             bot_id=self.bot.state.info.user_id,
             chat_id=self.chat_id,
-            user_id=self.chat_id,
+            user_id=self.chat_id,  # Неожиданно, но это нужно для работы в группах
             destiny=f"aiogd:context:{intent_id}",
         )
 
     def _fixed_stack_id(self, stack_id: str) -> str:
         if stack_id != DEFAULT_STACK_ID:
+            return stack_id
+        if self.chat_type == ChatType.DIALOG:
             return stack_id
         return f"<{self.user_id}>"
 
@@ -130,7 +135,7 @@ class StorageProxy:
         return StorageKey(
             bot_id=self.bot.state.info.user_id,
             chat_id=self.chat_id,
-            user_id=self.user_id,
+            user_id=self.chat_id,  # Неожиданно, но это нужно для работы в группах
             destiny=f"aiogd:stack:{stack_id}",
         )
 

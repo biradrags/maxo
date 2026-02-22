@@ -3,6 +3,8 @@ from logging import getLogger
 from typing import Any
 
 from maxo.dialogs.api.entities import (
+    EVENT_CONTEXT_KEY,
+    EventContext,
     MarkupVariant,
     MediaAttachment,
     NewMessage,
@@ -10,15 +12,10 @@ from maxo.dialogs.api.entities import (
 from maxo.dialogs.api.internal import Widget, WindowProtocol
 from maxo.enums.text_format import TextFormat
 from maxo.fsm import State
-from maxo.routing.middlewares.update_context import UPDATE_CONTEXT_KEY
 from maxo.routing.updates import MessageCallback, MessageCreated
-from maxo.types import (
-    InlineKeyboardAttachmentRequest,
-    Recipient,
-)
-from maxo.types.update_context import UpdateContext
+from maxo.types import Recipient
 
-from .api.entities import Data
+from .api.entities import Data, LinkPreviewOptions
 from .api.internal.widgets import MarkupFactory
 from .api.protocols import DialogManager, DialogProtocol
 from .dialog import OnResultEvent
@@ -94,10 +91,10 @@ class Window(WindowProtocol):
         self,
         data: dict,
         manager: DialogManager,
-    ) -> MediaAttachment | None:
+    ) -> list[MediaAttachment]:
         if self.media:
             return await self.media.render_media(data, manager)
-        return None
+        return []
 
     async def render_kbd(
         self,
@@ -115,7 +112,9 @@ class Window(WindowProtocol):
         self,
         data: dict,
         manager: DialogManager,
-    ) -> None:
+    ) -> LinkPreviewOptions | None:
+        if self.link_preview:
+            return await self.link_preview.render_link_preview(data, manager)
         return None
 
     async def load_data(
@@ -134,11 +133,7 @@ class Window(WindowProtocol):
         manager: DialogManager,
     ) -> bool:
         if self.on_message:
-            return await self.on_message.process_message(
-                message,
-                dialog,
-                manager,
-            )
+            return await self.on_message.process_message(message, dialog, manager)
         return False
 
     async def process_callback(
@@ -148,11 +143,7 @@ class Window(WindowProtocol):
         manager: DialogManager,
     ) -> bool:
         if self.keyboard:
-            return await self.keyboard.process_callback(
-                callback,
-                dialog,
-                manager,
-            )
+            return await self.keyboard.process_callback(callback, dialog, manager)
         return False
 
     async def process_result(
@@ -170,29 +161,24 @@ class Window(WindowProtocol):
         manager: DialogManager,
     ) -> NewMessage:
         logger.debug("Show window: %s", self)
-        update_context: UpdateContext = manager.middleware_data[UPDATE_CONTEXT_KEY]
+        event_context: EventContext = manager.middleware_data[EVENT_CONTEXT_KEY]
         try:
             current_data = await self.load_data(dialog, manager)
         except Exception:
             logger.exception("Cannot get window data for state %s", self.state)
             raise
         try:
-            attachments = []
-            # TODO: Переделать с MediaAttachment на MediaAttachmentsRequests
-            # if self.media:
-            #     media_attachment = await self.render_media(current_data, manager)
-            #     if media_attachment:
-            #         attachments.append(media_attachment)
+            media = await self.render_media(current_data, manager)
 
             keyboard = await self.render_kbd(current_data, manager)
-            if any(row for row in keyboard):
-                attachments.append(InlineKeyboardAttachmentRequest.factory(keyboard))
+            if not any(row for row in keyboard):
+                keyboard = None
 
             return NewMessage(
                 recipient=Recipient(
-                    chat_type=update_context.chat_type,
-                    chat_id=update_context.chat_id,
-                    user_id=update_context.user_id,
+                    chat_type=event_context.chat_type,
+                    chat_id=event_context.chat_id,
+                    user_id=event_context.user_id,
                 ),
                 text=await self.render_text(current_data, manager),
                 parse_mode=self.parse_mode,
@@ -200,7 +186,8 @@ class Window(WindowProtocol):
                     current_data,
                     manager,
                 ),
-                attachments=attachments,
+                media=media,
+                keyboard=keyboard,
             )
         except Exception:
             logger.exception("Cannot render window for state %s", self.state)

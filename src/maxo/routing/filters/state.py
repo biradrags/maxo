@@ -4,6 +4,7 @@ from typing import Any
 from maxo import Ctx
 from maxo.fsm.state import State, StatesGroup, any_state
 from maxo.routing.filters import BaseFilter
+from maxo.routing.middlewares.fsm_context import RAW_STATE_KEY
 
 
 class StateFilter(BaseFilter[Any]):
@@ -16,7 +17,7 @@ class StateFilter(BaseFilter[Any]):
         self._states = states
 
     async def __call__(self, update: Any, ctx: Ctx) -> bool:
-        raw_state = ctx.get("raw_state")
+        raw_state = ctx.get(RAW_STATE_KEY)
 
         for state in self._states:
             if (isinstance(state, str) or state is None) and (

@@ -14,13 +14,16 @@ async def test_render_media_scroll(mock_manager) -> None:
         id="m",
     )
     res = await media.render_media(data={}, manager=mock_manager)
-    assert res.path == "/0.png"
+    assert len(res) == 1
+    assert res[0].path == "/0.png"
 
     await media.set_page(event=Mock(), page=2, manager=mock_manager)
     res = await media.render_media(data={}, manager=mock_manager)
-    assert res.path == "/2.png"
+    assert len(res) == 1
+    assert res[0].path == "/2.png"
 
     managed = media.managed(mock_manager)
     await managed.set_page(1)
     res = await media.render_media(data={}, manager=mock_manager)
-    assert res.path == "/1.png"
+    assert len(res) == 1
+    assert res[0].path == "/1.png"

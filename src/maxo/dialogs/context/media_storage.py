@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 from typing import NamedTuple, cast
 
 from cachetools import LRUCache
@@ -19,16 +19,14 @@ class MediaIdStorage(MediaIdStorageProtocol):
 
     async def get_media_id(
         self,
-        path: str | None,
+        path: Path | str | None,
         url: str | None,
         type: AttachmentType,
     ) -> MediaId | None:
         if not path and not url:
             return None
-        cached = cast(
-            "CachedMediaId | None",
-            self.cache.get((path, url, type)),
-        )
+        key = (str(path) if path else None, url, type)
+        cached = cast(CachedMediaId | None, self.cache.get(key))
         if cached is None:
             return None
 
@@ -38,23 +36,25 @@ class MediaIdStorage(MediaIdStorageProtocol):
                 return None
         return cached.media_id
 
-    def _get_file_mtime(self, path: str | None) -> float | None:
+    def _get_file_mtime(self, path: Path | str | None) -> float | None:
         if not path:
             return None
-        if not os.path.exists(path):  # noqa: PTH110
+        path = Path(path)
+        if not path.exists():
             return None
-        return os.path.getmtime(path)  # noqa: PTH204
+        return path.stat().st_mtime
 
     async def save_media_id(
         self,
-        path: str | None,
+        path: Path | str | None,
         url: str | None,
         type: AttachmentType,
         media_id: MediaId,
     ) -> None:
         if not path and not url:
             return
-        self.cache[(path, url, type)] = CachedMediaId(
+        key = (str(path) if path else None, url, type)
+        self.cache[key] = CachedMediaId(
             media_id,
             self._get_file_mtime(path),
         )

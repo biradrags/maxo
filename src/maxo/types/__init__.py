@@ -1,7 +1,12 @@
 from .attachment import Attachment
 from .attachment_payload import AttachmentPayload
 from .attachment_request import AttachmentRequest
-from .attachments import Attachments, AttachmentsRequests, MediaAttachmentsRequests
+from .attachments import (
+    Attachments,
+    AttachmentsRequests,
+    MediaAttachments,
+    MediaAttachmentsRequests,
+)
 from .audio_attachment import AudioAttachment
 from .audio_attachment_request import AudioAttachmentRequest
 from .base import MaxoType
@@ -133,6 +138,7 @@ __all__ = (
     "MarkupElements",
     "MaxoType",
     "MediaAttachmentPayload",
+    "MediaAttachments",
     "MediaAttachmentsRequests",
     "Message",
     "MessageBody",

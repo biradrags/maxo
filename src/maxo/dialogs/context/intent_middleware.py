@@ -6,7 +6,6 @@ from maxo.dialogs.api.entities import (
     EVENT_CONTEXT_KEY,
     ChatEvent,
     Context,
-    DialogUpdate,
     DialogUpdateEvent,
     EventContext,
     Stack,
@@ -23,21 +22,30 @@ from maxo.dialogs.api.protocols import (
     StackAccessValidator,
 )
 from maxo.dialogs.utils import remove_intent_id
-from maxo.enums.chat_type import ChatType
+from maxo.enums import ChatType
 from maxo.fsm.storages.base import BaseEventIsolation, BaseStorage
 from maxo.routing.ctx import Ctx
 from maxo.routing.interfaces import BaseMiddleware, NextMiddleware
+from maxo.routing.middlewares.fsm_context import FSM_STORAGE_KEY
 from maxo.routing.middlewares.update_context import (
     EVENT_FROM_USER_KEY,
     UPDATE_CONTEXT_KEY,
 )
 from maxo.routing.sentinels import UNHANDLED
-from maxo.routing.updates.base import MaxUpdate
-from maxo.routing.updates.bot_started import BotStarted
-from maxo.routing.updates.error import ErrorEvent
-from maxo.routing.updates.message_callback import MessageCallback
-from maxo.routing.updates.message_created import MessageCreated
+from maxo.routing.updates import (
+    BotAddedToChat,
+    BotRemovedFromChat,
+    BotStarted,
+    BotStopped,
+    ErrorEvent,
+    MaxUpdate,
+    MessageCallback,
+    MessageCreated,
+    UserAddedToChat,
+    UserRemovedFromChat,
+)
 from maxo.utils.facades import MessageCallbackFacade
+from maxo.utils.facades.middleware import FACADE_KEY
 
 from .storage import StorageProxy
 
@@ -68,13 +76,16 @@ def event_context_from_message(
         bot=ctx["bot"],
         user=user,
         user_id=user_id,
-        chat=None,
         chat_id=event.message.recipient.chat_id,
         chat_type=event.message.recipient.chat_type,
+        chat=None,
     )
 
 
-def event_context_from_bot_started(event: BotStarted, ctx: Ctx) -> EventContext:
+def event_context_from_bot_started(
+    event: BotStarted | BotStopped,
+    ctx: Ctx,
+) -> EventContext:
     return EventContext(
         bot=ctx["bot"],
         user=event.user,
@@ -85,14 +96,36 @@ def event_context_from_bot_started(event: BotStarted, ctx: Ctx) -> EventContext:
     )
 
 
+event_context_from_bot_stopped = event_context_from_bot_started
+
+
+def event_context_from_user_added_to_chat(
+    event: UserAddedToChat | UserRemovedFromChat | BotAddedToChat | BotRemovedFromChat,
+    ctx: Ctx,
+) -> EventContext:
+    return EventContext(
+        bot=ctx["bot"],
+        user=event.user,
+        user_id=event.user.user_id,
+        chat_id=event.chat_id,
+        chat_type=ChatType.CHANNEL if event.is_channel else ChatType.CHAT,
+        chat=None,
+    )
+
+
+event_context_from_user_removed_from_chat = event_context_from_user_added_to_chat
+event_context_from_bot_added_to_chat = event_context_from_user_added_to_chat
+event_context_from_bot_removed_from_chat = event_context_from_user_added_to_chat
+
+
 def event_context_from_aiogd(event: DialogUpdateEvent) -> EventContext:
     return EventContext(
         bot=event.bot,
-        user=event.sender,
-        user_id=event.sender.user_id,
-        chat=event.chat,
-        chat_id=event.chat.chat_id,
-        chat_type=event.chat.type,
+        user=event.user,
+        user_id=event.user.user_id,
+        chat=None,
+        chat_id=event.recipient.chat_id,
+        chat_type=event.recipient.chat_type,
     )
 
 
@@ -101,11 +134,21 @@ def event_context_from_error(event: ErrorEvent, ctx: Ctx) -> EventContext:
         return event_context_from_message(event.event, ctx)
     if isinstance(event.event, MessageCallback):
         return event_context_from_callback(event.event, ctx)
-    if isinstance(event.event, DialogUpdate) and event.event.aiogd_update:
-        return event_context_from_aiogd(event.event.aiogd_update)
+    if isinstance(event.event, DialogUpdateEvent):
+        return event_context_from_aiogd(event.event)
     if isinstance(event.event, BotStarted):
         return event_context_from_bot_started(event.event, ctx)
-    raise ValueError(f"Unsupported event type in ErrorEvent.update: {event.event}")
+    if isinstance(event.event, BotStopped):
+        return event_context_from_bot_stopped(event.event, ctx)
+    if isinstance(event.event, UserAddedToChat):
+        return event_context_from_user_added_to_chat(event.event, ctx)
+    if isinstance(event.event, UserRemovedFromChat):
+        return event_context_from_user_removed_from_chat(event.event, ctx)
+    if isinstance(event.event, BotAddedToChat):
+        return event_context_from_bot_added_to_chat(event.event, ctx)
+    if isinstance(event.event, BotRemovedFromChat):
+        return event_context_from_bot_removed_from_chat(event.event, ctx)
+    raise ValueError(f"Unsupported event in ErrorEvent.event: {event.event}")
 
 
 class IntentMiddlewareFactory:
@@ -132,6 +175,7 @@ class IntentMiddlewareFactory:
             state_groups=self.registry.states_groups(),
             user_id=event_context.user.id,
             chat_id=event_context.chat_id,
+            chat_type=event_context.chat_type,
         )
 
     def _check_outdated(self, intent_id: str, stack: Stack) -> None:
@@ -250,7 +294,7 @@ class IntentMiddlewareFactory:
     ) -> None:
         return await self._load_context_by_stack(
             event=event,
-            proxy=self.storage_proxy(event_context, ctx["fsm_storage"]),
+            proxy=self.storage_proxy(event_context, ctx[FSM_STORAGE_KEY]),
             stack_id=DEFAULT_STACK_ID,
             ctx=ctx,
         )
@@ -278,14 +322,14 @@ class IntentMiddlewareFactory:
         if update.intent_id:
             await self._load_context_by_intent(
                 event=update,
-                proxy=self.storage_proxy(event_context, ctx["fsm_storage"]),
+                proxy=self.storage_proxy(event_context, ctx[FSM_STORAGE_KEY]),
                 intent_id=update.intent_id,
                 ctx=ctx,
             )
         else:
             await self._load_context_by_stack(
                 event=update,
-                proxy=self.storage_proxy(event_context, ctx["fsm_storage"]),
+                proxy=self.storage_proxy(event_context, ctx[FSM_STORAGE_KEY]),
                 stack_id=update.stack_id,
                 ctx=ctx,
             )
@@ -308,7 +352,7 @@ class IntentMiddlewareFactory:
             if intent_id:
                 await self._load_context_by_intent(
                     event=update,
-                    proxy=self.storage_proxy(event_context, ctx["fsm_storage"]),
+                    proxy=self.storage_proxy(event_context, ctx[FSM_STORAGE_KEY]),
                     intent_id=intent_id,
                     ctx=ctx,
                 )
@@ -319,7 +363,7 @@ class IntentMiddlewareFactory:
             await self._load_default_context(update, ctx, event_context)
         result = await next(ctx)
         if result is UNHANDLED and ctx.get(FORBIDDEN_STACK_KEY):
-            facade = cast(MessageCallbackFacade, ctx["facade"])
+            facade = cast(MessageCallbackFacade, ctx[FACADE_KEY])
             await facade.callback_answer(notification="")
         return result
 
@@ -337,11 +381,86 @@ class IntentMiddlewareFactory:
         await self._load_default_context(update, ctx, event_context)
         return await next(ctx)
 
+    async def process_bot_stopped(
+        self,
+        update: BotStopped,
+        ctx: Ctx,
+        next: NextMiddleware,
+    ) -> Any:
+        if UPDATE_CONTEXT_KEY not in ctx:
+            return await next(ctx)
+
+        event_context = event_context_from_bot_stopped(update, ctx)
+        ctx[EVENT_CONTEXT_KEY] = event_context
+        await self._load_default_context(update, ctx, event_context)
+        return await next(ctx)
+
+    async def process_user_added_to_chat(
+        self,
+        update: UserAddedToChat,
+        ctx: Ctx,
+        next: NextMiddleware,
+    ) -> Any:
+        if UPDATE_CONTEXT_KEY not in ctx:
+            return await next(ctx)
+
+        event_context = event_context_from_user_added_to_chat(update, ctx)
+        ctx[EVENT_CONTEXT_KEY] = event_context
+        await self._load_default_context(update, ctx, event_context)
+        return await next(ctx)
+
+    async def process_user_removed_from_chat(
+        self,
+        update: UserRemovedFromChat,
+        ctx: Ctx,
+        next: NextMiddleware,
+    ) -> Any:
+        if UPDATE_CONTEXT_KEY not in ctx:
+            return await next(ctx)
+
+        event_context = event_context_from_user_removed_from_chat(update, ctx)
+        ctx[EVENT_CONTEXT_KEY] = event_context
+        await self._load_default_context(update, ctx, event_context)
+        return await next(ctx)
+
+    async def process_bot_added_to_chat(
+        self,
+        update: BotAddedToChat,
+        ctx: Ctx,
+        next: NextMiddleware,
+    ) -> Any:
+        if UPDATE_CONTEXT_KEY not in ctx:
+            return await next(ctx)
+
+        event_context = event_context_from_bot_added_to_chat(update, ctx)
+        ctx[EVENT_CONTEXT_KEY] = event_context
+        await self._load_default_context(update, ctx, event_context)
+        return await next(ctx)
+
+    async def process_bot_removed_from_chat(
+        self,
+        update: BotRemovedFromChat,
+        ctx: Ctx,
+        next: NextMiddleware,
+    ) -> Any:
+        if UPDATE_CONTEXT_KEY not in ctx:
+            return await next(ctx)
+
+        event_context = event_context_from_bot_removed_from_chat(update, ctx)
+        ctx[EVENT_CONTEXT_KEY] = event_context
+        await self._load_default_context(update, ctx, event_context)
+        return await next(ctx)
+
 
 SUPPORTED_ERROR_EVENTS = (
     MessageCreated,
     MessageCallback,
     BotStarted,
+    BotStopped,
+    UserAddedToChat,
+    UserRemovedFromChat,
+    BotAddedToChat,
+    BotRemovedFromChat,
     DialogUpdateEvent,
     ErrorEvent,
 )
@@ -451,11 +570,12 @@ class IntentErrorMiddleware(BaseMiddleware[ErrorEvent]):
             ctx[EVENT_CONTEXT_KEY] = event_context
             proxy = StorageProxy(
                 bot=event_context.bot,
-                storage=ctx["fsm_storage"],
+                storage=ctx[FSM_STORAGE_KEY],
                 events_isolation=self.events_isolation,
                 state_groups=self.registry.states_groups(),
                 user_id=event_context.user.id,
                 chat_id=event_context.chat_id,
+                chat_type=event_context.chat_type,
             )
             ctx[STORAGE_KEY] = proxy
             stack = await self._load_stack(proxy, update.error)

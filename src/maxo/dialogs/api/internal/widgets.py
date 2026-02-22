@@ -103,7 +103,7 @@ class MediaWidget(Widget, Protocol):
         self,
         data: dict,
         manager: DialogManager,
-    ) -> MediaAttachment | None:
+    ) -> list[MediaAttachment]:
         """Create media attachment."""
         raise NotImplementedError
 

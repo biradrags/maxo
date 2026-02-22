@@ -2,6 +2,7 @@ from .access import AccessSettings
 from .context import Context, Data
 from .events import EVENT_CONTEXT_KEY, ChatEvent, EventContext
 from .launch_mode import LaunchMode
+from .link_preview import LinkPreviewOptions
 from .media import MediaAttachment, MediaId
 from .modes import ShowMode, StartMode
 from .new_message import MarkupVariant, NewMessage, OldMessage, UnknownText
@@ -11,7 +12,6 @@ from .update_event import (
     DialogAction,
     DialogStartEvent,
     DialogSwitchEvent,
-    DialogUpdate,
     DialogUpdateEvent,
 )
 
@@ -27,10 +27,10 @@ __all__ = (
     "DialogAction",
     "DialogStartEvent",
     "DialogSwitchEvent",
-    "DialogUpdate",
     "DialogUpdateEvent",
     "EventContext",
     "LaunchMode",
+    "LinkPreviewOptions",
     "MarkupVariant",
     "MediaAttachment",
     "MediaId",

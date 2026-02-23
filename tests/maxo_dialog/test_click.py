@@ -1,3 +1,4 @@
+from collections.abc import Callable
 from typing import Any
 from unittest.mock import Mock
 
@@ -21,7 +22,7 @@ from maxo.fsm.state import State, StatesGroup
 from maxo.fsm.storages.memory import SimpleEventIsolation
 from maxo.routing.filters import CommandStart
 from maxo.routing.signals import AfterStartup, BeforeStartup
-from maxo.types import Message
+from maxo.routing.updates import MessageCallback, MessageCreated
 
 
 class MainSG(StatesGroup):
@@ -29,16 +30,27 @@ class MainSG(StatesGroup):
     next = State()
 
 
-async def on_click(_event, _button, manager: DialogManager) -> None:
+async def on_click(
+    event: MessageCallback,
+    _button: Button,
+    manager: DialogManager,
+) -> None:
     manager.middleware_data["usecase"]()
     await manager.next()
 
 
-async def on_finish(_event, _button, manager: DialogManager) -> None:
+async def on_finish(
+    event: MessageCallback,
+    button: Button,
+    manager: DialogManager,
+) -> None:
     await manager.done()
 
 
-async def second_getter(user_getter, **_kwargs: Any) -> dict[str, Any]:
+async def second_getter(
+    user_getter: Callable[[], str],
+    **_kwargs: Any,
+) -> dict[str, Any]:
     return {
         "user": user_getter(),
     }
@@ -59,7 +71,7 @@ dialog = Dialog(
 )
 
 
-async def start(message: Message, dialog_manager: DialogManager) -> None:
+async def start(message: MessageCreated, dialog_manager: DialogManager) -> None:
     await dialog_manager.start(MainSG.start, mode=StartMode.RESET_STACK)
 
 

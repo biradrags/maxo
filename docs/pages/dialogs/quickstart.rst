@@ -49,6 +49,7 @@
 .. code-block:: python
 
     from maxo import Router
+    from maxo.routing.filters import Command
     from maxo.dialogs.api.protocols import DialogManager
     from maxo.dialogs import StartMode
     from maxo.types.message import MessageCreated
@@ -66,9 +67,9 @@
 
 .. code-block:: python
 
-    import anyio
     from maxo import Bot, Dispatcher, Router
     from maxo.dialogs import setup_dialogs
+    from maxo.utils.long_polling import LongPolling
 
     def main():
         bot = Bot("ВАШ ТОКЕН БОТА")
@@ -81,7 +82,22 @@
         # Важно! Инициализируем систему диалогов
         setup_dialogs(dp)
 
-        LongPolling(dispatcher).run(bot)
+        LongPolling(dp).run(bot)
 
-if __name__ == "__main__":
-    main()
+    if __name__ == "__main__":
+        main()
+
+.. note::
+
+   При использовании ``setup_dialogs`` с FSM-хранилищем необходимо передать ``KeyBuilder`` с ``with_destiny=True``:
+
+   .. code-block:: python
+
+       from maxo.fsm import DefaultKeyBuilder, MemoryStorage
+
+       kb = DefaultKeyBuilder(with_destiny=True)
+       dp = Dispatcher(
+           storage=MemoryStorage(kb),
+       )
+
+   Подробнее: `issue #34 <https://github.com/K1rL3s/maxo/issues/34>`_.

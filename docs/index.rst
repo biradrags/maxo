@@ -1,4 +1,3 @@
-:layout: landing
 
 .. rst-class:: center
 
@@ -62,8 +61,7 @@
       :link: pages/getting-started
       :link-type: doc
 
-      Полностью асинхронный фреймворк, построенный на базе ``aiohttp`` и ``anyio``.
-      Максимальная производительность для ваших ботов.
+      Полностью асинхронный фреймворк, построенный на базе ``aiohttp``.
 
    .. grid-item-card:: :octicon:`shield-check` Строгая типизация
       :link: pages/getting-started

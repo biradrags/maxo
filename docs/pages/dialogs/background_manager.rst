@@ -3,7 +3,7 @@ Background Manager
 ==================
 
 В обычных хэндлерах и колбеках ``DialogManager`` передается в качестве аргумента автоматически.
-Но иногда вам нужно обновить диалог **из фоновой задачи** — по таймеру, по событию из Redis/Celery/Taskiq, или из стороннего сервиса.
+Иногда нужно обновить диалог **из фоновой задачи** – по таймеру, по событию из Redis/Celery/Taskiq, или из стороннего сервиса.
 
 Для этого используется ``BgManagerFactory``.
 
@@ -25,6 +25,11 @@ BgManagerFactory
         # Или просто обновление UI текущего диалога
         await manager.update({"status": "completed"})
 
+.. note::
+
+   При использовании ``BgManagerFactory`` убедитесь, что ``Dispatcher`` инициализирован с ``KeyBuilder(with_destiny=True)`` – это необходимо для корректной работы системы диалогов.
+   Подробнее: `issue #34 <https://github.com/K1rL3s/maxo/issues/34>`_.
+
 Пример: обновление диалога по расписанию
 ========================================
 
@@ -34,7 +39,7 @@ BgManagerFactory
 
     import anyio
     from maxo.dialogs import Dialog, Window
-    from maxo.dialogs.widgets.text import Format
+    from maxo.dialogs.widgets.text import Const, Format
     from maxo.dialogs.widgets.kbd import Button
     from maxo.dialogs.api.protocols import BgManagerFactory
     from maxo.fsm import State, StatesGroup

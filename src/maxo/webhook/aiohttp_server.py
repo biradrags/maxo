@@ -6,6 +6,7 @@ from abc import ABC, abstractmethod
 from json import JSONDecodeError
 from typing import TYPE_CHECKING, Any
 
+from adaptix.load_error import AggregateLoadError, LoadError
 from aiohttp import web
 from aiohttp.client_exceptions import ContentTypeError
 
@@ -97,6 +98,13 @@ class BaseRequestHandler(ABC):
         update_list = self._retort.load({"updates": [data]}, UpdateList)
         return update_list.updates[0]
 
+    def _parse_request_update(self, data: dict[str, Any]) -> Updates:  # type: ignore[valid-type]
+        try:
+            return self._parse_update(data)
+        except (LoadError, AggregateLoadError):
+            loggers.webhook.warning("Invalid webhook update payload")
+            raise web.HTTPBadRequest(text="Invalid webhook update payload") from None
+
     async def _load_request_json(self, request: web.Request) -> dict[str, Any]:
         content_type = request.content_type
         if content_type != "application/json" and not content_type.endswith("+json"):
@@ -145,7 +153,7 @@ class BaseRequestHandler(ABC):
         request: web.Request,
     ) -> web.Response:
         update_data = await self._load_request_json(request)
-        parsed = self._parse_update(update_data)
+        parsed = self._parse_request_update(update_data)
         maxo_update = MaxoUpdate(update=parsed)
         task = asyncio.create_task(
             self._background_feed_update(bot, maxo_update),
@@ -160,7 +168,7 @@ class BaseRequestHandler(ABC):
         request: web.Request,
     ) -> web.Response:
         update_data = await self._load_request_json(request)
-        parsed = self._parse_update(update_data)
+        parsed = self._parse_request_update(update_data)
         maxo_update = MaxoUpdate(update=parsed)
         await self.dispatcher.feed_max_update(maxo_update, bot)
         return web.json_response({})

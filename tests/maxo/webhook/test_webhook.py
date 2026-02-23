@@ -35,6 +35,11 @@ PARSEABLE_UPDATE = {
     },
 }
 
+INVALID_UPDATE = {
+    "update_type": "unknown_event",
+    "timestamp": 1700000000000,
+}
+
 
 def _make_mock_bot() -> MagicMock:
     bot = MagicMock()
@@ -117,6 +122,21 @@ async def test_simple_handler_invalid_content_type_returns_400() -> None:
         data='{"ok": true}',
         headers={"Content-Type": "text/plain"},
     ) as resp:
+        assert resp.status == 400
+
+
+@pytest.mark.asyncio
+async def test_simple_handler_invalid_update_payload_returns_400() -> None:
+    dp = Dispatcher()
+    dp.feed_max_update = AsyncMock()
+    bot = _make_mock_bot()
+    handler = SimpleRequestHandler(dispatcher=dp, bot=bot, secret_token=None)
+    app = web.Application()
+    handler.register(app, path="/webhook")
+
+    server = TestServer(app)
+    client = TestClient(server)
+    async with client, client.post("/webhook", json=INVALID_UPDATE) as resp:
         assert resp.status == 400
 
 

@@ -72,11 +72,11 @@
     from maxo.utils.long_polling import LongPolling
 
     def main():
-        kb = DefaultKeyBuilder(with_destiny=True)
+        key_builder = DefaultKeyBuilder(with_destiny=True)
 
         bot = Bot("ВАШ ТОКЕН БОТА")
         dp = Dispatcher(
-            storage=MemoryStorage(kb)
+            key_builder=key_builder
         )
 
         # Подключаем роутер с хэндлером и роутер (диалог)
@@ -99,9 +99,9 @@
 
        from maxo.fsm import DefaultKeyBuilder, MemoryStorage
 
-       kb = DefaultKeyBuilder(with_destiny=True)
+       key_builder = DefaultKeyBuilder(with_destiny=True)
        dp = Dispatcher(
-           storage=MemoryStorage(kb),
+           key_builder=key_builder
        )
 
    Подробнее: `issue #34 <https://github.com/K1rL3s/maxo/issues/34>`_.

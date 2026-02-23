@@ -7,7 +7,13 @@ from maxo import Bot, Dispatcher
 from maxo.omit import Omitted
 from maxo.routing.updates import MessageCreated
 from maxo.utils.facades import MessageCreatedFacade
-from maxo.webhook.aiohttp_server import SimpleRequestHandler, setup_application
+from maxo.webhook import (
+    AiohttpWebAdapter,
+    SimpleEngine,
+    StaticRouting,
+    WebhookConfig,
+)
+from maxo.webhook.security import Security, StaticSecretToken
 
 bot = Bot(os.environ["TOKEN"])
 dp = Dispatcher()
@@ -26,8 +32,8 @@ async def on_startup(app: web.Application) -> None:
     webhook_url = os.environ["WEBHOOK_URL"]
     secret = os.environ.get("WEBHOOK_SECRET")
     await bot.start()
-    handler = app["webhook_handler"]
-    await handler.setup_webhook(
+    engine = app["webhook_engine"]
+    await engine.set_webhook(
         url=webhook_url,
         secret=secret if secret is not None else Omitted(),
     )
@@ -39,15 +45,20 @@ def main() -> None:
     port = int(os.environ.get("WEBHOOK_PORT", "8080"))
 
     app = web.Application()
-    handler = SimpleRequestHandler(
-        dispatcher=dp,
-        bot=bot,
-        secret_token=os.environ.get("WEBHOOK_SECRET"),
+    adapter = AiohttpWebAdapter()
+    routing = StaticRouting(url=os.environ.get("WEBHOOK_URL", f"http://{host}:{port}/webhook"))
+    secret = os.environ.get("WEBHOOK_SECRET")
+    security = Security(StaticSecretToken(secret)) if secret else None
+    engine = SimpleEngine(
+        dp,
+        bot,
+        web_adapter=adapter,
+        routing=routing,
+        security=security,
+        webhook_config=WebhookConfig(),
     )
-    handler.register(app, path="/webhook")
-    app["webhook_handler"] = handler
-    setup_application(app, dp)
-
+    engine.register(app)
+    app["webhook_engine"] = engine
     app.on_startup.append(on_startup)
     web.run_app(app, host=host, port=port)
 

@@ -2,7 +2,7 @@
 Пример мультибот webhook.
 
 Главный бот обрабатывает команды /start и /add.
-/add <token> — динамически регистрирует вторичного бота.
+/add <token> — подписывает вторичного бота на webhook по пути /webhook/bot/{token}.
 Вторичные боты отвечают эхом на сообщения.
 
 Переменные окружения:
@@ -22,17 +22,21 @@ from maxo.routing.updates import MessageCreated
 from maxo.routing.utils import collect_used_updates
 from maxo.utils.facades import MessageCreatedFacade
 from maxo.webhook import (
-    BotIdBasedRequestHandler,
-    SimpleRequestHandler,
-    setup_application,
+    AiohttpWebAdapter,
+    PathRouting,
+    SimpleEngine,
+    TokenEngine,
+    WebhookConfig,
 )
+from maxo.webhook.security import Security, StaticSecretToken
 
 main_bot = Bot(os.environ["TOKEN"])
 main_dp = Dispatcher()
-
 secondary_dp = Dispatcher()
-# Заполняется в main(); нужен в cmd_add для register_bot
-secondary_handler: BotIdBasedRequestHandler | None = None
+
+adapter = AiohttpWebAdapter()
+secret = os.environ.get("WEBHOOK_SECRET")
+security = Security(StaticSecretToken(secret)) if secret else None
 
 
 @main_dp.message_created(CommandStart())
@@ -42,32 +46,25 @@ async def cmd_start(update: MessageCreated, facade: MessageCreatedFacade) -> Non
 
 @main_dp.message_created(Command("add"))
 async def cmd_add(update: MessageCreated, facade: MessageCreatedFacade) -> None:
-    if secondary_handler is None:
-        await facade.answer_text("Вторичный handler ещё не готов")
-        return
     text = (update.message.body.text or "").strip()
     parts = text.split(maxsplit=1)
     if len(parts) < 2:
         await facade.answer_text("Использование: /add <token>")
         return
     token = parts[1].strip()
-    # Временный бот: получаем bot_id через get_my_info и подписываем на webhook
+    webhook_base = os.environ["WEBHOOK_URL"].rstrip("/")
+    webhook_url = f"{webhook_base}/webhook/bot/{token}"
     temp_bot = Bot(token=token)
     try:
         await temp_bot.start()
-        bot_id = temp_bot.state.info.user_id
-        webhook_url = os.environ["WEBHOOK_URL"]
-        secret = os.environ.get("WEBHOOK_SECRET")
-        url = f"{webhook_url.rstrip('/')}/webhook/b/{bot_id}"
-        update_types = list(collect_used_updates(secondary_dp))
+        used = collect_used_updates(secondary_dp)
+        update_types = [getattr(u, "value", getattr(u, "name", str(u))) for u in used]
         await temp_bot.subscribe(
-            url=url,
+            url=webhook_url,
             secret=secret if secret else Omitted(),
             update_types=update_types,
         )
-        # Регистрируем бота в handler — он будет обрабатывать входящие обновления по bot_id
-        await secondary_handler.register_bot(bot_id, token)
-        await facade.answer_text(f"Вторичный бот зарегистрирован (id={bot_id})")
+        await facade.answer_text("Вторичный бот подписан на webhook")
     except Exception as e:
         await facade.answer_text(f"Ошибка: {e}")
     finally:
@@ -83,12 +80,10 @@ async def secondary_echo(
 
 
 async def on_startup(app: web.Application) -> None:
-    """Подписываем главного бота на webhook при старте приложения."""
-    webhook_url = os.environ["WEBHOOK_URL"]
-    secret = os.environ.get("WEBHOOK_SECRET")
-    handler = app["main_handler"]
-    await handler.setup_webhook(
-        url=f"{webhook_url.rstrip('/')}/webhook",
+    webhook_base = os.environ["WEBHOOK_URL"].rstrip("/")
+    main_engine = app["main_engine"]
+    await main_engine.set_webhook(
+        url=f"{webhook_base}/webhook",
         secret=secret if secret is not None else Omitted(),
     )
 
@@ -96,23 +91,29 @@ async def on_startup(app: web.Application) -> None:
 def main() -> None:
     logging.basicConfig(level=logging.DEBUG)
     app = web.Application()
-    secret = os.environ.get("WEBHOOK_SECRET")
+    webhook_base = os.environ.get("WEBHOOK_URL", "http://0.0.0.0:8080").rstrip("/")
 
-    # Главный бот: один маршрут /webhook
-    main_handler = SimpleRequestHandler(
-        dispatcher=main_dp, bot=main_bot, secret_token=secret
+    main_routing = StaticRouting(url=f"{webhook_base}/webhook")
+    main_engine = SimpleEngine(
+        main_dp,
+        main_bot,
+        web_adapter=adapter,
+        routing=main_routing,
+        security=security,
+        webhook_config=WebhookConfig(),
     )
-    main_handler.register(app, path="/webhook")
-    app["main_handler"] = main_handler
-    setup_application(app, main_dp, bot=main_bot)
+    main_engine.register(app)
+    app["main_engine"] = main_engine
 
-    # Вторичные боты: маршрут /webhook/b/{bot_id}, боты добавляются через register_bot
-    global secondary_handler
-    secondary_handler = BotIdBasedRequestHandler(
-        dispatcher=secondary_dp, secret_token=secret
+    secondary_routing = PathRouting(url=f"{webhook_base}/webhook/bot/{{bot_token}}")
+    secondary_engine = TokenEngine(
+        secondary_dp,
+        web_adapter=adapter,
+        routing=secondary_routing,
+        security=security,
+        webhook_config=WebhookConfig(),
     )
-    secondary_handler.register(app, path="/webhook/b/{bot_id}")
-    setup_application(app, secondary_dp)
+    secondary_engine.register(app)
 
     app.on_startup.append(on_startup)
     web.run_app(app, host="0.0.0.0", port=8080)

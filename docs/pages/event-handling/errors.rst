@@ -46,7 +46,7 @@ ExceptionTypeFilter
     @router.error(ExceptionTypeFilter(ValueError))
     async def value_error_handler(event: ErrorEvent, facade):
         await facade.bot.send_message(
-            chat_id=event.update.chat.id, 
+            chat_id=event.event.chat.id,
             text="Вы ввели некорректные данные!"
         )
 
@@ -95,7 +95,7 @@ ExceptionMessageFilter
         # Пытаемся отправить сообщение в тот же чат, где произошла ошибка
         try:
             # event.update - это MaxoUpdate, внутри которого лежит исходное событие
-            original_update = event.update.update
+            original_update = event.event
             
             if hasattr(original_update, "message"):
                 chat_id = original_update.message.chat_id

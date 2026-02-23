@@ -70,8 +70,8 @@
     from maxo import Bot, Dispatcher, Router
     from maxo.dialogs import setup_dialogs
 
-    async def main():
-        bot = Bot("YOUR_BOT_TOKEN")
+    def main():
+        bot = Bot("ВАШ ТОКЕН БОТА")
         dp = Dispatcher()
 
         # Подключаем роутер с хэндлером и роутер (диалог)
@@ -81,7 +81,7 @@
         # Важно! Инициализируем систему диалогов
         setup_dialogs(dp)
 
-        await dp.start_polling(bot)
+        LongPolling(dispatcher).run(bot)
 
-    if __name__ == "__main__":
-        anyio.run(main)
+if __name__ == "__main__":
+    main()

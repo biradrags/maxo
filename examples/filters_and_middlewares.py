@@ -10,7 +10,7 @@ from maxo.utils.facades import MessageCreatedFacade
 from maxo.utils.long_polling import LongPolling
 
 
-# outer выполняется первым, inner — ближе к хендлеру
+# Outer выполняется всегда и до фильтров; inner - после всех фильтров, если они прошли
 class OuterMiddleware(BaseMiddleware[MessageCreated]):
     async def __call__(
         self,
@@ -59,7 +59,7 @@ dp.message_created.middleware.inner(InnerMiddleware())
 dp.message_created.middleware.outer(OuterMiddleware())
 
 
-# фильтры можно комбинировать: & (и), | (или)
+# Фильтры можно комбинировать: & (и), | (или)
 @dp.message_created(
     (ContainsTextFilter("gojo") & ContainsTextFilter("maki"))
     | ContainsTextFilter("sukuna"),

@@ -60,7 +60,7 @@ async def process_name(
     await fsm_context.update_data(name=message.message.body.text)
     await fsm_context.set_state(Form.like_bots)
     await facade.answer_text(
-        f"Приятно, {message.message.body.text}!\nНравится писать ботов?",
+        f"Приятно познакомиться, {message.message.body.text}!\nНравится писать ботов?",
         keyboard=KeyboardBuilder()
         .add(
             MessageButton(text="Да"),

@@ -12,7 +12,7 @@ from maxo.utils.long_polling import LongPolling
 dp = Dispatcher()
 
 
-# фильтр при совпадении записывает в ctx — хендлер получает name из ctx
+# Фильтр при совпадении записывает в ctx - хендлер получает name из ctx
 class HelloFilter(BaseFilter[MessageCreated]):
     def __init__(self, name: str | None = None) -> None:
         self.name = name

@@ -8,7 +8,7 @@ import os
 import sys
 from pathlib import Path
 
-# чтобы из этой папки импортировать handlers при любом текущем каталоге
+# Чтобы из этой папки импортировать handlers при любом текущем каталоге
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from maxo import Bot, Dispatcher

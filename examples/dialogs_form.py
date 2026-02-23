@@ -30,7 +30,7 @@ key_builder = DefaultKeyBuilder(with_destiny=True)
 dp = Dispatcher(key_builder=key_builder)
 
 
-# диалог — цепочка окон с getter, MessageInput и кнопками
+# Диалог - цепочка Window (окон) с виджетами (Text, Media, Input)
 class DialogSG(StatesGroup):
     greeting = State()
     age = State()
@@ -68,7 +68,7 @@ async def other_type_handler(
     dialog_manager: DialogManager,
 ) -> None:
     facade: MessageCreatedFacade = dialog_manager.middleware_data["facade"]
-    await facade.answer_text("Ожидается текст")
+    await facade.answer_text("Ожидался текст")
 
 
 async def on_finish(
@@ -81,7 +81,7 @@ async def on_finish(
         return
 
     facade: MessageCallbackFacade = dialog_manager.middleware_data["facade"]
-    await facade.callback_answer("Спасибо. Чтобы начать заново — /start")
+    await facade.callback_answer("Спасибо. Чтобы начать заново - /start")
 
     await dialog_manager.done()
 
@@ -137,7 +137,8 @@ dialog = Dialog(
 
 @dp.message_created(CommandStart())
 async def start(message: MessageCreated, dialog_manager: DialogManager) -> None:
-    # RESET_STACK — сброс стека при новом старте диалога
+    # StartMode.RESET_STACK: сброс стека при старте, пользователь начинает с первого окна;
+    # Иначе возможен переход в уже идущий диалог с сохранённым стеком
     await dialog_manager.start(DialogSG.greeting, mode=StartMode.RESET_STACK)
 
 

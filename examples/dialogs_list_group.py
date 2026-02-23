@@ -52,7 +52,7 @@ async def on_item_click(
     __: Button,
     manager: DialogManager,
 ) -> None:
-    # в ListGroup manager приходит как SubManager с полем item_id
+    # В ListGroup manager приходит как SubManager с полем item_id
     manager.dialog_data["selected_id"] = getattr(manager, "item_id", "")
     await manager.next()
 
@@ -62,7 +62,7 @@ list_dialog = Dialog(
     Window(
         Const("Выбери товар:"),
         ListGroup(
-            Button(Format("{item[name]} — {item[price]} ₽"), id="i", on_click=on_item_click),
+            Button(Format("{item[name]} - {item[price]} ₽"), id="i", on_click=on_item_click),
             id="products",
             item_id_getter=lambda x: x["id"],
             items=lambda d: d["items"],

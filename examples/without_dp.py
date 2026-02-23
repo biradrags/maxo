@@ -5,7 +5,7 @@ import os
 from maxo import Bot
 
 
-# отправка сообщения без Dispatcher — только Bot и API
+# Отправка сообщения без Dispatcher - только Bot и API
 async def main() -> None:
     logging.basicConfig(level=logging.DEBUG)
     token = os.environ["TOKEN"]

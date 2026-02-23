@@ -51,7 +51,8 @@ async def handle_invalid_exceptions(
 async def handle_set_age(message: MessageCreated, facade: MessageCreatedFacade) -> None:
     """
     Обрабатывает только сообщения с командой /age.
-    При неверном возрасте выбрасывается InvalidAge — его ловит handle_invalid_age_exception.
+    Объект команды: keyword `command`, тип CommandObject; аргументы: command.args.
+    При неверном возрасте выбрасывается InvalidAge - его ловит handle_invalid_age_exception.
     """
     age = (
         message.message.body.text.split(" ", 1)[1]
@@ -73,14 +74,18 @@ async def handle_set_name(
     message: MessageCreated,
     facade: MessageCreatedFacade,
 ) -> None:
-    """Обрабатывает только сообщения с командой /name."""
+    """
+    Обрабатывает только сообщения с командой /name.
+    Объект команды: аргумент keyword `command` с типом CommandObject.
+    Аргументы команды: свойство command.args.
+    """
     name = (
         message.message.body.text.split(" ", 1)[1]
         if message.message.body.text and " " in message.message.body.text
         else None
     )
     if not name:
-        msg = "Укажи имя аргументом команды."
+        msg = "Неверное имя. Укажи своё имя аргументом команды (например: /name Имя)."
         raise InvalidName(msg)
     await facade.reply_text(text=f"Тебя зовут {name}")
 

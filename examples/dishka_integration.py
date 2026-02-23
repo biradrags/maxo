@@ -52,13 +52,13 @@ async def main() -> None:
     container: AsyncContainer = make_async_container(AppProvider())
     bot = await container.get(Bot)
     dp = await container.get(Dispatcher)
-    # auto_inject=True — зависимости подставляются в хендлеры по типам аргументов
+    # Auto_inject=True - зависимости подставляются в хендлеры по типам аргументов
     setup_dishka(container, dp, auto_inject=True)
     dp.message_created.handler(start_handler, CommandStart())
     try:
         await LongPolling(dp).start(bot)
     finally:
-        await container.close()  # обязательно закрыть контейнер при выходе
+        await container.close()  # Обязательно закрыть контейнер при выходе
 
 
 if __name__ == "__main__":

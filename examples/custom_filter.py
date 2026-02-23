@@ -10,7 +10,7 @@ from maxo.utils.long_polling import LongPolling
 dp = Dispatcher()
 
 
-# кастомный фильтр — проверяет точное совпадение текста
+# Кастомный фильтр - проверяет точное совпадение текста
 class MyFilter(BaseFilter[MessageCreated]):
     def __init__(self, my_text: str) -> None:
         self.my_text = my_text

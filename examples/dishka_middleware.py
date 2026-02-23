@@ -75,7 +75,7 @@ async def main() -> None:
     try:
         await LongPolling(dp).start(bot)
     finally:
-        await container.close()  # обязательно закрыть контейнер при выходе
+        await container.close()  # Обязательно закрыть контейнер при выходе
 
 
 if __name__ == "__main__":

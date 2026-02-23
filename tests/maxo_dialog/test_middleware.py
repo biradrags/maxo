@@ -24,7 +24,7 @@ class MyMiddleware(BaseMiddleware[MessageCreated]):
         self,
         update: MessageCreated,
         ctx: Ctx,
-        next: NextMiddleware,
+        next: NextMiddleware[MessageCreated],
     ) -> None:
         ctx["my_key"] = "my_value"
         await next(ctx)

@@ -72,8 +72,12 @@
     from maxo.utils.long_polling import LongPolling
 
     def main():
+        kb = DefaultKeyBuilder(with_destiny=True)
+
         bot = Bot("ВАШ ТОКЕН БОТА")
-        dp = Dispatcher()
+        dp = Dispatcher(
+            storage=MemoryStorage(kb)
+        )
 
         # Подключаем роутер с хэндлером и роутер (диалог)
         dp.include(router)
@@ -89,7 +93,7 @@
 
 .. note::
 
-   При использовании ``setup_dialogs`` с FSM-хранилищем необходимо передать ``KeyBuilder`` с ``with_destiny=True``:
+   При использовании ``setup_dialogs`` с FSM-хранилищем необходимо всегда передавать ``KeyBuilder`` с ``with_destiny=True``:
 
    .. code-block:: python
 

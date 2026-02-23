@@ -206,6 +206,7 @@ class TokenBasedRequestHandler(BaseRequestHandler):
         )
         self.bot_settings: dict[str, Any] = bot_settings or {}
         self.bots: dict[str, Bot] = {}
+        self._bots_lock = asyncio.Lock()
 
     def verify_secret(self, secret_header: str, bot: Bot) -> bool:
         return True
@@ -228,7 +229,11 @@ class TokenBasedRequestHandler(BaseRequestHandler):
 
     async def resolve_bot(self, request: web.Request) -> Bot:
         token = request.match_info["bot_token"]
-        if token not in self.bots:
+        if token in self.bots:
+            return self.bots[token]
+        async with self._bots_lock:
+            if token in self.bots:
+                return self.bots[token]
             bot = Bot(token=token, **self.bot_settings)
             await bot.start()
             self.bots[token] = bot

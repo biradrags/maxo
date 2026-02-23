@@ -29,7 +29,7 @@ async def handle_invalid_age_exception(
     """Сюда попадают только ошибки с типом InvalidAge."""
     assert isinstance(event.error, InvalidAge)  # noqa: S101
     logger.error("Error caught: %r while processing %r", event.error, event.update)
-    text = f"Ошибка: {event.error!r}"
+    text = f"Поймана ошибка: {event.error!r}"
     await facade.answer_text(text)
 
 
@@ -51,8 +51,9 @@ async def handle_invalid_exceptions(
 async def handle_set_age(message: MessageCreated, facade: MessageCreatedFacade) -> None:
     """
     Обрабатывает только сообщения с командой /age.
+    Если пользователь отправил /age с неверным возрастом, выбрасывается InvalidAge -
+    его ловит handle_invalid_age_exception.
     Объект команды: keyword `command`, тип CommandObject; аргументы: command.args.
-    При неверном возрасте выбрасывается InvalidAge - его ловит handle_invalid_age_exception.
     """
     age = (
         message.message.body.text.split(" ", 1)[1]
@@ -60,7 +61,7 @@ async def handle_set_age(message: MessageCreated, facade: MessageCreatedFacade) 
         else None
     )
     if not age:
-        msg = "Укажи возраст аргументом команды."
+        msg = "Возраст не указан. Пожалуйста, укажи свой возраст аргументом команды."
         raise InvalidAge(msg)
     if not age.isdigit():
         msg = "Возраст должен быть числом"

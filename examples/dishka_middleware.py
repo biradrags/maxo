@@ -54,13 +54,12 @@ class GreetingMiddleware(BaseMiddleware[MessageCreated]):
         return await next(ctx)
 
 
-# greeting заполнен в middleware, хендлер только читает из ctx
+# Greeting заполнен в middleware, хендлер получает его аргументом из ctx
 async def message_handler(
     message: MessageCreated,
-    ctx: Ctx,
     facade: MessageCreatedFacade,
+    greeting: str,
 ) -> None:
-    greeting: str = ctx.get("greeting", "Привет!")
     await facade.answer_text(greeting)
 
 

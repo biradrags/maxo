@@ -68,6 +68,7 @@
 .. code-block:: python
 
     from maxo import Bot, Dispatcher, Router
+    from maxo.fsm import DefaultKeyBuilder
     from maxo.dialogs import setup_dialogs
     from maxo.utils.long_polling import LongPolling
 
@@ -97,7 +98,7 @@
 
    .. code-block:: python
 
-       from maxo.fsm import DefaultKeyBuilder, MemoryStorage
+       from maxo.fsm import DefaultKeyBuilder
 
        key_builder = DefaultKeyBuilder(with_destiny=True)
        dp = Dispatcher(

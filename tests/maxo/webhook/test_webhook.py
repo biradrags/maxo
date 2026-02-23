@@ -23,6 +23,16 @@ SAMPLE_UPDATE = {
     },
 }
 
+PARSEABLE_UPDATE = {
+    "update_type": "message_created",
+    "timestamp": 1700000000000,
+    "message": {
+        "body": {"mid": "mid.123", "seq": 1, "text": "hello"},
+        "recipient": {"chat_id": 456, "chat_type": "dialog"},
+        "timestamp": 1700000000000,
+    },
+}
+
 
 def _make_mock_bot() -> MagicMock:
     bot = MagicMock()
@@ -47,6 +57,13 @@ def _make_message_created() -> MessageCreated:
     )
 
 
+def test_parse_update_deserializes_message_created() -> None:
+    handler = SimpleRequestHandler(dispatcher=Dispatcher(), bot=_make_mock_bot())
+    parsed = handler._parse_update(PARSEABLE_UPDATE)
+    assert isinstance(parsed, MessageCreated)
+    assert parsed.message.body.text == "hello"
+
+
 @pytest.mark.asyncio
 async def test_simple_handler_returns_200() -> None:
     dp = Dispatcher()
@@ -55,13 +72,12 @@ async def test_simple_handler_returns_200() -> None:
     handler = SimpleRequestHandler(dispatcher=dp, bot=bot, secret_token=None)
     app = web.Application()
     handler.register(app, path="/webhook")
-    handler._parse_update = lambda data: _make_message_created()
+    handler._parse_update = lambda _data: _make_message_created()
 
     server = TestServer(app)
     client = TestClient(server)
-    async with client:
-        async with client.post("/webhook", json=SAMPLE_UPDATE) as resp:
-            assert resp.status == 200
+    async with client, client.post("/webhook", json=SAMPLE_UPDATE) as resp:
+        assert resp.status == 200
 
 
 @pytest.mark.asyncio
@@ -69,60 +85,60 @@ async def test_simple_handler_secret_valid() -> None:
     dp = Dispatcher()
     dp.feed_max_update = AsyncMock()
     bot = _make_mock_bot()
+    secret = "abc"  # noqa: S105
     handler = SimpleRequestHandler(
-        dispatcher=dp, bot=bot, secret_token="abc"
+        dispatcher=dp, bot=bot, secret_token=secret,
     )
     app = web.Application()
     handler.register(app, path="/webhook")
-    handler._parse_update = lambda data: _make_message_created()
+    handler._parse_update = lambda _data: _make_message_created()
 
     server = TestServer(app)
     client = TestClient(server)
-    async with client:
-        async with client.post(
-            "/webhook",
-            json=SAMPLE_UPDATE,
-            headers={"X-Max-Bot-Api-Secret": "abc"},
-        ) as resp:
-            assert resp.status == 200
+    async with client, client.post(
+        "/webhook",
+        json=SAMPLE_UPDATE,
+        headers={"X-Max-Bot-Api-Secret": "abc"},
+    ) as resp:
+        assert resp.status == 200
 
 
 @pytest.mark.asyncio
 async def test_simple_handler_secret_invalid() -> None:
     dp = Dispatcher()
     bot = _make_mock_bot()
+    secret = "abc"  # noqa: S105
     handler = SimpleRequestHandler(
-        dispatcher=dp, bot=bot, secret_token="abc"
+        dispatcher=dp, bot=bot, secret_token=secret,
     )
     app = web.Application()
     handler.register(app, path="/webhook")
 
     server = TestServer(app)
     client = TestClient(server)
-    async with client:
-        async with client.post(
-            "/webhook",
-            json=SAMPLE_UPDATE,
-            headers={"X-Max-Bot-Api-Secret": "wrong"},
-        ) as resp:
-            assert resp.status == 401
+    async with client, client.post(
+        "/webhook",
+        json=SAMPLE_UPDATE,
+        headers={"X-Max-Bot-Api-Secret": "wrong"},
+    ) as resp:
+        assert resp.status == 401
 
 
 @pytest.mark.asyncio
 async def test_simple_handler_secret_missing_when_required() -> None:
     dp = Dispatcher()
     bot = _make_mock_bot()
+    secret = "abc"  # noqa: S105
     handler = SimpleRequestHandler(
-        dispatcher=dp, bot=bot, secret_token="abc"
+        dispatcher=dp, bot=bot, secret_token=secret,
     )
     app = web.Application()
     handler.register(app, path="/webhook")
 
     server = TestServer(app)
     client = TestClient(server)
-    async with client:
-        async with client.post("/webhook", json=SAMPLE_UPDATE) as resp:
-            assert resp.status == 401
+    async with client, client.post("/webhook", json=SAMPLE_UPDATE) as resp:
+        assert resp.status == 401
 
 
 def test_token_based_handler_rejects_no_token_in_path() -> None:
@@ -144,13 +160,12 @@ async def test_ip_filter_allows_valid() -> None:
 
     server = TestServer(app)
     client = TestClient(server)
-    async with client:
-        async with client.post(
-            "/webhook",
-            json={},
-            headers={"X-Forwarded-For": "127.0.0.1"},
-        ) as resp:
-            assert resp.status == 200
+    async with client, client.post(
+        "/webhook",
+        json={},
+        headers={"X-Forwarded-For": "127.0.0.1"},
+    ) as resp:
+        assert resp.status == 200
 
 
 @pytest.mark.asyncio
@@ -164,10 +179,9 @@ async def test_ip_filter_blocks_invalid() -> None:
 
     server = TestServer(app)
     client = TestClient(server)
-    async with client:
-        async with client.post(
-            "/webhook",
-            json={},
-            headers={"X-Forwarded-For": "1.2.3.4"},
-        ) as resp:
-            assert resp.status == 401
+    async with client, client.post(
+        "/webhook",
+        json={},
+        headers={"X-Forwarded-For": "1.2.3.4"},
+    ) as resp:
+        assert resp.status == 401

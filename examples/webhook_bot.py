@@ -2,7 +2,9 @@ import logging
 import os
 
 from aiohttp import web
+
 from maxo import Bot, Dispatcher
+from maxo.omit import Omitted
 from maxo.routing.updates import MessageCreated
 from maxo.utils.facades import MessageCreatedFacade
 from maxo.webhook.aiohttp_server import SimpleRequestHandler, setup_application
@@ -25,11 +27,16 @@ async def on_startup(app: web.Application) -> None:
     secret = os.environ.get("WEBHOOK_SECRET")
     await bot.start()
     handler = app["webhook_handler"]
-    await handler.setup_webhook(url=webhook_url, secret=secret)
+    await handler.setup_webhook(
+        url=webhook_url,
+        secret=secret if secret is not None else Omitted(),
+    )
 
 
 def main() -> None:
     logging.basicConfig(level=logging.DEBUG)
+    host = os.environ.get("WEBHOOK_HOST", "127.0.0.1")
+    port = int(os.environ.get("WEBHOOK_PORT", "8080"))
 
     app = web.Application()
     handler = SimpleRequestHandler(
@@ -42,7 +49,7 @@ def main() -> None:
     setup_application(app, dp)
 
     app.on_startup.append(on_startup)
-    web.run_app(app, host="0.0.0.0", port=8080)
+    web.run_app(app, host=host, port=port)
 
 
 if __name__ == "__main__":

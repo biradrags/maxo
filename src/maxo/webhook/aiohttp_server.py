@@ -3,25 +3,27 @@ from __future__ import annotations
 import asyncio
 import secrets
 from abc import ABC, abstractmethod
-from collections.abc import Sequence
 from typing import TYPE_CHECKING, Any
 
 from aiohttp import web
 
 from maxo import loggers
-from maxo.omit import Omittable, Omitted, is_defined
-from maxo.routing.utils import collect_used_updates
-
-if TYPE_CHECKING:
-    from adaptix import Retort
-
 from maxo.bot.bot import Bot
+from maxo.bot.methods.subscriptions.subscribe import Subscribe
+from maxo.omit import Omittable, Omitted, is_defined
 from maxo.routing.dispatcher import Dispatcher
 from maxo.routing.signals.shutdown import AfterShutdown, BeforeShutdown
 from maxo.routing.signals.startup import AfterStartup, BeforeStartup
 from maxo.routing.signals.update import MaxoUpdate
 from maxo.routing.updates import Updates
+from maxo.routing.utils import collect_used_updates
 from maxo.serialization import create_response_loader
+from maxo.types.update_list import UpdateList
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from adaptix import Retort
 
 
 def setup_application(
@@ -37,14 +39,15 @@ def setup_application(
         **kwargs,
     }
     dispatcher.workflow_data.update(workflow_data)
+    bot = workflow_data.get("bot")
 
     async def on_startup(*a: Any, **kw: Any) -> None:
-        await dispatcher.feed_signal(BeforeStartup())
-        await dispatcher.feed_signal(AfterStartup())
+        await dispatcher.feed_signal(BeforeStartup(), bot)
+        await dispatcher.feed_signal(AfterStartup(), bot)
 
     async def on_shutdown(*a: Any, **kw: Any) -> None:
-        await dispatcher.feed_signal(BeforeShutdown())
-        await dispatcher.feed_signal(AfterShutdown())
+        await dispatcher.feed_signal(BeforeShutdown(), bot)
+        await dispatcher.feed_signal(AfterShutdown(), bot)
 
     app.on_startup.append(on_startup)
     app.on_shutdown.append(on_shutdown)
@@ -58,6 +61,7 @@ class BaseRequestHandler(ABC):
         **data: Any,
     ) -> None:
         self.dispatcher = dispatcher
+        self.dispatcher.workflow_data.update(data)
         self.handle_in_background = handle_in_background
         self._background_feed_update_tasks: set[asyncio.Task[Any]] = set()
         self._retort: Retort = create_response_loader()
@@ -88,7 +92,8 @@ class BaseRequestHandler(ABC):
         ...
 
     def _parse_update(self, data: dict[str, Any]) -> Updates:  # type: ignore[valid-type]
-        return self._retort.load(data, Updates)
+        update_list = self._retort.load({"updates": [data]}, UpdateList)
+        return update_list.updates[0]
 
     async def _background_feed_update(
         self,
@@ -172,14 +177,17 @@ class SimpleRequestHandler(BaseRequestHandler):
     ) -> None:
         if not self.bot.state.started:
             await self.bot.start()
-        types = list(update_types or collect_used_updates(self.dispatcher))
+        if is_defined(update_types):
+            types = list(update_types)
+        else:
+            types = list(collect_used_updates(self.dispatcher))
         effective_secret: Omittable[str] = Omitted()
         if is_defined(secret):
             effective_secret = secret
         elif self.secret_token:
             effective_secret = self.secret_token
-        await self.bot.subscribe(
-            url=url, secret=effective_secret, update_types=types
+        await self.bot.call_method(
+            Subscribe(url=url, secret=effective_secret, update_types=types),
         )
 
 

@@ -1,14 +1,17 @@
 from __future__ import annotations
 
 import ipaddress
-from collections.abc import Awaitable, Callable
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from aiohttp import web
-from aiohttp.typedefs import Handler
 from aiohttp.web_middlewares import middleware
 
 from maxo import loggers
+
+if TYPE_CHECKING:
+    from collections.abc import Awaitable, Callable
+
+    from aiohttp.typedefs import Handler
 
 
 class IPFilter:
@@ -28,13 +31,13 @@ class IPFilter:
         ] = set()
         for entry in allowed:
             if isinstance(entry, str):
-                try:
+                if "/" in entry:
                     network = ipaddress.ip_network(entry, strict=False)
                     self._allowed_networks.append(network)
-                except ValueError:
+                else:
                     self._allowed_addresses.add(ipaddress.ip_address(entry))
             elif isinstance(
-                entry, (ipaddress.IPv4Network, ipaddress.IPv6Network)
+                entry, (ipaddress.IPv4Network, ipaddress.IPv6Network),
             ):
                 self._allowed_networks.append(entry)
             else:
@@ -66,14 +69,14 @@ def ip_filter_middleware(
 ) -> Callable[[web.Request, Handler], Awaitable[Any]]:
     @middleware
     async def _ip_filter_middleware(
-        request: web.Request, handler: Handler
+        request: web.Request, handler: Handler,
     ) -> Any:
         ip_address, accept = check_ip(ip_filter=ip_filter, request=request)
         if not accept:
             loggers.webhook.warning(
-                "Blocking request from unauthorized IP: %s", ip_address
+                "Blocking request from unauthorized IP: %s", ip_address,
             )
-            raise web.HTTPUnauthorized()
+            raise web.HTTPUnauthorized
         return await handler(request)
 
     return _ip_filter_middleware

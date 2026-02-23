@@ -285,3 +285,69 @@ class TokenBasedRequestHandler(BaseRequestHandler):
             await bot.start()
             self.bots[token] = bot
         return self.bots[token]
+
+
+class BotIdBasedRequestHandler(BaseRequestHandler):
+    def __init__(
+        self,
+        dispatcher: Dispatcher,
+        secret_token: str | None = None,
+        handle_in_background: bool = True,
+        bot_settings: dict[str, Any] | None = None,
+        **data: Any,
+    ) -> None:
+        super().__init__(
+            dispatcher=dispatcher,
+            handle_in_background=handle_in_background,
+            **data,
+        )
+        self.secret_token = secret_token
+        self.bot_settings: dict[str, Any] = bot_settings or {}
+        self.bots: dict[int, Bot] = {}
+        self._bots_lock = asyncio.Lock()
+
+    def verify_secret(self, secret_header: str, bot: Bot) -> bool:
+        if self.secret_token:
+            return secrets.compare_digest(secret_header, self.secret_token)
+        return True
+
+    async def register_bot(self, bot_id: int, token: str) -> Bot:
+        async with self._bots_lock:
+            if bot_id in self.bots:
+                return self.bots[bot_id]
+            bot = Bot(token=token, **self.bot_settings)
+            await bot.start()
+            self.bots[bot_id] = bot
+        return self.bots[bot_id]
+
+    async def unregister_bot(self, bot_id: int) -> None:
+        async with self._bots_lock:
+            bot = self.bots.pop(bot_id, None)
+        if bot is not None:
+            await bot.close()
+
+    async def resolve_bot(self, request: web.Request) -> Bot:
+        try:
+            bot_id = int(request.match_info["bot_id"])
+        except (ValueError, KeyError):
+            raise web.HTTPNotFound() from None
+        if bot_id not in self.bots:
+            raise web.HTTPNotFound()
+        return self.bots[bot_id]
+
+    def register(
+        self,
+        app: web.Application,
+        /,
+        path: str,
+        **kwargs: Any,
+    ) -> None:
+        if "{bot_id}" not in path:
+            msg = "Path should contain '{bot_id}' substring"
+            raise ValueError(msg)
+        super().register(app, path=path, **kwargs)
+
+    async def close(self) -> None:
+        await self._wait_background_tasks()
+        for bot in self.bots.values():
+            await bot.close()

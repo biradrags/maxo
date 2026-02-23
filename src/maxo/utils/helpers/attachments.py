@@ -40,9 +40,7 @@ def request_to_attachment(request: AttachmentsRequests) -> Attachments:
             longitude=float(request.longitude),
         )
     if isinstance(request, ShareAttachmentRequest):
-        return ShareAttachment(
-            payload=request.payload,
-        )
+        return ShareAttachment(payload=request.payload)
 
     if isinstance(
         request,

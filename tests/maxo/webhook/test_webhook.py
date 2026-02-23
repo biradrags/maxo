@@ -1,3 +1,5 @@
+import asyncio
+import logging
 from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
 
@@ -223,3 +225,45 @@ async def test_ip_filter_blocks_invalid() -> None:
         headers={"X-Forwarded-For": "1.2.3.4"},
     ) as resp:
         assert resp.status == 401
+
+
+@pytest.mark.asyncio
+async def test_simple_handler_close_waits_for_background_tasks() -> None:
+    dp = Dispatcher()
+    bot = _make_mock_bot()
+    handler = SimpleRequestHandler(dispatcher=dp, bot=bot)
+    done_event = asyncio.Event()
+
+    async def background_task() -> None:
+        await done_event.wait()
+
+    task = asyncio.create_task(background_task())
+    handler._background_feed_update_tasks.add(task)
+
+    close_task = asyncio.create_task(handler.close())
+    await asyncio.sleep(0)
+    assert not close_task.done()
+    bot.close.assert_not_awaited()
+
+    done_event.set()
+    await close_task
+    bot.close.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_background_task_exception_is_logged(caplog: pytest.LogCaptureFixture) -> None:
+    dp = Dispatcher()
+    bot = _make_mock_bot()
+    handler = SimpleRequestHandler(dispatcher=dp, bot=bot)
+    caplog.set_level(logging.ERROR, logger="maxo.webhook")
+
+    async def failing_task() -> None:
+        raise RuntimeError("boom")
+
+    task = asyncio.create_task(failing_task())
+    handler._background_feed_update_tasks.add(task)
+    task.add_done_callback(handler._background_task_done)
+
+    await handler._wait_background_tasks()
+
+    assert "Webhook background task failed" in caplog.text

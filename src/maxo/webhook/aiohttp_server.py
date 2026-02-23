@@ -122,6 +122,23 @@ class BaseRequestHandler(ABC):
     ) -> None:
         await self.dispatcher.feed_max_update(update, bot)
 
+    def _background_task_done(self, task: asyncio.Task[Any]) -> None:
+        self._background_feed_update_tasks.discard(task)
+        if task.cancelled():
+            return
+        exc = task.exception()
+        if exc is not None:
+            loggers.webhook.error(
+                "Webhook background task failed",
+                exc_info=exc,
+            )
+
+    async def _wait_background_tasks(self) -> None:
+        if not self._background_feed_update_tasks:
+            return
+        tasks = tuple(self._background_feed_update_tasks)
+        await asyncio.gather(*tasks, return_exceptions=True)
+
     async def _handle_request_background(
         self,
         bot: Bot,
@@ -134,7 +151,7 @@ class BaseRequestHandler(ABC):
             self._background_feed_update(bot, maxo_update),
         )
         self._background_feed_update_tasks.add(task)
-        task.add_done_callback(self._background_feed_update_tasks.discard)
+        task.add_done_callback(self._background_task_done)
         return web.json_response({})
 
     async def _handle_request(
@@ -184,6 +201,7 @@ class SimpleRequestHandler(BaseRequestHandler):
         return True
 
     async def close(self) -> None:
+        await self._wait_background_tasks()
         await self.bot.close()
 
     async def resolve_bot(self, request: web.Request) -> Bot:
@@ -232,6 +250,7 @@ class TokenBasedRequestHandler(BaseRequestHandler):
         return True
 
     async def close(self) -> None:
+        await self._wait_background_tasks()
         for bot in self.bots.values():
             await bot.close()
 

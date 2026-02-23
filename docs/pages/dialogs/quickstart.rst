@@ -75,8 +75,8 @@
         dp = Dispatcher()
 
         # Подключаем роутер с хэндлером и роутер (диалог)
-        dp.include_router(router)
-        dp.include_router(dialog)
+        dp.include(router)
+        dp.include(dialog)
 
         # Важно! Инициализируем систему диалогов
         setup_dialogs(dp)

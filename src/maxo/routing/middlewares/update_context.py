@@ -77,7 +77,7 @@ class UpdateContextMiddleware(BaseMiddleware[MaxoUpdate[Any]]):
             chat = await bot.get_chat(chat_id=update_context.chat_id)
             update_context.chat = chat
             update_context.type = chat.type
-        except BaseException as exc:  # noqa: BLE001
+        except Exception as exc:  # noqa: BLE001
             logger.warning(
                 "Не удалось обогатить контекст: %s",
                 exc,
@@ -98,7 +98,7 @@ class UpdateContextMiddleware(BaseMiddleware[MaxoUpdate[Any]]):
                     )
                     if members_list.members:
                         update_context.user = members_list.members[0]
-                except BaseException as exc:  # noqa: BLE001
+                except Exception as exc:  # noqa: BLE001
                     logger.warning(
                         "Не удалось загрузить участника чата: %s",
                         exc,

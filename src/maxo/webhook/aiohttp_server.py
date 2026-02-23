@@ -3,9 +3,11 @@ from __future__ import annotations
 import asyncio
 import secrets
 from abc import ABC, abstractmethod
+from json import JSONDecodeError
 from typing import TYPE_CHECKING, Any
 
 from aiohttp import web
+from aiohttp.client_exceptions import ContentTypeError
 
 from maxo import loggers
 from maxo.bot.bot import Bot
@@ -95,6 +97,24 @@ class BaseRequestHandler(ABC):
         update_list = self._retort.load({"updates": [data]}, UpdateList)
         return update_list.updates[0]
 
+    async def _load_request_json(self, request: web.Request) -> dict[str, Any]:
+        content_type = request.content_type
+        if content_type != "application/json" and not content_type.endswith("+json"):
+            loggers.webhook.warning("Invalid content type: %s", content_type)
+            raise web.HTTPBadRequest(text="Invalid Content-Type, expected JSON")
+        try:
+            data = await request.json()
+        except (ContentTypeError, JSONDecodeError):
+            loggers.webhook.warning("Invalid webhook request body")
+            raise web.HTTPBadRequest(text="Invalid JSON body") from None
+        if not isinstance(data, dict):
+            loggers.webhook.warning(
+                "Invalid webhook payload type: %s",
+                type(data).__name__,
+            )
+            raise web.HTTPBadRequest(text="Webhook payload must be a JSON object")
+        return data
+
     async def _background_feed_update(
         self,
         bot: Bot,
@@ -107,7 +127,7 @@ class BaseRequestHandler(ABC):
         bot: Bot,
         request: web.Request,
     ) -> web.Response:
-        update_data = await request.json()
+        update_data = await self._load_request_json(request)
         parsed = self._parse_update(update_data)
         maxo_update = MaxoUpdate(update=parsed)
         task = asyncio.create_task(
@@ -122,7 +142,7 @@ class BaseRequestHandler(ABC):
         bot: Bot,
         request: web.Request,
     ) -> web.Response:
-        update_data = await request.json()
+        update_data = await self._load_request_json(request)
         parsed = self._parse_update(update_data)
         maxo_update = MaxoUpdate(update=parsed)
         await self.dispatcher.feed_max_update(maxo_update, bot)

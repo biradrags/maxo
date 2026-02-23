@@ -36,11 +36,6 @@
     async def admin_area(update, ctx, facade):
         ...
 
-    # Обработка сообщений ТОЛЬКО от админов И НЕ в личных сообщениях
-    @dispatcher.message_created(IsAdmin() & ~IsPrivate())
-    async def group_admin(update, ctx, facade):
-        ...
-
 Magic Filter
 ------------
 

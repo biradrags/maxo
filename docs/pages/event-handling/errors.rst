@@ -94,7 +94,7 @@ ExceptionMessageFilter
     async def error_handler(event: ErrorEvent, facade):
         # Пытаемся отправить сообщение в тот же чат, где произошла ошибка
         try:
-            original_update = event.event
+            original_update = event.update
             
             if hasattr(original_update, "message"):
                 chat_id = original_update.message.chat_id

@@ -3,11 +3,14 @@ from __future__ import annotations
 import asyncio
 import secrets
 from abc import ABC, abstractmethod
+from collections.abc import Sequence
 from typing import TYPE_CHECKING, Any
 
 from aiohttp import web
 
 from maxo import loggers
+from maxo.omit import Omittable, Omitted, is_defined
+from maxo.routing.utils import collect_used_updates
 
 if TYPE_CHECKING:
     from adaptix import Retort
@@ -160,6 +163,24 @@ class SimpleRequestHandler(BaseRequestHandler):
 
     async def resolve_bot(self, request: web.Request) -> Bot:
         return self.bot
+
+    async def setup_webhook(
+        self,
+        url: str,
+        secret: Omittable[str] = Omitted(),
+        update_types: Omittable[Sequence[str]] = Omitted(),
+    ) -> None:
+        if not self.bot.state.started:
+            await self.bot.start()
+        types = list(update_types or collect_used_updates(self.dispatcher))
+        effective_secret: Omittable[str] = Omitted()
+        if is_defined(secret):
+            effective_secret = secret
+        elif self.secret_token:
+            effective_secret = self.secret_token
+        await self.bot.subscribe(
+            url=url, secret=effective_secret, update_types=types
+        )
 
 
 class TokenBasedRequestHandler(BaseRequestHandler):

@@ -27,28 +27,18 @@ from maxo.types.update_context import UpdateContext
 UPDATE_CONTEXT_KEY: Final = "update_context"
 EVENT_FROM_USER_KEY: Final = "event_from_user"
 
-_EVENTS_WITH_CHAT_AND_USER = (
-    BotAddedToChat,
-    BotRemovedFromChat,
-    BotStarted,
-    BotStopped,
-    ChatTitleChanged,
-    DialogCleared,
-    DialogMuted,
-    DialogRemoved,
-    DialogUnmuted,
-    UserAddedToChat,
-    UserRemovedFromChat,
-)
-
 
 class UpdateContextMiddleware(BaseMiddleware[MaxoUpdate[Any]]):
     """
-    Мидлварь, заполняющий контекст апдейта (chat_id, user_id, при обогащении — chat, user).
+    Мидлварь, заполняющий контекст апдейта (chat_id, user_id.
+
+    При обогащении — chat, user.
 
     Args:
         enrich: при True запрашивать чат и при необходимости пользователя через Bot API.
-        Можно также передать enrich_update_context=True в workflow_data (например при LongPolling.run).
+        Можно также передать enrich_update_context=True в workflow_data
+        (например при LongPolling.run).
+
     """
 
     def __init__(self, enrich: bool = False) -> None:
@@ -60,24 +50,22 @@ class UpdateContextMiddleware(BaseMiddleware[MaxoUpdate[Any]]):
         ctx: Ctx,
         next: NextMiddleware[MaxoUpdate[Any]],
     ) -> Any:
-        update_context = self._resolve_update_context(update.update)
-        ctx[UPDATE_CONTEXT_KEY] = update_context
-
-        user = self._resolve_user(update.update)
-        if user is not None:
-            ctx[EVENT_FROM_USER_KEY] = user
-            update_context.user = user
-
         do_enrich = self._enrich or ctx.get("enrich_update_context", False)
-        if do_enrich and "bot" in ctx:
-            await self._enrich_context(ctx, update_context, update.update)
-        if update_context.user is not None and EVENT_FROM_USER_KEY not in ctx:
+        update_context = await self._resolve_update_context(
+            update.update,
+            do_enrich,
+            ctx,
+        )
+        ctx[UPDATE_CONTEXT_KEY] = update_context
+        if update_context.user is not None:
             ctx[EVENT_FROM_USER_KEY] = update_context.user
-
         return await next(ctx)
 
     async def _enrich_context(
-        self, ctx: Ctx, update_context: UpdateContext, update: Any
+        self,
+        ctx: Ctx,
+        update_context: UpdateContext,
+        update: Any,
     ) -> None:
         """Дополняет контекст данными чата и пользователя через Bot API."""
         bot = ctx["bot"]
@@ -89,15 +77,20 @@ class UpdateContextMiddleware(BaseMiddleware[MaxoUpdate[Any]]):
             chat = await bot.get_chat(chat_id=update_context.chat_id)
             update_context.chat = chat
             update_context.type = chat.type
-        except Exception as exc:
-            logger.warning("Не удалось обогатить контекст: %s", exc, exc_info=True)
+        except BaseException as exc:  # noqa: BLE001
+            logger.warning(
+                "Не удалось обогатить контекст: %s",
+                exc,
+                exc_info=True,
+            )
             return
         if (
             update_context.user_id is not None
             and update_context.user is None
             and isinstance(update, MessageRemoved)
         ):
-            if update_context.chat is not None and update_context.chat.type == ChatType.CHAT:
+            chat_obj = update_context.chat
+            if chat_obj is not None and chat_obj.type == ChatType.CHAT:
                 try:
                     members_list = await bot.get_members(
                         chat_id=update_context.chat_id,
@@ -105,8 +98,12 @@ class UpdateContextMiddleware(BaseMiddleware[MaxoUpdate[Any]]):
                     )
                     if members_list.members:
                         update_context.user = members_list.members[0]
-                except Exception as exc:
-                    logger.warning("Не удалось загрузить участника чата: %s", exc, exc_info=True)
+                except BaseException as exc:  # noqa: BLE001
+                    logger.warning(
+                        "Не удалось загрузить участника чата: %s",
+                        exc,
+                        exc_info=True,
+                    )
             elif (
                 update_context.chat is not None
                 and update_context.chat.type == ChatType.DIALOG
@@ -114,18 +111,41 @@ class UpdateContextMiddleware(BaseMiddleware[MaxoUpdate[Any]]):
             ):
                 update_context.user = update_context.chat.unsafe_dialog_with_user
 
-    def _resolve_update_context(self, update: Any) -> UpdateContext:
+    async def _resolve_update_context(
+        self,
+        update: Any,
+        do_enrich: bool,
+        ctx: Ctx,
+    ) -> UpdateContext:
         chat_id = None
         user_id = None
         chat_type: ChatType | None = None
+        user: User | None = None
 
-        if isinstance(update, _EVENTS_WITH_CHAT_AND_USER):
+        if isinstance(
+            update,
+            (
+                BotAddedToChat,
+                BotRemovedFromChat,
+                BotStarted,
+                BotStopped,
+                ChatTitleChanged,
+                DialogCleared,
+                DialogMuted,
+                DialogRemoved,
+                DialogUnmuted,
+                UserAddedToChat,
+                UserRemovedFromChat,
+            ),
+        ):
             chat_id = update.chat_id
             user_id = update.user.user_id
+            user = update.user
             if hasattr(update, "is_channel"):
                 chat_type = ChatType.CHANNEL if update.is_channel else ChatType.CHAT
         elif isinstance(update, MessageCallback):
             user_id = update.user.user_id
+            user = update.callback.user
             if update.message is not None:
                 chat_id = (
                     update.message.recipient.chat_id or update.message.recipient.user_id
@@ -137,6 +157,7 @@ class UpdateContextMiddleware(BaseMiddleware[MaxoUpdate[Any]]):
                 if is_defined(update.message.sender)
                 else None
             )
+            user = update.message.sender if is_defined(update.message.sender) else None
             if update.message is not None:
                 chat_id = (
                     update.message.recipient.chat_id or update.message.recipient.user_id
@@ -147,15 +168,12 @@ class UpdateContextMiddleware(BaseMiddleware[MaxoUpdate[Any]]):
             user_id = update.user_id
             chat_type = None
 
-        return UpdateContext(chat_id=chat_id, user_id=user_id, type=chat_type)
-
-    def _resolve_user(self, update: Any) -> User | None:
-        if isinstance(update, MessageCreated) and is_defined(update.message.sender):
-            return update.message.sender
-        if isinstance(update, MessageEdited) and is_defined(update.message.sender):
-            return update.message.sender
-        if isinstance(update, MessageCallback):
-            return update.callback.user
-        if isinstance(update, _EVENTS_WITH_CHAT_AND_USER):
-            return update.user
-        return None
+        update_context = UpdateContext(
+            chat_id=chat_id,
+            user_id=user_id,
+            type=chat_type,
+            user=user,
+        )
+        if do_enrich and "bot" in ctx:
+            await self._enrich_context(ctx, update_context, update)
+        return update_context

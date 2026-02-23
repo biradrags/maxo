@@ -4,6 +4,7 @@ from typing import Any
 import pytest
 
 from maxo.enums import ChatType
+from maxo.enums.chat_status import ChatStatus
 from maxo.routing.ctx import Ctx
 from maxo.routing.middlewares.update_context import (
     EVENT_FROM_USER_KEY,
@@ -13,7 +14,28 @@ from maxo.routing.middlewares.update_context import (
 from maxo.routing.signals.update import MaxoUpdate
 from maxo.routing.updates.message_created import MessageCreated
 from maxo.routing.updates.message_removed import MessageRemoved
-from maxo.types import Chat, ChatMembersList, Message, MessageBody, Recipient, User
+from maxo.types import (
+    Chat,
+    ChatMember,
+    ChatMembersList,
+    Message,
+    MessageBody,
+    Recipient,
+    User,
+    UserWithPhoto,
+)
+
+
+class MockBot:
+    def __init__(self, *, get_chat: Any, get_members: Any) -> None:
+        self._get_chat = get_chat
+        self._get_members = get_members
+
+    async def get_chat(self, **kwargs: Any) -> Any:
+        return await self._get_chat(self, **kwargs)
+
+    async def get_members(self, **kwargs: Any) -> Any:
+        return await self._get_members(self, **kwargs)
 
 
 def _make_message_created(chat_id: int = 1, user_id: int = 1) -> MessageCreated:
@@ -100,7 +122,7 @@ async def test_enrich_disabled_does_not_call_bot() -> None:
     async def get_members(self: Any, **kwargs: Any) -> None:
         raise AssertionError("get_members must not be called")
 
-    bot = type("Bot", (), {"get_chat": get_chat, "get_members": get_members})()
+    bot = MockBot(get_chat=get_chat, get_members=get_members)
     middleware = UpdateContextMiddleware(enrich=False)
     msg = _make_message_created()
     ctx = Ctx({"update": msg, "bot": bot})
@@ -113,8 +135,6 @@ async def test_enrich_disabled_does_not_call_bot() -> None:
 
 @pytest.mark.asyncio
 async def test_enrich_enabled_fills_chat_and_user_from_payload() -> None:
-    from maxo.enums.chat_status import ChatStatus
-
     chat_result = Chat(
         chat_id=1,
         is_public=False,
@@ -133,7 +153,7 @@ async def test_enrich_enabled_fills_chat_and_user_from_payload() -> None:
     async def get_members_noop(self: Any, **kwargs: Any) -> ChatMembersList:
         return ChatMembersList(members=[])
 
-    bot = type("Bot", (), {"get_chat": get_chat, "get_members": get_members_noop})()
+    bot = MockBot(get_chat=get_chat, get_members=get_members_noop)
     middleware = UpdateContextMiddleware(enrich=True)
     msg = _make_message_created(chat_id=1, user_id=5)
     ctx = Ctx({"update": msg, "bot": bot})
@@ -150,9 +170,6 @@ async def test_enrich_enabled_fills_chat_and_user_from_payload() -> None:
 
 @pytest.mark.asyncio
 async def test_enrich_message_removed_fills_user_via_get_members() -> None:
-    from maxo.enums.chat_status import ChatStatus
-    from maxo.types.chat_member import ChatMember
-
     chat_result = Chat(
         chat_id=1,
         is_public=False,
@@ -185,7 +202,7 @@ async def test_enrich_message_removed_fills_user_via_get_members() -> None:
         get_members_calls.append((kwargs["chat_id"], kwargs.get("user_ids") or []))
         return members_list
 
-    bot = type("Bot", (), {"get_chat": get_chat, "get_members": get_members})()
+    bot = MockBot(get_chat=get_chat, get_members=get_members)
     middleware = UpdateContextMiddleware(enrich=True)
     removed = _make_message_removed(chat_id=1, user_id=2)
     ctx = Ctx({"update": removed, "bot": bot})
@@ -198,3 +215,49 @@ async def test_enrich_message_removed_fills_user_via_get_members() -> None:
     assert uc.chat is chat_result
     assert uc.user is member
     assert ctx[EVENT_FROM_USER_KEY] is member
+
+
+@pytest.mark.asyncio
+async def test_enrich_message_removed_dialog_fills_user_from_chat_dialog_with_user() -> (
+    None
+):
+    dialog_user = UserWithPhoto(
+        user_id=3,
+        first_name="DialogUser",
+        is_bot=False,
+        last_activity_time=datetime.now(UTC),
+    )
+    chat_result = Chat(
+        chat_id=1,
+        is_public=False,
+        last_event_time=datetime.now(UTC),
+        participants_count=2,
+        status=ChatStatus.ACTIVE,
+        type=ChatType.DIALOG,
+        dialog_with_user=dialog_user,
+    )
+
+    get_chat_calls: list[int] = []
+
+    async def get_chat(self: Any, **kwargs: Any) -> Chat:
+        get_chat_calls.append(kwargs["chat_id"])
+        return chat_result
+
+    async def get_members_must_not_be_called(self: Any, **kwargs: Any) -> None:
+        raise AssertionError("get_members must not be called for DIALOG")
+
+    bot = MockBot(
+        get_chat=get_chat,
+        get_members=get_members_must_not_be_called,
+    )
+    middleware = UpdateContextMiddleware(enrich=True)
+    removed = _make_message_removed(chat_id=1, user_id=3)
+    ctx = Ctx({"update": removed, "bot": bot})
+
+    await _run_middleware(middleware, removed, ctx)
+
+    assert get_chat_calls == [1]
+    uc = ctx[UPDATE_CONTEXT_KEY]
+    assert uc.chat is chat_result
+    assert uc.user is dialog_user
+    assert ctx[EVENT_FROM_USER_KEY] is dialog_user

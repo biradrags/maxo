@@ -10,10 +10,16 @@
 
 .. code-block:: python
 
-    from maxo.routing.filters import Command
+    from maxo.routing.filters import Command, CommandStart
+    from maxo.routing.updates.message_created import MessageCreated
+    from maxo.routing.ctx import Ctx
+    from maxo.utils.facades import MessageCreatedFacade
 
-    @router.message_created(Command("start"))
-    async def my_handler(update, ctx, facade):
+    # Оба варианта эквивалентны:
+    @router.message_created(CommandStart())
+    # или
+    # @router.message_created(Command("start"))
+    async def my_handler(update: MessageCreated, ctx: Ctx, facade: MessageCreatedFacade):
         ...
 
 Аргументы
@@ -24,6 +30,7 @@
 1.  **Объект обновления** (первый позиционный аргумент): типизированный объект события, например ``MessageCreated``, ``MessageCallback``. Содержит все данные, пришедшие от API.
 2.  ``ctx: Ctx`` – контекст выполнения. Словарь-подобный объект, который живет в рамках обработки одного обновления. В нем хранятся ссылки на ``bot``, ``update``, а также любые данные, добавленные мидлварями.
 3.  ``facade: Facade`` – обёртка над обновлением. Подробнее в разделе :doc:`facades`.
+4.  ``fsm_context: FSMContext`` – контекст конечного автомата (FSM). Доступен, если FSM активирован. Подробнее в разделе :doc:`fsm`.
 
 .. code-block:: python
 
@@ -49,18 +56,24 @@ Dependency Injection (DI)
 
 .. code-block:: python
 
+    from maxo.routing.filters import BaseFilter
+    from maxo.routing.updates.message_created import MessageCreated
+    from maxo.routing.ctx import Ctx
+    from maxo.utils.facades import MessageCreatedFacade
+
     # Пример фильтра, который возвращает данные пользователя
-    class UserFilter(BaseFilter):
-        async def __call__(self, update, ctx) -> dict | bool:
-            user = await get_user_from_db(update.user_id)
+    class UserFilter(BaseFilter[MessageCreated]):
+        async def __call__(self, update: MessageCreated, ctx: Ctx) -> dict | bool:
+            user = await get_user_from_db(update.message.sender.user_id)
             if user:
                 return {"user": user} # Передаем user в обработчик
             return False
 
     @router.message_created(UserFilter())
-    async def handler(update, user: User, ctx):
+    async def handler(update: MessageCreated, user: User, ctx: Ctx):
         # Аргумент user будет автоматически передан из фильтра
-        await ctx.bot.send_message(user.id, f"Hello, {user.name}!")
+        bot: Bot = ctx["bot"]
+        await bot.send_message(user.user_id, f"Hello, {user.first_name}!")
 
 Возвращаемые значения
 ---------------------

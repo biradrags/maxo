@@ -19,9 +19,10 @@
 .. code-block:: python
 
     from maxo.routing.updates.error import ErrorEvent
+    from maxo.utils.facades.updates.error import ErrorEventFacade
 
     @router.error()
-    async def global_error_handler(event: ErrorEvent, facade):
+    async def global_error_handler(event: ErrorEvent, facade: ErrorEventFacade):
         # Логируем ошибку
         print(f"Произошла ошибка: {event.exception}")
         
@@ -41,12 +42,17 @@ ExceptionTypeFilter
 .. code-block:: python
 
     from maxo.routing.filters import ExceptionTypeFilter
+    from maxo.utils.facades.updates.error import ErrorEventFacade
+    from maxo.routing.updates.error import ErrorEvent
+    from maxo.types import UpdateContext
 
     # Перехват конкретного типа ошибки
     @router.error(ExceptionTypeFilter(ValueError))
-    async def value_error_handler(event: ErrorEvent, facade):
+    async def value_error_handler(
+        event: ErrorEvent, facade: ErrorEventFacade, update_context: UpdateContext,
+    ):
         await facade.bot.send_message(
-            chat_id=event.event.chat.id,
+            chat_id=update_context.chat_id,
             text="Вы ввели некорректные данные!"
         )
 
@@ -58,9 +64,10 @@ ExceptionMessageFilter
 .. code-block:: python
 
     from maxo.routing.filters import ExceptionMessageFilter
+    from maxo.utils.facades.updates.error import ErrorEventFacade
 
     @router.error(ExceptionMessageFilter(r"Access denied"))
-    async def access_denied_handler(event: ErrorEvent, facade):
+    async def access_denied_handler(event: ErrorEvent, facade: ErrorEventFacade):
         ...
 
 Аргументы обработчика
@@ -81,27 +88,29 @@ ExceptionMessageFilter
 
     from maxo.routing.filters import ExceptionTypeFilter
     from maxo.routing.updates.error import ErrorEvent
+    from maxo.utils.facades.updates.error import ErrorEventFacade
+    from maxo.types import UpdateContext
+
+    from maxo.routing.updates.message_created import MessageCreated
+    from maxo.routing.ctx import Ctx
+    from maxo.utils.facades import MessageCreatedFacade
 
     class MyCustomError(Exception):
         pass
 
     @router.message_created()
-    async def my_handler(update, ctx, facade):
+    async def my_handler(update: MessageCreated, ctx: Ctx, facade: MessageCreatedFacade):
         if update.message.body.text == "boom":
             raise MyCustomError("Ба-бах!")
 
     @router.error(ExceptionTypeFilter(MyCustomError))
-    async def error_handler(event: ErrorEvent, facade):
+    async def error_handler(event: ErrorEvent, facade: ErrorEventFacade, update_context: UpdateContext):
         # Пытаемся отправить сообщение в тот же чат, где произошла ошибка
         try:
-            original_update = event.update
-            
-            if hasattr(original_update, "message"):
-                chat_id = original_update.message.chat_id
-                await facade.bot.send_message(
-                    chat_id=chat_id,
-                    text=f"Ой, что-то сломалось: {event.exception}"
-                )
+            await facade.bot.send_message(
+                chat_id=update_context.chat_id,
+                text=f"Ой, что-то сломалось: {event.exception}"
+            )
         except Exception:
             # Если не удалось отправить сообщение об ошибке, просто логируем
             logging.exception("Не удалось отправить уведомление об ошибке")

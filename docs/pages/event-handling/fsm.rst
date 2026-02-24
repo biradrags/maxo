@@ -22,21 +22,25 @@
 Переходы между состояниями
 --------------------------
 
-Чтобы переключить пользователя в другое состояние, используется объект ``FSMContext``, который автоматически передается в обработчик, если указать аргумент ``state``.
+Чтобы переключить пользователя в другое состояние, используется объект ``FSMContext``, который автоматически передается в обработчик, если указать аргумент ``fsm_context``.
 
 .. code-block:: python
 
     from maxo.routing.ctx import Ctx
     from maxo.fsm import FSMContext
+    from maxo.routing.filters import Command
+    from maxo.routing.updates.message_created import MessageCreated
     from maxo.utils.facades import MessageCreatedFacade
     # Импортируйте вашу группу состояний
     # from states import Registration
 
     @router.message_created(Command("register"))
-    async def start_registration(update, ctx, facade, state: FSMContext):
+    async def start_registration(
+        update: MessageCreated, ctx: Ctx, facade: MessageCreatedFacade, fsm_context: FSMContext,
+    ):
         await facade.answer_text("Как вас зовут?")
         # Устанавливаем состояние "ожидание имени"
-        await state.set_state(Registration.waiting_name)
+        await fsm_context.set_state(Registration.waiting_name)
 
 Фильтрация по состоянию
 -----------------------
@@ -49,40 +53,44 @@
 
     # Этот хендлер сработает только если пользователь находится в состоянии waiting_name
     @router.message_created(StateFilter(Registration.waiting_name))
-    async def process_name(update, ctx, facade, state: FSMContext):
+    async def process_name(
+        update: MessageCreated, ctx: Ctx, facade: MessageCreatedFacade, fsm_context: FSMContext,
+    ):
         name = update.message.body.text
         
         # Сохраняем данные в память FSM
-        await state.update_data(name=name)
+        await fsm_context.update_data(name=name)
         
         await facade.answer_text(f"Приятно познакомиться, {name}! Сколько вам лет?")
         # Переходим к следующему шагу
-        await state.set_state(Registration.waiting_age)
+        await fsm_context.set_state(Registration.waiting_age)
 
 Работа с данными
 ----------------
 
 ``FSMContext`` позволяет не только переключать состояния, но и хранить данные, специфичные для текущего пользователя и диалога.
 
-- ``await state.update_data(key=value)`` – добавить или обновить данные.
-- ``await state.get_data()`` – получить все сохраненные данные (словарь).
-- ``await state.get_value("key")`` – получить конкретное значение.
-- ``await state.clear()`` – сбросить состояние и очистить все данные (завершить диалог).
+- ``await fsm_context.update_data(key=value)`` – добавить или обновить данные.
+- ``await fsm_context.get_data()`` – получить все сохраненные данные (словарь).
+- ``await fsm_context.get_value("key")`` – получить конкретное значение.
+- ``await fsm_context.clear()`` – сбросить состояние и очистить все данные (завершить диалог).
 
 .. code-block:: python
 
     @router.message_created(StateFilter(Registration.waiting_age))
-    async def process_age(update, ctx, facade, state: FSMContext):
+    async def process_age(
+        update: MessageCreated, ctx: Ctx, facade: MessageCreatedFacade, fsm_context: FSMContext,
+    ):
         age = update.message.body.text
         
         # Получаем сохраненные ранее данные
-        data = await state.get_data()
+        data = await fsm_context.get_data()
         name = data.get("name")
         
         await facade.answer_text(f"Анкета:\nИмя: {name}\nВозраст: {age}")
         
         # Завершаем диалог
-        await state.clear()
+        await fsm_context.clear()
 
 Хранилища
 --------------------

@@ -27,11 +27,10 @@
     from maxo.dialogs.widgets.kbd import Button
     from maxo.dialogs.widgets.text import Const
     from maxo.dialogs.api.protocols import DialogManager
-    from maxo.types import MessageCallback
-    from maxo.dialogs.api.entities import CancelEventProcessing
+    from maxo.routing.updates import MessageCallback
 
     async def on_click(callback: MessageCallback, button: Button, manager: DialogManager):
-        await callback.answer("Клик!")
+        await manager.answer_callback()
 
     dialog = Dialog(
         Window(
@@ -52,7 +51,7 @@
     from maxo.routing.filters import Command
     from maxo.dialogs.api.protocols import DialogManager
     from maxo.dialogs import StartMode
-    from maxo.types.message import MessageCreated
+    from maxo.routing.updates.message_created import MessageCreated
 
     router = Router()
 
@@ -68,7 +67,7 @@
 .. code-block:: python
 
     from maxo import Bot, Dispatcher, Router
-    from maxo.fsm import DefaultKeyBuilder
+    from maxo.fsm.key_builder import DefaultKeyBuilder
     from maxo.dialogs import setup_dialogs
     from maxo.utils.long_polling import LongPolling
 
@@ -98,7 +97,7 @@
 
    .. code-block:: python
 
-       from maxo.fsm import DefaultKeyBuilder
+       from maxo.fsm.key_builder import DefaultKeyBuilder
 
        key_builder = DefaultKeyBuilder(with_destiny=True)
        dp = Dispatcher(

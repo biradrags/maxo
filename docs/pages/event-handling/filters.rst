@@ -7,9 +7,12 @@
 .. code-block:: python
 
     from maxo.routing.filters import Command
+    from maxo.routing.updates.message_created import MessageCreated
+    from maxo.routing.ctx import Ctx
+    from maxo.utils.facades import MessageCreatedFacade
 
     @dispatcher.message_created(Command("start"))
-    async def start(update, ctx, facade):
+    async def start(update: MessageCreated, ctx: Ctx, facade: MessageCreatedFacade):
         ...
 
 Встроенные фильтры
@@ -28,12 +31,17 @@
 
 .. code-block:: python
 
-    from maxo.routing.filters import Command
     from magic_filter import F
 
+    from maxo.routing.filters import Command
+    from maxo.routing.updates.message_created import MessageCreated
+    from maxo.routing.ctx import Ctx
+    from maxo.utils.facades import MessageCreatedFacade
+    from maxo.integrations.magic_filter import MagicFilter
+
     # Обработка команды /admin ИЛИ сообщения с текстом "secret"
-    @dispatcher.message_created(Command("admin") | (F.text == "secret"))
-    async def admin_area(update, ctx, facade):
+    @dispatcher.message_created(Command("admin") | MagicFilter(F.text == "secret"))
+    async def admin_area(update: MessageCreated, ctx: Ctx, facade: MessageCreatedFacade):
         ...
 
 Magic Filter
@@ -45,14 +53,19 @@ Magic Filter
 
     from magic_filter import F
 
+    from maxo.routing.updates.message_created import MessageCreated
+    from maxo.routing.ctx import Ctx
+    from maxo.utils.facades import MessageCreatedFacade
+    from maxo.integrations.magic_filter import MagicFilter
+
     # Сработает, если текст сообщения равен "hello"
-    @dispatcher.message_created(F.text == "hello")
-    async def hello(update, ctx, facade):
+    @dispatcher.message_created(MagicFilter(F.text == "hello"))
+    async def hello(update: MessageCreated, ctx: Ctx, facade: MessageCreatedFacade):
         ...
 
-    # Сработает, если у пользователя есть имя "Kirill"
-    @dispatcher.message_created(F.from_user.first_name == "Kirill")
-    async def kirill_handler(update, ctx, facade):
+    # Сработает, если у отправителя имя "Kirill"
+    @dispatcher.message_created(MagicFilter(F.message.sender.first_name == "Kirill"))
+    async def kirill_handler(update: MessageCreated, ctx: Ctx, facade: MessageCreatedFacade):
         ...
 
 Создание своих фильтров
@@ -96,6 +109,11 @@ Magic Filter
             return False
 
     @router.message_created(MinLengthFilter(10))
-    async def long_message_handler(update, ctx, facade, text_length: int):
+    async def long_message_handler(
+        update: MessageCreated,
+        ctx: Ctx,
+        facade: MessageCreatedFacade,
+        text_length: int,
+    ):
         await facade.answer_text(f"Длинное сообщение! ({text_length} символов)")
 

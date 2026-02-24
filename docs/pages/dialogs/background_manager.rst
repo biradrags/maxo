@@ -2,7 +2,7 @@
 Background Manager
 ==================
 
-В обычных хэндлерах и колбеках ``DialogManager`` передается в качестве аргумента автоматически.
+В обработчиках ``DialogManager`` передается в качестве аргумента автоматически.
 Иногда нужно обновить диалог **из фоновой задачи** – по таймеру, по событию из Redis/Celery/Taskiq, или из стороннего сервиса.
 
 Для этого используется ``BgManagerFactory``.
@@ -14,10 +14,11 @@ BgManagerFactory
 
 .. code-block:: python
 
+    from maxo import Bot
     from maxo.dialogs.api.protocols import BgManagerFactory
 
-    async def background_job(bg_factory: BgManagerFactory, chat_id: int, user_id: int):
-        manager = bg_factory.bg(chat_id=chat_id, user_id=user_id)
+    async def background_job(bg_factory: BgManagerFactory, bot: Bot, chat_id: int, user_id: int):
+        manager = bg_factory.bg(bot=bot, chat_id=chat_id, user_id=user_id)
 
         # Запуск нового диалога
         await manager.start(SG.main)
@@ -38,29 +39,34 @@ BgManagerFactory
 .. code-block:: python
 
     import anyio
+    from typing import Any
+
+    from maxo import Bot
     from maxo.dialogs import Dialog, Window
     from maxo.dialogs.widgets.text import Const, Format
     from maxo.dialogs.widgets.kbd import Button
-    from maxo.dialogs.api.protocols import BgManagerFactory
+    from maxo.dialogs.api.protocols import BgManagerFactory, DialogManager
+    from maxo.routing.updates import MessageCallback
     from maxo.fsm import State, StatesGroup
 
     class TimerSG(StatesGroup):
         running = State()
 
-    async def timer_getter(dialog_manager, **kwargs):
+    async def timer_getter(dialog_manager: DialogManager, **kwargs: Any) -> dict:
         count = dialog_manager.dialog_data.get("count", 0)
         return {"count": count}
 
-    async def on_start_timer(callback, button, manager):
+    async def on_start_timer(callback: MessageCallback, button: Button, manager: DialogManager):
         """Запускает фоновую задачу, которая обновляет счётчик."""
         manager.dialog_data["count"] = 0
 
-        bg_factory: BgManagerFactory = manager.middleware_data["bg_factory"]
+        bg_factory: BgManagerFactory = manager.middleware_data["dialog_bg_factory"]
+        bot: Bot = manager.middleware_data["bot"]
         chat_id = manager.event.chat_id
         user_id = manager.event.user_id
 
-        async def tick():
-            bg = bg_factory.bg(chat_id=chat_id, user_id=user_id)
+        async def tick() -> None:
+            bg = bg_factory.bg(bot=bot, chat_id=chat_id, user_id=user_id)
             for i in range(1, 11):
                 await anyio.sleep(1)
                 await bg.update({"count": i})

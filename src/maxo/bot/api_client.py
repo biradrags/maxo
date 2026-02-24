@@ -55,6 +55,7 @@ from maxo.routing.updates import (
     UserRemovedFromChat,
 )
 from maxo.types import (
+    Attachments,
     AudioAttachment,
     AudioAttachmentRequest,
     CallbackButton,
@@ -229,6 +230,10 @@ class MaxApiClient(AiohttpAsyncClient):
                     | P[Omittable[TextFormat]]
                     | P[Omittable[TextFormat | None]],
                     lambda item: item or self._text_format,
+                ),
+                dumper(
+                    P[Attachments],
+                    lambda attachment: attachment.to_request(),
                 ),
             ],
         )

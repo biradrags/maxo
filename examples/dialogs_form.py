@@ -137,8 +137,8 @@ dialog = Dialog(
 
 @dp.message_created(CommandStart())
 async def start(message: MessageCreated, dialog_manager: DialogManager) -> None:
-    # StartMode.RESET_STACK: сброс стека при старте, пользователь начинает с первого окна;
-    # Иначе возможен переход в уже идущий диалог с сохранённым стеком
+    # StartMode.RESET_STACK: сброс стека при старте, пользователь с первого окна;
+    # иначе возможен переход в уже идущий диалог с сохранённым стеком
     await dialog_manager.start(DialogSG.greeting, mode=StartMode.RESET_STACK)
 
 

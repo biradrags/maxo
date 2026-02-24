@@ -3,6 +3,7 @@
 Запуск из корня репозитория: python examples/multi_file_bot/main.py
 или из этой папки: python main.py
 """
+
 import logging
 import os
 import sys
@@ -11,10 +12,10 @@ from pathlib import Path
 # Чтобы из этой папки импортировать handlers при любом текущем каталоге
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+from handlers import echo_router, start_router
+
 from maxo import Bot, Dispatcher
 from maxo.utils.long_polling import LongPolling
-
-from handlers import echo_router, start_router
 
 TOKEN = os.environ.get("TOKEN") or os.environ.get("BOT_TOKEN")
 if not TOKEN:

@@ -3,6 +3,7 @@
 при клике сохраняем item_id в dialog_data и переходим в окно детали.
 Запуск: python examples/dialogs_list_group.py
 """
+
 import logging
 import os
 from typing import Any
@@ -42,8 +43,12 @@ async def get_items(**__: Any) -> dict[str, Any]:
 
 
 async def get_detail(dialog_manager: DialogManager, **__: Any) -> dict[str, Any]:
-    sel = dialog_manager.dialog_data.get("selected_id", "")
-    item = next((i for i in ITEMS if i["id"] == sel), {"name": "", "price": ""})
+    selected_id = dialog_manager.dialog_data.get("selected_id", "")
+    item = {"name": "", "price": ""}
+    for i in ITEMS:
+        if i["id"] == selected_id:
+            item = i
+            break
     return {"name": item["name"], "price": item["price"]}
 
 
@@ -57,12 +62,16 @@ async def on_item_click(
     await manager.next()
 
 
-# ListGroup: для каждого item из getter рендерится кнопка; item_id_getter задаёт id для payload
+# ListGroup: кнопка на каждый item из getter; item_id_getter задаёт id для payload
 list_dialog = Dialog(
     Window(
         Const("Выбери товар:"),
         ListGroup(
-            Button(Format("{item[name]} - {item[price]} ₽"), id="i", on_click=on_item_click),
+            Button(
+                Format("{item[name]} - {item[price]} ₽"),
+                id="i",
+                on_click=on_item_click,
+            ),
             id="products",
             item_id_getter=lambda x: x["id"],
             items=lambda d: d["items"],
@@ -78,6 +87,15 @@ list_dialog = Dialog(
     ),
 )
 
+key_builder = DefaultKeyBuilder(with_destiny=True)
+events_isolation = SimpleEventIsolation(key_builder=key_builder)
+dp = Dispatcher(
+    storage=MemoryStorage(key_builder=key_builder),
+    events_isolation=events_isolation,
+    key_builder=key_builder,
+)
+dp.include(list_dialog)
+
 
 @dp.message_created(CommandStart())
 async def start(message: MessageCreated, dialog_manager: DialogManager) -> None:
@@ -87,15 +105,6 @@ async def start(message: MessageCreated, dialog_manager: DialogManager) -> None:
 def main() -> None:
     logging.basicConfig(level=logging.DEBUG)
     bot = Bot(os.environ["TOKEN"])
-    key_builder = DefaultKeyBuilder(with_destiny=True)
-    events_isolation = SimpleEventIsolation(key_builder=key_builder)
-    dp = Dispatcher(
-        storage=MemoryStorage(key_builder=key_builder),
-        events_isolation=events_isolation,
-        key_builder=key_builder,
-    )
-    dp.message_created.handler(start, CommandStart())
-    dp.include(list_dialog)
     setup_dialogs(dp, events_isolation=events_isolation)
     LongPolling(dp).run(bot)
 

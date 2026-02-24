@@ -2,6 +2,7 @@
 Dishka integration example: container, setup_dishka, handler with auto_inject.
 Run: pip install maxo[dishka], then python examples/dishka_integration.py
 """
+
 import asyncio
 import logging
 import os

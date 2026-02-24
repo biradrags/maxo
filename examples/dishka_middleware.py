@@ -3,6 +3,7 @@ Dishka + custom middleware: middleware reads ctx[CONTAINER_NAME], gets a service
 puts result in ctx; handler uses ctx. Run: pip install maxo[dishka], then
 python examples/dishka_middleware.py
 """
+
 import asyncio
 import logging
 import os

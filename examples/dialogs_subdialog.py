@@ -3,6 +3,7 @@
 закрытие поддиалога (Cancel/done) возвращает в главное меню.
 Запуск: python examples/dialogs_subdialog.py
 """
+
 import logging
 import os
 

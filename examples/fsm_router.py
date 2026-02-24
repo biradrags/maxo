@@ -15,7 +15,8 @@ from maxo.utils.long_polling import LongPolling
 router = Router(__name__)
 
 
-# FSM + Router: состояния анкеты, state.update_data/get_value, delete_message перед ответом
+# FSM + Router: состояния анкеты, state.update_data/get_value,
+# delete_message перед ответом
 class UserRegistrationStatesGroup(StatesGroup):
     INPUT_NAME = State()
     INPUT_AGE = State()
@@ -59,7 +60,8 @@ async def input_name_handler(
 
 
 @router.message_created(
-    MagicFilter(F.message.body.text) & StateFilter(UserRegistrationStatesGroup.INPUT_AGE),
+    MagicFilter(F.message.body.text)
+    & StateFilter(UserRegistrationStatesGroup.INPUT_AGE),
 )
 async def input_age_handler(
     update: MessageCreated,

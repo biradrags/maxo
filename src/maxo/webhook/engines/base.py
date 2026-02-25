@@ -8,7 +8,6 @@ from aiohttp.client_exceptions import ContentTypeError
 
 from maxo import loggers
 from maxo.routing.signals.update import MaxoUpdate
-
 from maxo.webhook.adapters.base import BoundRequest, WebAdapter
 from maxo.webhook.background.manager import BackgroundTaskManager
 from maxo.webhook.parsing.parser import AdaptixUpdateParser
@@ -17,7 +16,6 @@ from maxo.webhook.routing.base import BaseRouting
 if TYPE_CHECKING:
     from maxo.bot.bot import Bot
     from maxo.routing.dispatcher import Dispatcher
-
     from maxo.webhook.security.checks import Security
 
 
@@ -76,19 +74,19 @@ class WebhookEngine(ABC):
         bot = await self._resolve_bot(bound_request)
         if bot is None:
             return self.web_adapter.create_json_response(
-                status=400, payload={"detail": "Bot not found"}
+                status=400, payload={"detail": "Bot not found"},
             )
 
         if self.security is not None and not await self.security.verify(
-            bot=bot, bound_request=bound_request
+            bot=bot, bound_request=bound_request,
         ):
             loggers.webhook.warning("Unauthorized webhook request")
             if hasattr(self.web_adapter, "create_text_response"):
                 return self.web_adapter.create_text_response(
-                    status=401, text="Unauthorized"
+                    status=401, text="Unauthorized",
                 )
             return self.web_adapter.create_json_response(
-                status=401, payload={"detail": "Unauthorized"}
+                status=401, payload={"detail": "Unauthorized"},
             )
 
         if not _content_type_ok(bound_request.headers):
@@ -97,7 +95,7 @@ class WebhookEngine(ABC):
                 bound_request.headers.get("Content-Type", bound_request.headers.get("content-type")),
             )
             return self.web_adapter.create_text_response(
-                status=400, text="Invalid Content-Type, expected JSON"
+                status=400, text="Invalid Content-Type, expected JSON",
             )
 
         try:
@@ -105,22 +103,22 @@ class WebhookEngine(ABC):
         except (ContentTypeError, JSONDecodeError):
             loggers.webhook.warning("Invalid webhook request body")
             return self.web_adapter.create_text_response(
-                status=400, text="Invalid JSON body"
+                status=400, text="Invalid JSON body",
             )
 
         if not isinstance(raw, dict):
             loggers.webhook.warning(
-                "Invalid webhook payload type: %s", type(raw).__name__
+                "Invalid webhook payload type: %s", type(raw).__name__,
             )
             return self.web_adapter.create_text_response(
-                status=400, text="Webhook payload must be a JSON object"
+                status=400, text="Webhook payload must be a JSON object",
             )
 
         try:
             parsed = self._parser.parse(raw)
         except Exception:
             return self.web_adapter.create_text_response(
-                status=400, text="Invalid webhook update payload"
+                status=400, text="Invalid webhook update payload",
             )
 
         maxo_update = MaxoUpdate(update=parsed)

@@ -73,7 +73,7 @@ async def cmd_add(update: MessageCreated, facade: MessageCreatedFacade) -> None:
 
 @secondary_dp.message_created()
 async def secondary_echo(
-    update: MessageCreated, facade: MessageCreatedFacade
+    update: MessageCreated, facade: MessageCreatedFacade,
 ) -> None:
     text = update.message.body.text or "Нет текста"
     await facade.answer_text(f"[Эхо вторичного бота] {text}")

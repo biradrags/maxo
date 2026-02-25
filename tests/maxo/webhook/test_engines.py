@@ -45,7 +45,7 @@ async def test_simple_engine_returns_200() -> None:
     adapter = AiohttpWebAdapter()
     routing = StaticRouting(url="https://example.com/webhook")
     engine = SimpleEngine(
-        dp, bot, web_adapter=adapter, routing=routing, webhook_config=WebhookConfig()
+        dp, bot, web_adapter=adapter, routing=routing, webhook_config=WebhookConfig(),
     )
     app = web.Application()
     engine.register(app)
@@ -104,7 +104,7 @@ async def test_simple_engine_accepts_json_content_type_with_params() -> None:
     adapter = AiohttpWebAdapter()
     routing = StaticRouting(url="https://example.com/webhook")
     engine = SimpleEngine(
-        dp, bot, web_adapter=adapter, routing=routing, webhook_config=WebhookConfig()
+        dp, bot, web_adapter=adapter, routing=routing, webhook_config=WebhookConfig(),
     )
     app = web.Application()
     engine.register(app)
@@ -144,7 +144,7 @@ async def test_simple_engine_secret_valid() -> None:
     routing = StaticRouting(url="https://example.com/webhook")
     security = Security(StaticSecretToken("abc"))
     engine = SimpleEngine(
-        dp, bot, web_adapter=adapter, routing=routing, security=security
+        dp, bot, web_adapter=adapter, routing=routing, security=security,
     )
     app = web.Application()
     engine.register(app)
@@ -167,7 +167,7 @@ async def test_simple_engine_secret_invalid() -> None:
     routing = StaticRouting(url="https://example.com/webhook")
     security = Security(StaticSecretToken("abc"))
     engine = SimpleEngine(
-        dp, bot, web_adapter=adapter, routing=routing, security=security
+        dp, bot, web_adapter=adapter, routing=routing, security=security,
     )
     app = web.Application()
     engine.register(app)

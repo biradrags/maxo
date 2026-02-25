@@ -11,7 +11,7 @@ class PathRouting(TokenRouting):
         if f"{{{self.param}}}" not in self.url_template:
             raise ValueError(
                 f"Parameter '{self.param}' not found in URL template. "
-                f"Expected placeholder '{{{self.param}}}' in: {self.url_template}"
+                f"Expected placeholder '{{{self.param}}}' in: {self.url_template}",
             )
 
     def webhook_point(self, bot: Bot) -> str:

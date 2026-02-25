@@ -7,7 +7,6 @@ from aiohttp import web
 from aiohttp.web_middlewares import middleware
 
 from maxo import loggers
-
 from maxo.webhook.security.checks import (
     IPCheck,
     Security,

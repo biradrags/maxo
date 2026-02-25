@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING, Any
 
 from maxo.bot.methods.subscriptions.subscribe import Subscribe
 from maxo.omit import Omittable, Omitted, is_defined
-
 from maxo.webhook.adapters.base import BoundRequest, WebAdapter
 from maxo.webhook.config.webhook import WebhookConfig
 from maxo.webhook.engines.base import WebhookEngine
@@ -15,7 +14,6 @@ if TYPE_CHECKING:
 
     from maxo.bot.bot import Bot
     from maxo.routing.dispatcher import Dispatcher
-
     from maxo.webhook.security.checks import Security
 
 

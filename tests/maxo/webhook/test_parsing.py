@@ -1,11 +1,7 @@
-from datetime import UTC, datetime
-from unittest.mock import MagicMock
 
 import pytest
 
-from maxo.enums import ChatType
 from maxo.routing.updates import MessageCreated
-from maxo.types import Message, MessageBody, Recipient, User
 from maxo.webhook.parsing import AdaptixUpdateParser
 
 PARSEABLE_UPDATE = {

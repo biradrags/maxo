@@ -36,7 +36,7 @@ async def test_full_request_flow_with_engine() -> None:
     adapter = AiohttpWebAdapter()
     routing = StaticRouting(url="https://example.com/webhook")
     engine = SimpleEngine(
-        dp, bot, web_adapter=adapter, routing=routing, webhook_config=WebhookConfig()
+        dp, bot, web_adapter=adapter, routing=routing, webhook_config=WebhookConfig(),
     )
     app = web.Application()
     engine.register(app)

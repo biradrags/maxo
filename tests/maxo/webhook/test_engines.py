@@ -7,6 +7,8 @@ from aiohttp.test_utils import TestClient, TestServer
 from maxo.routing.dispatcher import Dispatcher
 from maxo.webhook import (
     AiohttpWebAdapter,
+    BotIdEngine,
+    PathBotIdRouting,
     PathRouting,
     SimpleEngine,
     StaticRouting,
@@ -302,6 +304,135 @@ async def test_token_engine_security_rejects_invalid_secret() -> None:
             client,
             client.post(
                 "/webhook/bot/tok1",
+                json=SAMPLE_UPDATE,
+                headers={"X-Max-Bot-Api-Secret": "wrong"},
+            ) as resp,
+        ):
+            assert resp.status == 401
+
+
+def test_path_bot_id_routing_requires_bot_id_placeholder() -> None:
+    with pytest.raises(ValueError, match=r"bot_id"):
+        PathBotIdRouting(url="https://example.com/webhook/max")
+
+
+def test_path_bot_id_routing_webhook_point_for_id() -> None:
+    routing = PathBotIdRouting(url="https://example.com/webhook/max/b/{bot_id}")
+    assert routing.webhook_point_for_id(12345) == "https://example.com/webhook/max/b/12345"
+
+
+@pytest.mark.asyncio
+async def test_bot_id_engine_resolves_bot_from_path_and_feeds_update() -> None:
+    dp = Dispatcher()
+    dp.feed_max_update = AsyncMock()
+    adapter = AiohttpWebAdapter()
+    routing = PathBotIdRouting(url="https://example.com/webhook/max/b/{bot_id}")
+    with patch("maxo.bot.bot.Bot") as bot_class:
+        mock_bot = _make_mock_bot()
+        mock_bot.state.info.user_id = 999
+        mock_bot._token = "tok999"  # noqa: S105
+        bot_class.return_value = mock_bot
+        engine = BotIdEngine(
+            dp,
+            web_adapter=adapter,
+            routing=routing,
+            webhook_config=WebhookConfig(),
+        )
+        await engine.register_bot(999, "tok999")
+        app = web.Application()
+        engine.register(app)
+
+        server = TestServer(app)
+        client = TestClient(server)
+        async with (
+            client,
+            client.post(
+                "/webhook/max/b/999",
+                json=SAMPLE_UPDATE,
+            ) as resp,
+        ):
+            assert resp.status == 200
+        bot_class.assert_called_once_with(token="tok999")  # noqa: S106
+        dp.feed_max_update.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_bot_id_engine_unknown_bot_id_returns_400() -> None:
+    dp = Dispatcher()
+    adapter = AiohttpWebAdapter()
+    routing = PathBotIdRouting(url="https://example.com/webhook/max/b/{bot_id}")
+    engine = BotIdEngine(
+        dp,
+        web_adapter=adapter,
+        routing=routing,
+        webhook_config=WebhookConfig(),
+    )
+    app = web.Application()
+    engine.register(app)
+
+    server = TestServer(app)
+    client = TestClient(server)
+    async with (
+        client,
+        client.post("/webhook/max/b/999", json=SAMPLE_UPDATE) as resp,
+    ):
+        assert resp.status == 400
+
+
+@pytest.mark.asyncio
+async def test_bot_id_engine_caches_bot() -> None:
+    dp = Dispatcher()
+    dp.feed_max_update = AsyncMock()
+    adapter = AiohttpWebAdapter()
+    routing = PathBotIdRouting(url="https://example.com/webhook/max/b/{bot_id}")
+    with patch("maxo.bot.bot.Bot") as bot_class:
+        mock_bot = _make_mock_bot()
+        mock_bot.state.info.user_id = 888
+        mock_bot._token = "cached"  # noqa: S105
+        bot_class.return_value = mock_bot
+        engine = BotIdEngine(
+            dp,
+            web_adapter=adapter,
+            routing=routing,
+            webhook_config=WebhookConfig(),
+        )
+        await engine.register_bot(888, "cached")
+        app = web.Application()
+        engine.register(app)
+
+        server = TestServer(app)
+        client = TestClient(server)
+        async with client:
+            await client.post("/webhook/max/b/888", json=SAMPLE_UPDATE)
+            await client.post("/webhook/max/b/888", json=SAMPLE_UPDATE)
+        assert bot_class.call_count == 1
+
+
+@pytest.mark.asyncio
+async def test_bot_id_engine_security_rejects_invalid_secret() -> None:
+    dp = Dispatcher()
+    adapter = AiohttpWebAdapter()
+    routing = PathBotIdRouting(url="https://example.com/webhook/max/b/{bot_id}")
+    security = Security(StaticSecretToken("secret"))
+    with patch("maxo.bot.bot.Bot") as bot_class:
+        bot_class.return_value = _make_mock_bot()
+        engine = BotIdEngine(
+            dp,
+            web_adapter=adapter,
+            routing=routing,
+            security=security,
+            webhook_config=WebhookConfig(),
+        )
+        await engine.register_bot(777, "tok777")
+        app = web.Application()
+        engine.register(app)
+
+        server = TestServer(app)
+        client = TestClient(server)
+        async with (
+            client,
+            client.post(
+                "/webhook/max/b/777",
                 json=SAMPLE_UPDATE,
                 headers={"X-Max-Bot-Api-Secret": "wrong"},
             ) as resp,

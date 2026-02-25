@@ -13,9 +13,11 @@ from maxo.webhook.adapters import (
     WebAdapter,
 )
 from maxo.webhook.config import WebhookConfig
-from maxo.webhook.engines import SimpleEngine, TokenEngine, WebhookEngine
+from maxo.webhook.engines import BotIdEngine, SimpleEngine, TokenEngine, WebhookEngine
 from maxo.webhook.routing import (
     BaseRouting,
+    BotIdRouting,
+    PathBotIdRouting,
     PathRouting,
     StaticRouting,
     TokenRouting,
@@ -34,9 +36,12 @@ __all__ = (
     "AiohttpBoundRequest",
     "AiohttpWebAdapter",
     "BaseRouting",
+    "BotIdEngine",
+    "BotIdRouting",
     "BoundRequest",
     "IPCheck",
     "IPFilter",
+    "PathBotIdRouting",
     "PathRouting",
     "Security",
     "SecurityCheck",

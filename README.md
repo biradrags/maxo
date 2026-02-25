@@ -21,7 +21,7 @@
 
 </div>
 
-<p align="center">      
+<p align="center">
     <b>
         Асинхронный фреймворк для разработки <a href="https://dev.max.ru/docs">ботов</a> из <a href="https://max.ru">max.ru</a>
     </b>
@@ -29,7 +29,7 @@
 
 <p align="center">
     <a href="https://maxo.readthedocs.io">Документация</a>
-    &nbsp;|&nbsp;
+    |
     <a href="https://github.com/IvanKirpichnikov/maxo">Оригинальный репозиторий</a>
     <br>
     <a href="./src/maxo/dialogs">maxo/dialogs</a> переделаны из <a href="https://github.com/Tishka17/aiogram_dialog">aiogram_dialog</a>

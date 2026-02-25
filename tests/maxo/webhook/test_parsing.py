@@ -1,5 +1,5 @@
-
 import pytest
+from adaptix.load_error import AggregateLoadError, LoadError
 
 from maxo.routing.updates import MessageCreated
 from maxo.webhook.parsing import AdaptixUpdateParser
@@ -24,5 +24,5 @@ def test_parser_deserializes_message_created() -> None:
 
 def test_parser_invalid_payload_raises() -> None:
     parser = AdaptixUpdateParser()
-    with pytest.raises(Exception):
+    with pytest.raises((LoadError, AggregateLoadError)):
         parser.parse({"update_type": "unknown_event", "timestamp": 1700000000000})

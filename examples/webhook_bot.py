@@ -46,7 +46,9 @@ def main() -> None:
 
     app = web.Application()
     adapter = AiohttpWebAdapter()
-    routing = StaticRouting(url=os.environ.get("WEBHOOK_URL", f"http://{host}:{port}/webhook"))
+    routing = StaticRouting(
+        url=os.environ.get("WEBHOOK_URL", f"http://{host}:{port}/webhook"),
+    )
     secret = os.environ.get("WEBHOOK_SECRET")
     security = Security(StaticSecretToken(secret)) if secret else None
     engine = SimpleEngine(

@@ -5,6 +5,8 @@ from typing import TYPE_CHECKING, Any
 
 from maxo.bot.methods.subscriptions.subscribe import Subscribe
 from maxo.omit import Omittable, Omitted, is_defined
+from maxo.routing.signals.shutdown import AfterShutdown, BeforeShutdown
+from maxo.routing.signals.startup import AfterStartup, BeforeStartup
 from maxo.webhook.adapters.base import BoundRequest, WebAdapter
 from maxo.webhook.config.webhook import WebhookConfig
 from maxo.webhook.engines.base import WebhookEngine
@@ -52,8 +54,6 @@ class TokenEngine(WebhookEngine):
     async def _startup_bot(self, bot: Bot, token: str) -> None:
         if token in self._started_tokens:
             return
-        from maxo.routing.signals.startup import AfterStartup, BeforeStartup
-
         workflow_data = {
             "app": self._app,
             "dispatcher": self.dispatcher,
@@ -72,7 +72,7 @@ class TokenEngine(WebhookEngine):
         async with self._lock:
             if token in self._bots:
                 return self._bots[token]
-            from maxo.bot.bot import Bot
+            from maxo.bot.bot import Bot  # noqa: PLC0415
 
             bot = Bot(token=token, **self.bot_settings)
             await bot.start()
@@ -87,7 +87,7 @@ class TokenEngine(WebhookEngine):
         async with self._lock:
             if token in self._bots:
                 return self._bots[token]
-            from maxo.bot.bot import Bot
+            from maxo.bot.bot import Bot  # noqa: PLC0415
 
             bot = Bot(token=token, **self.bot_settings)
             await bot.start()
@@ -119,25 +119,27 @@ class TokenEngine(WebhookEngine):
                 effective_secret = got
 
         await bot.call_method(
-            Subscribe(url=effective_url, secret=effective_secret, update_types=types_list),
+            Subscribe(
+                url=effective_url,
+                secret=effective_secret,
+                update_types=types_list,
+            ),
         )
         return bot
 
     async def on_startup(self, app: Any, *args: Any, **kwargs: Any) -> None:
         self._app = app
-        self.dispatcher.workflow_data.update({"app": app, "dispatcher": self.dispatcher, **kwargs})
+        self.dispatcher.workflow_data.update(
+            {"app": app, "dispatcher": self.dispatcher, **kwargs},
+        )
         for token, bot in list(self._bots.items()):
             await self._startup_bot(bot, token)
 
     async def on_shutdown(self, app: Any, *args: Any, **kwargs: Any) -> None:
-        from maxo.routing.signals.shutdown import AfterShutdown, BeforeShutdown
-
         await self._background.wait_all()
-        workflow_data = {
-            "app": app,
-            "dispatcher": self.dispatcher,
-            **kwargs,
-        }
+        self.dispatcher.workflow_data.update(
+            {"app": app, "dispatcher": self.dispatcher, **kwargs},
+        )
         for bot in list(self._bots.values()):
             await self.dispatcher.feed_signal(BeforeShutdown(), bot)
             await self.dispatcher.feed_signal(AfterShutdown(), bot)

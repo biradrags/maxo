@@ -10,6 +10,7 @@
     WEBHOOK_URL — базовый URL webhook (например https://example.com)
     WEBHOOK_SECRET — необязательный секрет для проверки webhook
 """
+
 import logging
 import os
 
@@ -25,6 +26,7 @@ from maxo.webhook import (
     AiohttpWebAdapter,
     PathRouting,
     SimpleEngine,
+    StaticRouting,
     TokenEngine,
     WebhookConfig,
 )
@@ -41,14 +43,17 @@ security = Security(StaticSecretToken(secret)) if secret else None
 
 @main_dp.message_created(CommandStart())
 async def cmd_start(update: MessageCreated, facade: MessageCreatedFacade) -> None:
-    await facade.answer_text("Отправь /add <token>, чтобы зарегистрировать вторичного бота")
+    await facade.answer_text(
+        "Отправь /add <token>, чтобы зарегистрировать вторичного бота",
+    )
 
 
 @main_dp.message_created(Command("add"))
 async def cmd_add(update: MessageCreated, facade: MessageCreatedFacade) -> None:
     text = (update.message.body.text or "").strip()
     parts = text.split(maxsplit=1)
-    if len(parts) < 2:
+    min_add_parts = 2
+    if len(parts) < min_add_parts:
         await facade.answer_text("Использование: /add <token>")
         return
     token = parts[1].strip()
@@ -65,7 +70,7 @@ async def cmd_add(update: MessageCreated, facade: MessageCreatedFacade) -> None:
             update_types=update_types,
         )
         await facade.answer_text("Вторичный бот подписан на webhook")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         await facade.answer_text(f"Ошибка: {e}")
     finally:
         await temp_bot.close()
@@ -73,7 +78,8 @@ async def cmd_add(update: MessageCreated, facade: MessageCreatedFacade) -> None:
 
 @secondary_dp.message_created()
 async def secondary_echo(
-    update: MessageCreated, facade: MessageCreatedFacade,
+    update: MessageCreated,
+    facade: MessageCreatedFacade,
 ) -> None:
     text = update.message.body.text or "Нет текста"
     await facade.answer_text(f"[Эхо вторичного бота] {text}")
@@ -116,7 +122,7 @@ def main() -> None:
     secondary_engine.register(app)
 
     app.on_startup.append(on_startup)
-    web.run_app(app, host="0.0.0.0", port=8080)
+    web.run_app(app, host="0.0.0.0", port=8080)  # noqa: S104
 
 
 if __name__ == "__main__":

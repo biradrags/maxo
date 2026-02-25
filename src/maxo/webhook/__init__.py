@@ -5,6 +5,7 @@ Public API: SimpleEngine, TokenEngine, AiohttpWebAdapter, StaticRouting,
 PathRouting, WebhookConfig, Security, StaticSecretToken, IPCheck; legacy
 IPFilter, check_ip, ip_filter_middleware for IP allowlist.
 """
+
 from maxo.webhook.adapters import (
     AiohttpBoundRequest,
     AiohttpWebAdapter,

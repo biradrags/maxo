@@ -17,7 +17,7 @@ class SecurityCheck(ABC):
         raise NotImplementedError
 
 
-SECRET_HEADER_LOWER = "x-max-bot-api-secret"
+SECRET_HEADER_LOWER = "x-max-bot-api-secret"  # noqa: S105
 
 DEFAULT_TELEGRAM_NETWORKS: tuple[ipaddress.IPv4Network, ...] = (
     ipaddress.IPv4Network("149.154.160.0/20"),
@@ -73,7 +73,9 @@ class IPCheck(SecurityCheck):
 
     @staticmethod
     def _client_ip(bound_request: BoundRequest) -> str | None:
-        forwarded = bound_request.headers.get("x-forwarded-for") or bound_request.headers.get("X-Forwarded-For")
+        forwarded = bound_request.headers.get(
+            "x-forwarded-for",
+        ) or bound_request.headers.get("X-Forwarded-For")
         if forwarded:
             return forwarded.split(",", 1)[0].strip()
         return bound_request.client_ip

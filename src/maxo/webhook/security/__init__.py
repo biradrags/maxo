@@ -29,12 +29,10 @@ class IPFilter:
         | ipaddress.IPv4Address
         | ipaddress.IPv6Address,
     ) -> None:
-        self._allowed_networks: list[
-            ipaddress.IPv4Network | ipaddress.IPv6Network
-        ] = []
-        self._allowed_addresses: set[
-            ipaddress.IPv4Address | ipaddress.IPv6Address
-        ] = set()
+        self._allowed_networks: list[ipaddress.IPv4Network | ipaddress.IPv6Network] = []
+        self._allowed_addresses: set[ipaddress.IPv4Address | ipaddress.IPv6Address] = (
+            set()
+        )
         for entry in allowed:
             if isinstance(entry, str):
                 if "/" in entry:
@@ -43,7 +41,8 @@ class IPFilter:
                 else:
                     self._allowed_addresses.add(ipaddress.ip_address(entry))
             elif isinstance(
-                entry, (ipaddress.IPv4Network, ipaddress.IPv6Network),
+                entry,
+                (ipaddress.IPv4Network, ipaddress.IPv6Network),
             ):
                 self._allowed_networks.append(entry)
             else:
@@ -61,9 +60,8 @@ def check_ip(ip_filter: IPFilter, request: web.Request) -> tuple[str, bool]:
         forwarded_for, *_ = forwarded_for.split(",", maxsplit=1)
         forwarded_for = forwarded_for.strip()
         return forwarded_for, forwarded_for in ip_filter
-    if (
-        request.transport is not None
-        and (peer_name := request.transport.get_extra_info("peername"))
+    if request.transport is not None and (
+        peer_name := request.transport.get_extra_info("peername")
     ):
         host, _ = peer_name
         return host, host in ip_filter
@@ -75,12 +73,14 @@ def ip_filter_middleware(
 ) -> Callable[[web.Request, Handler], Awaitable[Any]]:
     @middleware
     async def _ip_filter_middleware(
-        request: web.Request, handler: Handler,
+        request: web.Request,
+        handler: Handler,
     ) -> Any:
         ip_address, accept = check_ip(ip_filter=ip_filter, request=request)
         if not accept:
             loggers.webhook.warning(
-                "Blocking request from unauthorized IP: %s", ip_address,
+                "Blocking request from unauthorized IP: %s",
+                ip_address,
             )
             raise web.HTTPUnauthorized
         return await handler(request)

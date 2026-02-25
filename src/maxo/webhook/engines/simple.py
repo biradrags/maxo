@@ -4,6 +4,8 @@ from typing import TYPE_CHECKING, Any
 
 from maxo.bot.methods.subscriptions.subscribe import Subscribe
 from maxo.omit import Omittable, Omitted, is_defined
+from maxo.routing.signals.shutdown import AfterShutdown, BeforeShutdown
+from maxo.routing.signals.startup import AfterStartup, BeforeStartup
 from maxo.webhook.adapters.base import BoundRequest, WebAdapter
 from maxo.webhook.config.webhook import WebhookConfig
 from maxo.webhook.engines.base import WebhookEngine
@@ -66,13 +68,15 @@ class SimpleEngine(WebhookEngine):
                 effective_secret = got
 
         await self.bot.call_method(
-            Subscribe(url=effective_url, secret=effective_secret, update_types=types_list),
+            Subscribe(
+                url=effective_url,
+                secret=effective_secret,
+                update_types=types_list,
+            ),
         )
         return self.bot
 
     async def on_startup(self, app: Any, *args: Any, **kwargs: Any) -> None:
-        from maxo.routing.signals.startup import AfterStartup, BeforeStartup
-
         workflow_data = {
             "app": app,
             "dispatcher": self.dispatcher,
@@ -85,15 +89,10 @@ class SimpleEngine(WebhookEngine):
         await self.dispatcher.feed_signal(AfterStartup(), self.bot)
 
     async def on_shutdown(self, app: Any, *args: Any, **kwargs: Any) -> None:
-        from maxo.routing.signals.shutdown import AfterShutdown, BeforeShutdown
-
         await self._background.wait_all()
-        workflow_data = {
-            "app": app,
-            "dispatcher": self.dispatcher,
-            "bot": self.bot,
-            **kwargs,
-        }
+        self.dispatcher.workflow_data.update(
+            {"app": app, "dispatcher": self.dispatcher, "bot": self.bot, **kwargs},
+        )
         await self.dispatcher.feed_signal(BeforeShutdown(), self.bot)
         await self.dispatcher.feed_signal(AfterShutdown(), self.bot)
         await self.bot.close()

@@ -3,17 +3,16 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-
-    from maxo.bot.bot import Bot
+from yarl import URL
 
 from maxo.webhook.adapters.base import BoundRequest
+
+if TYPE_CHECKING:
+    from maxo.bot.bot import Bot
 
 
 class BaseRouting(ABC):
     def __init__(self, url: str) -> None:
-        from yarl import URL
-
         self._url = URL(url)
         self.path = self._url.path
         self.url_template = self._url.human_repr()

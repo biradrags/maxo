@@ -32,11 +32,15 @@ async def test_full_request_flow_with_engine() -> None:
     bot = MagicMock()
     bot.close = AsyncMock()
     bot.state.started = True
-    bot._token = "test"
+    bot._token = "test"  # noqa: S105
     adapter = AiohttpWebAdapter()
     routing = StaticRouting(url="https://example.com/webhook")
     engine = SimpleEngine(
-        dp, bot, web_adapter=adapter, routing=routing, webhook_config=WebhookConfig(),
+        dp,
+        bot,
+        web_adapter=adapter,
+        routing=routing,
+        webhook_config=WebhookConfig(),
     )
     app = web.Application()
     engine.register(app)
@@ -58,13 +62,13 @@ async def test_token_engine_dynamic_bot_then_shutdown_closes_all() -> None:
     dp.feed_max_update = AsyncMock()
     adapter = AiohttpWebAdapter()
     routing = PathRouting(url="https://example.com/webhook/bot/{bot_token}")
-    with patch("maxo.bot.bot.Bot") as BotClass:
+    with patch("maxo.bot.bot.Bot") as bot_class:
         mock_bot = MagicMock()
         mock_bot.close = AsyncMock()
         mock_bot.start = AsyncMock()
         mock_bot.state.started = True
-        mock_bot._token = "dynamic_tok"
-        BotClass.return_value = mock_bot
+        mock_bot._token = "dynamic_tok"  # noqa: S105
+        bot_class.return_value = mock_bot
         engine = TokenEngine(
             dp,
             web_adapter=adapter,

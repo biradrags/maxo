@@ -33,7 +33,7 @@ def _make_mock_bot() -> MagicMock:
     bot.close = AsyncMock()
     bot.start = AsyncMock()
     bot.state.started = True
-    bot._token = "test_token"
+    bot._token = "test_token"  # noqa: S105
     return bot
 
 
@@ -45,7 +45,11 @@ async def test_simple_engine_returns_200() -> None:
     adapter = AiohttpWebAdapter()
     routing = StaticRouting(url="https://example.com/webhook")
     engine = SimpleEngine(
-        dp, bot, web_adapter=adapter, routing=routing, webhook_config=WebhookConfig(),
+        dp,
+        bot,
+        web_adapter=adapter,
+        routing=routing,
+        webhook_config=WebhookConfig(),
     )
     app = web.Application()
     engine.register(app)
@@ -68,11 +72,14 @@ async def test_simple_engine_invalid_json_returns_400() -> None:
 
     server = TestServer(app)
     client = TestClient(server)
-    async with client, client.post(
-        "/webhook",
-        data='{"broken"',
-        headers={"Content-Type": "application/json"},
-    ) as resp:
+    async with (
+        client,
+        client.post(
+            "/webhook",
+            data='{"broken"',
+            headers={"Content-Type": "application/json"},
+        ) as resp,
+    ):
         assert resp.status == 400
 
 
@@ -88,11 +95,14 @@ async def test_simple_engine_invalid_content_type_returns_400() -> None:
 
     server = TestServer(app)
     client = TestClient(server)
-    async with client, client.post(
-        "/webhook",
-        data='{"ok": true}',
-        headers={"Content-Type": "text/plain"},
-    ) as resp:
+    async with (
+        client,
+        client.post(
+            "/webhook",
+            data='{"ok": true}',
+            headers={"Content-Type": "text/plain"},
+        ) as resp,
+    ):
         assert resp.status == 400
 
 
@@ -104,18 +114,25 @@ async def test_simple_engine_accepts_json_content_type_with_params() -> None:
     adapter = AiohttpWebAdapter()
     routing = StaticRouting(url="https://example.com/webhook")
     engine = SimpleEngine(
-        dp, bot, web_adapter=adapter, routing=routing, webhook_config=WebhookConfig(),
+        dp,
+        bot,
+        web_adapter=adapter,
+        routing=routing,
+        webhook_config=WebhookConfig(),
     )
     app = web.Application()
     engine.register(app)
 
     server = TestServer(app)
     client = TestClient(server)
-    async with client, client.post(
-        "/webhook",
-        json=SAMPLE_UPDATE,
-        headers={"Content-Type": "application/json; charset=utf-8"},
-    ) as resp:
+    async with (
+        client,
+        client.post(
+            "/webhook",
+            json=SAMPLE_UPDATE,
+            headers={"Content-Type": "application/json; charset=utf-8"},
+        ) as resp,
+    ):
         assert resp.status == 200
 
 
@@ -144,18 +161,25 @@ async def test_simple_engine_secret_valid() -> None:
     routing = StaticRouting(url="https://example.com/webhook")
     security = Security(StaticSecretToken("abc"))
     engine = SimpleEngine(
-        dp, bot, web_adapter=adapter, routing=routing, security=security,
+        dp,
+        bot,
+        web_adapter=adapter,
+        routing=routing,
+        security=security,
     )
     app = web.Application()
     engine.register(app)
 
     server = TestServer(app)
     client = TestClient(server)
-    async with client, client.post(
-        "/webhook",
-        json=SAMPLE_UPDATE,
-        headers={"X-Max-Bot-Api-Secret": "abc"},
-    ) as resp:
+    async with (
+        client,
+        client.post(
+            "/webhook",
+            json=SAMPLE_UPDATE,
+            headers={"X-Max-Bot-Api-Secret": "abc"},
+        ) as resp,
+    ):
         assert resp.status == 200
 
 
@@ -167,18 +191,25 @@ async def test_simple_engine_secret_invalid() -> None:
     routing = StaticRouting(url="https://example.com/webhook")
     security = Security(StaticSecretToken("abc"))
     engine = SimpleEngine(
-        dp, bot, web_adapter=adapter, routing=routing, security=security,
+        dp,
+        bot,
+        web_adapter=adapter,
+        routing=routing,
+        security=security,
     )
     app = web.Application()
     engine.register(app)
 
     server = TestServer(app)
     client = TestClient(server)
-    async with client, client.post(
-        "/webhook",
-        json=SAMPLE_UPDATE,
-        headers={"X-Max-Bot-Api-Secret": "wrong"},
-    ) as resp:
+    async with (
+        client,
+        client.post(
+            "/webhook",
+            json=SAMPLE_UPDATE,
+            headers={"X-Max-Bot-Api-Secret": "wrong"},
+        ) as resp,
+    ):
         assert resp.status == 401
 
 
@@ -193,10 +224,10 @@ async def test_token_engine_resolves_bot_from_path_and_feeds_update() -> None:
     dp.feed_max_update = AsyncMock()
     adapter = AiohttpWebAdapter()
     routing = PathRouting(url="https://example.com/webhook/bot/{bot_token}")
-    with patch("maxo.bot.bot.Bot") as BotClass:
+    with patch("maxo.bot.bot.Bot") as bot_class:
         mock_bot = _make_mock_bot()
-        mock_bot._token = "tok1"
-        BotClass.return_value = mock_bot
+        mock_bot._token = "tok1"  # noqa: S105
+        bot_class.return_value = mock_bot
         engine = TokenEngine(
             dp,
             web_adapter=adapter,
@@ -208,12 +239,15 @@ async def test_token_engine_resolves_bot_from_path_and_feeds_update() -> None:
 
         server = TestServer(app)
         client = TestClient(server)
-        async with client, client.post(
-            "/webhook/bot/tok1",
-            json=SAMPLE_UPDATE,
-        ) as resp:
+        async with (
+            client,
+            client.post(
+                "/webhook/bot/tok1",
+                json=SAMPLE_UPDATE,
+            ) as resp,
+        ):
             assert resp.status == 200
-        BotClass.assert_called_once_with(token="tok1")
+        bot_class.assert_called_once_with(token="tok1")  # noqa: S106
         dp.feed_max_update.assert_awaited_once()
 
 
@@ -223,10 +257,10 @@ async def test_token_engine_caches_bot() -> None:
     dp.feed_max_update = AsyncMock()
     adapter = AiohttpWebAdapter()
     routing = PathRouting(url="https://example.com/webhook/bot/{bot_token}")
-    with patch("maxo.bot.bot.Bot") as BotClass:
+    with patch("maxo.bot.bot.Bot") as bot_class:
         mock_bot = _make_mock_bot()
-        mock_bot._token = "cached"
-        BotClass.return_value = mock_bot
+        mock_bot._token = "cached"  # noqa: S105
+        bot_class.return_value = mock_bot
         engine = TokenEngine(
             dp,
             web_adapter=adapter,
@@ -241,7 +275,7 @@ async def test_token_engine_caches_bot() -> None:
         async with client:
             await client.post("/webhook/bot/cached", json=SAMPLE_UPDATE)
             await client.post("/webhook/bot/cached", json=SAMPLE_UPDATE)
-        assert BotClass.call_count == 1
+        assert bot_class.call_count == 1
 
 
 @pytest.mark.asyncio
@@ -250,8 +284,8 @@ async def test_token_engine_security_rejects_invalid_secret() -> None:
     adapter = AiohttpWebAdapter()
     routing = PathRouting(url="https://example.com/webhook/bot/{bot_token}")
     security = Security(StaticSecretToken("secret"))
-    with patch("maxo.bot.bot.Bot") as BotClass:
-        BotClass.return_value = _make_mock_bot()
+    with patch("maxo.bot.bot.Bot") as bot_class:
+        bot_class.return_value = _make_mock_bot()
         engine = TokenEngine(
             dp,
             web_adapter=adapter,
@@ -264,9 +298,12 @@ async def test_token_engine_security_rejects_invalid_secret() -> None:
 
         server = TestServer(app)
         client = TestClient(server)
-        async with client, client.post(
-            "/webhook/bot/tok1",
-            json=SAMPLE_UPDATE,
-            headers={"X-Max-Bot-Api-Secret": "wrong"},
-        ) as resp:
+        async with (
+            client,
+            client.post(
+                "/webhook/bot/tok1",
+                json=SAMPLE_UPDATE,
+                headers={"X-Max-Bot-Api-Secret": "wrong"},
+            ) as resp,
+        ):
             assert resp.status == 401

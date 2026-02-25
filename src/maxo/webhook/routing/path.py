@@ -15,7 +15,7 @@ class PathRouting(TokenRouting):
             )
 
     def webhook_point(self, bot: Bot) -> str:
-        return self.url_template.format_map({self.param: bot._token})
+        return self.url_template.format_map({self.param: bot._token})  # noqa: SLF001
 
     def extract_token(self, bound_request: BoundRequest) -> str | None:
         return bound_request.path_params.get(self.param)

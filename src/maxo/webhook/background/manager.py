@@ -33,7 +33,8 @@ class BackgroundTaskManager:
             return
         try:
             await asyncio.wait_for(
-                asyncio.gather(*tasks, return_exceptions=True), timeout=timeout,
+                asyncio.gather(*tasks, return_exceptions=True),
+                timeout=timeout,
             )
         except TimeoutError:
             for t in tasks:

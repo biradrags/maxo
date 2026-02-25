@@ -16,11 +16,14 @@ async def test_ip_filter_allows_valid() -> None:
 
     server = TestServer(app)
     client = TestClient(server)
-    async with client, client.post(
-        "/webhook",
-        json={},
-        headers={"X-Forwarded-For": "127.0.0.1"},
-    ) as resp:
+    async with (
+        client,
+        client.post(
+            "/webhook",
+            json={},
+            headers={"X-Forwarded-For": "127.0.0.1"},
+        ) as resp,
+    ):
         assert resp.status == 200
 
 
@@ -35,9 +38,12 @@ async def test_ip_filter_blocks_invalid() -> None:
 
     server = TestServer(app)
     client = TestClient(server)
-    async with client, client.post(
-        "/webhook",
-        json={},
-        headers={"X-Forwarded-For": "1.2.3.4"},
-    ) as resp:
+    async with (
+        client,
+        client.post(
+            "/webhook",
+            json={},
+            headers={"X-Forwarded-For": "1.2.3.4"},
+        ) as resp,
+    ):
         assert resp.status == 401

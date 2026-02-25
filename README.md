@@ -13,8 +13,9 @@
 [![Status](https://img.shields.io/pypi/status/maxo.svg?style=flat)](https://pypi.org/project/maxo/)
 [![PyPI](https://img.shields.io/pypi/v/maxo?label=pypi&style=flat)](https://pypi.org/project/maxo/)
 [![Downloads](https://img.shields.io/pypi/dm/maxo?style=flat)](https://pypi.org/project/maxo/)
-[![GitHub Repo Stars](https://img.shields.io/github/stars/K1rL3s/maxo?style=flat)](https://github.com/K1rL3s/maxo/stargazers)
-[![Supported Python Versions](https://img.shields.io/pypi/pyversions/maxo.svg?style=flat)](https://pypi.org/project/maxo/)
+[![GitHub Repo stars](https://img.shields.io/github/stars/K1rL3s/maxo?style=flat)](https://github.com/K1rL3s/maxo/stargazers)
+[![Supported python versions](https://img.shields.io/pypi/pyversions/maxo.svg?style=flat)](https://pypi.org/project/maxo/)
+[![Docs](https://img.shields.io/readthedocs/maxo?style=flat)](https://maxo.readthedocs.io)
 [![Tests](https://img.shields.io/github/actions/workflow/status/K1rL3s/maxo/test.yml?style=flat&label=tests)](https://github.com/K1rL3s/maxo/actions)
 [![Coverage](https://codecov.io/gh/K1rL3s/maxo/graph/badge.svg?style=flat)](https://codecov.io/gh/K1rL3s/maxo)
 
@@ -27,8 +28,8 @@
 </p>
 
 <p align="center">
-    <a href="https://github.com/IvanKirpichnikov/maxo">Оригинальный репозиторий</a>
-    <br>
+    <a href="https://maxo.readthedocs.io">Документация</a><br><br>
+    <a href="https://github.com/IvanKirpichnikov/maxo">Оригинальный репозиторий</a><br>
     <a href="./src/maxo/dialogs">maxo/dialogs</a> переделаны из <a href="https://github.com/Tishka17/aiogram_dialog">aiogram_dialog</a>
 </p>
 
@@ -115,7 +116,7 @@ from magic_filter import F
 from maxo import Bot, Dispatcher, Router
 from maxo.integrations.magic_filter import MagicFilter
 from maxo.routing.filters import CommandStart
-from maxo.routing.updates import MessageCallback
+from maxo.routing.updates import MessageCreated, MessageCallback
 from maxo.utils.builders import KeyboardBuilder
 from maxo.utils.facades import MessageCallbackFacade, MessageCreatedFacade
 from maxo.utils.long_polling import LongPolling
@@ -125,7 +126,7 @@ router = Router()
 
 @router.message_created(CommandStart())
 async def start_handler(
-    update: MessageCallback,
+    update: MessageCreated,
     facade: MessageCreatedFacade,
 ) -> None:
     keyboard = (

@@ -2,7 +2,7 @@ import json
 from collections.abc import Callable
 from typing import Any, Never
 
-from adaptix import P, Retort, dumper
+from adaptix import Chain, P, Retort, dumper
 from aiohttp import ClientSession
 from unihttp.clients.aiohttp import AiohttpAsyncClient
 from unihttp.http import HTTPResponse
@@ -28,6 +28,7 @@ from maxo.errors import (
 )
 from maxo.omit import Omittable
 from maxo.serialization import TAG_PROVIDERS, create_response_loader
+from maxo.types import Attachments
 
 
 class MaxApiClient(AiohttpAsyncClient):
@@ -92,6 +93,11 @@ class MaxApiClient(AiohttpAsyncClient):
                     | P[Omittable[TextFormat]]
                     | P[Omittable[TextFormat | None]],
                     lambda item: item or self._text_format,
+                ),
+                dumper(
+                    P[Attachments],
+                    lambda attachment: attachment.to_request(),
+                    chain=Chain.FIRST,
                 ),
             ],
         )

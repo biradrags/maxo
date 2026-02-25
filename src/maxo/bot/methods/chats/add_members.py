@@ -1,9 +1,9 @@
 from maxo.bot.methods.base import MaxoMethod
 from maxo.bot.methods.markers import Body, Path
-from maxo.types.simple_query_result import SimpleQueryResult
+from maxo.types.modify_members_result import ModifyMembersResult
 
 
-class AddMembers(MaxoMethod[SimpleQueryResult]):
+class AddMembers(MaxoMethod[ModifyMembersResult]):
     """
     Добавление участников в групповой чат
 

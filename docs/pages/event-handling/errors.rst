@@ -46,10 +46,12 @@ ExceptionTypeFilter
     from maxo.routing.updates.error import ErrorEvent
     from maxo.types import UpdateContext
 
-    # Перехват конкретного типа ошибки
+    # Перехват ошибок конкретного типа
     @router.error(ExceptionTypeFilter(ValueError))
     async def value_error_handler(
-        event: ErrorEvent, facade: ErrorEventFacade, update_context: UpdateContext,
+        event: ErrorEvent,
+        facade: ErrorEventFacade,
+        update_context: UpdateContext,
     ):
         await facade.bot.send_message(
             chat_id=update_context.chat_id,

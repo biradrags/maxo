@@ -36,7 +36,10 @@
 
     @router.message_created(Command("register"))
     async def start_registration(
-        update: MessageCreated, ctx: Ctx, facade: MessageCreatedFacade, fsm_context: FSMContext,
+        update: MessageCreated,
+        ctx: Ctx,
+        facade: MessageCreatedFacade,
+        fsm_context: FSMContext,
     ):
         await facade.answer_text("Как вас зовут?")
         # Устанавливаем состояние "ожидание имени"
@@ -54,7 +57,10 @@
     # Этот хендлер сработает только если пользователь находится в состоянии waiting_name
     @router.message_created(StateFilter(Registration.waiting_name))
     async def process_name(
-        update: MessageCreated, ctx: Ctx, facade: MessageCreatedFacade, fsm_context: FSMContext,
+        update: MessageCreated,
+        ctx: Ctx,
+        facade: MessageCreatedFacade,
+        fsm_context: FSMContext,
     ):
         name = update.message.body.text
         
@@ -79,7 +85,10 @@
 
     @router.message_created(StateFilter(Registration.waiting_age))
     async def process_age(
-        update: MessageCreated, ctx: Ctx, facade: MessageCreatedFacade, fsm_context: FSMContext,
+        update: MessageCreated,
+        ctx: Ctx,
+        facade: MessageCreatedFacade,
+        fsm_context: FSMContext,
     ):
         age = update.message.body.text
         
@@ -95,7 +104,7 @@
 Хранилища
 --------------------
 
-Данные FSM должны где-то храниться. **maxo** поддерживает несколько бэкендов.
+Данные FSM должны где-то храниться. **maxo** поддерживает несколько хранилищ.
 
 MemoryStorage
 ~~~~~~~~~~~~~
@@ -113,7 +122,7 @@ MemoryStorage
 RedisStorage
 ~~~~~~~~~~~~
 
-Сохраняет состояния в Redis. Идеально для продакшена: данные переживают перезапуск бота, и можно запускать несколько экземпляров бота параллельно.
+Сохраняет состояния в Redis. Идеально для прода: данные переживают перезапуск бота, и можно запускать несколько экземпляров бота параллельно.
 Требует установки ``redis`` (``pip install maxo[redis]``).
 
 .. code-block:: python

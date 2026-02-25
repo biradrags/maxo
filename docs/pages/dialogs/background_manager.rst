@@ -52,7 +52,7 @@ BgManagerFactory
     class TimerSG(StatesGroup):
         running = State()
 
-    async def timer_getter(dialog_manager: DialogManager, **kwargs: Any) -> dict:
+    async def timer_getter(dialog_manager: DialogManager, **__: Any) -> dict:
         count = dialog_manager.dialog_data.get("count", 0)
         return {"count": count}
 
@@ -72,7 +72,9 @@ BgManagerFactory
                 await bg.update({"count": i})
 
         # Запускаем задачу в фоне
-        manager.middleware_data["task_group"].start_soon(tick)
+        asyncio.create_task(tick())
+        # Или любым другим способом, например через `TaskGroup`, созданную заранее:
+        # manager.middleware_data["task_group"].start_soon(tick)
 
     timer_dialog = Dialog(
         Window(

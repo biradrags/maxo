@@ -21,7 +21,7 @@
     class SG(StatesGroup):
         main = State()
 
-    async def get_user_data(manager, **kwargs):
+    async def get_user_data(**kwargs):
         return {
             "name": "Иван",
             "balance": 100
@@ -48,11 +48,11 @@
         main = State()
         details = State()
 
-    async def common_getter(manager, **kwargs):
+    async def common_getter(**kwargs):
         """Общий геттер – данные доступны во всех окнах."""
         return {"app_name": "МойБот", "version": "1.0"}
 
-    async def details_getter(manager, **kwargs):
+    async def details_getter(**kwargs):
         """Локальный геттер – только для окна details."""
         return {"info": "Подробная информация"}
 

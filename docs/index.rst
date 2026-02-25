@@ -61,7 +61,7 @@
       :link: pages/getting-started
       :link-type: doc
 
-      Полностью асинхронный фреймворк, построенный на базе ``aiohttp``.
+      Полностью асинхронный фреймворк, построенный на базе ``aiohttp`` и ``unihttp``.
 
    .. grid-item-card:: :octicon:`shield-check` Строгая типизация
       :link: pages/getting-started

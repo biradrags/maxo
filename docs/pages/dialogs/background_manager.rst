@@ -71,10 +71,10 @@ BgManagerFactory
                 await anyio.sleep(1)
                 await bg.update({"count": i})
 
-        # Запускаем задачу в фоне
-        asyncio.create_task(tick())
-        # Или любым другим способом, например через `TaskGroup`, созданную заранее:
-        # manager.middleware_data["task_group"].start_soon(tick)
+        # Запускаем задачу через TaskGroup, зарегистрированную при старте приложения:
+        manager.middleware_data["task_group"].start_soon(tick)
+        # Альтернатива (только для asyncio-бэкенда):
+        # import asyncio; asyncio.create_task(tick())
 
     timer_dialog = Dialog(
         Window(

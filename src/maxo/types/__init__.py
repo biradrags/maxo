@@ -29,6 +29,7 @@ from .contact_attachment_payload import ContactAttachmentPayload
 from .contact_attachment_request import ContactAttachmentRequest
 from .contact_attachment_request_payload import ContactAttachmentRequestPayload
 from .emphasized_markup import EmphasizedMarkup
+from .failed_user_details import FailedUserDetails
 from .file_attachment import FileAttachment
 from .file_attachment_payload import FileAttachmentPayload
 from .file_attachment_request import FileAttachmentRequest
@@ -54,6 +55,7 @@ from .message_body import MessageBody
 from .message_button import MessageButton
 from .message_list import MessageList
 from .message_stat import MessageStat
+from .modify_members_result import ModifyMembersResult
 from .monospaced_markup import MonospacedMarkup
 from .new_message_body import NewMessageBody
 from .new_message_link import NewMessageLink
@@ -118,6 +120,7 @@ __all__ = (
     "ContactAttachmentRequest",
     "ContactAttachmentRequestPayload",
     "EmphasizedMarkup",
+    "FailedUserDetails",
     "FileAttachment",
     "FileAttachmentPayload",
     "FileAttachmentRequest",
@@ -145,6 +148,7 @@ __all__ = (
     "MessageButton",
     "MessageList",
     "MessageStat",
+    "ModifyMembersResult",
     "MonospacedMarkup",
     "NewMessageBody",
     "NewMessageLink",

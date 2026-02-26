@@ -17,7 +17,8 @@ async def attachments_handler(
     facade: MessageCreatedFacade,
     update_context: UpdateContext,
 ) -> None:
-    # maxo.errors.api.MaxBotBadRequestError:
+    # В одном сообщении API принимает только один файл - отправляем по одному.
+    # При нескольких вложениях: maxo.errors.api.MaxBotBadRequestError
     # ('proto.payload', 'Must be only one file attachment in message')
     for file in (
         FSInputFile.image(path="./files/watermelon.jpg"),

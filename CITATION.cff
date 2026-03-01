@@ -16,7 +16,9 @@ url: 'https://maxo.readthedocs.io'
 abstract: Асинхронный фреймворк для создания ботов MAX.ru на Python.
 keywords:
   - python
+  - max
   - max.ru
+  - maxo
   - maxapi
   - async
   - framework

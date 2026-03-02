@@ -1,0 +1,26 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: maxo
+message: >-
+  Если вы используете этот проект,
+  пожалуйста, укажите его следующим образом.
+type: software
+authors:
+  - given-names: Кирилл
+    family-names: Лесовой
+    email: kirill.lesovoi@mail.ru
+repository-code: 'https://github.com/k1rl3s/maxo'
+url: 'https://maxo.readthedocs.io'
+abstract: Асинхронный фреймворк для создания ботов MAX.ru на Python.
+keywords:
+  - python
+  - max
+  - max.ru
+  - maxo
+  - maxapi
+  - async
+  - framework
+  - bot
+license: Apache-2.0

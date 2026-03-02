@@ -1,6 +1,7 @@
+import pathlib
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from typing import Self, TypeVar
+from typing import BinaryIO, Self, TypeVar
 
 from unihttp.bind_method import bind_method
 
@@ -48,7 +49,7 @@ from maxo.bot.state import (
     RunningBotState,
 )
 from maxo.enums.text_format import TextFormat
-from maxo.types import MaxoType
+from maxo.types import AttachmentPayload, MaxoType
 
 _MethodResultT = TypeVar("_MethodResultT", bound=MaxoType)
 
@@ -103,6 +104,22 @@ class Bot:
 
         await self.state.api_client.close()
         self._state = ClosedBotState()
+
+    async def download(
+        self,
+        url: str | AttachmentPayload,
+        destination: BinaryIO | pathlib.Path | str | None = None,
+        timeout: int = 30,
+        chunk_size: int = 65536,
+        seek: bool = True,
+    ) -> BinaryIO | None:
+        return await self.state.api_client.download(
+            url=url,
+            destination=destination,
+            timeout=timeout,
+            chunk_size=chunk_size,
+            seek=seek,
+        )
 
     # Bots
 

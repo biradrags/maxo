@@ -1,10 +1,13 @@
+import io
 import json
-from collections.abc import Callable
+import pathlib
+from collections.abc import AsyncGenerator, Callable
 from datetime import UTC, datetime
-from typing import Any, Never
+from typing import Any, BinaryIO, Never
 
 from adaptix import Chain, P, Retort, dumper, loader
 from aiohttp import ClientSession
+from anyio import open_file
 from unihttp.clients.aiohttp import AiohttpAsyncClient
 from unihttp.http import HTTPResponse
 from unihttp.markers import QueryMarker
@@ -55,6 +58,7 @@ from maxo.routing.updates import (
     UserRemovedFromChat,
 )
 from maxo.types import (
+    AttachmentPayload,
     Attachments,
     AttachmentsRequests,
     AudioAttachment,
@@ -276,3 +280,90 @@ class MaxApiClient(AiohttpAsyncClient):
                 response.status_code,
             )
             response.status_code = 400
+
+    async def download(
+        self,
+        url: str | AttachmentPayload,
+        destination: BinaryIO | pathlib.Path | str | None = None,
+        timeout: int = 30,
+        chunk_size: int = 65536,
+        seek: bool = True,
+    ) -> BinaryIO | None:
+        if isinstance(url, AttachmentPayload):
+            url = url.url
+
+        return await self._download_file(
+            url,
+            destination=destination,
+            timeout=timeout,
+            chunk_size=chunk_size,
+            seek=seek,
+        )
+
+    async def _download_file(
+        self,
+        url: str,
+        destination: BinaryIO | pathlib.Path | str | None,
+        timeout: int,
+        chunk_size: int,
+        seek: bool,
+    ) -> BinaryIO | None:
+        if destination is None:
+            destination = io.BytesIO()
+
+        stream = self._stream_content(
+            url=url,
+            timeout=timeout,
+            chunk_size=chunk_size,
+            raise_for_status=True,
+        )
+
+        if isinstance(destination, (str, pathlib.Path)):
+            await self.__download_file(destination=destination, stream=stream)
+            return None
+        return await self.__download_file_binary_io(
+            destination=destination,
+            seek=seek,
+            stream=stream,
+        )
+
+    async def _stream_content(
+        self,
+        url: str,
+        headers: dict[str, Any] | None = None,
+        timeout: int = 30,
+        chunk_size: int = 65536,
+        raise_for_status: bool = True,
+    ) -> AsyncGenerator[bytes, None]:
+        async with self._session.get(
+            url,
+            timeout=timeout,
+            headers=headers,
+            raise_for_status=raise_for_status,
+        ) as resp:
+            async for chunk in resp.content.iter_chunked(chunk_size):
+                yield chunk
+
+    @classmethod
+    async def __download_file(
+        cls,
+        destination: str | pathlib.Path,
+        stream: AsyncGenerator[bytes, None],
+    ) -> None:
+        async with await open_file(destination, "wb") as f:
+            async for chunk in stream:
+                await f.write(chunk)
+
+    @classmethod
+    async def __download_file_binary_io(
+        cls,
+        destination: BinaryIO,
+        seek: bool,
+        stream: AsyncGenerator[bytes, None],
+    ) -> BinaryIO:
+        async for chunk in stream:
+            destination.write(chunk)
+            destination.flush()
+        if seek is True:
+            destination.seek(0)
+        return destination

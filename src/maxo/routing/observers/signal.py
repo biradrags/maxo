@@ -34,12 +34,12 @@ class SignalObserver(
         if not await self.execute_filter(ctx):
             return UNHANDLED
 
-        result = UNHANDLED
         for handler in self._handlers:
             if await handler.execute_filter(ctx):
-                result = await self.execute_handler(ctx, handler)
+                await self.execute_handler(ctx, handler)
 
-        return result
+        # Возврат UNHANDLED для того, чтобы сигнал прошёлся по дочерним роутерам
+        return UNHANDLED
 
     if TYPE_CHECKING:
 

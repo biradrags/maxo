@@ -10,7 +10,7 @@ from maxo.routing.ctx import Ctx
 from maxo.routing.middlewares.error import ErrorMiddleware
 from maxo.routing.middlewares.fsm_context import FSMContextMiddleware
 from maxo.routing.middlewares.update_context import UpdateContextMiddleware
-from maxo.routing.observers.signal import SignalObserver
+from maxo.routing.observers import UpdateObserver
 from maxo.routing.routers.simple import Router
 from maxo.routing.sentinels import UNHANDLED
 from maxo.routing.signals.base import BaseSignal
@@ -22,7 +22,7 @@ from maxo.utils.facades.middleware import FacadeMiddleware
 
 
 class Dispatcher(Router):
-    update: SignalObserver[MaxoUpdate[Any]]
+    update: UpdateObserver[MaxoUpdate[Any]]
 
     def __init__(
         self,
@@ -39,7 +39,7 @@ class Dispatcher(Router):
         self.workflow_data["dispatcher"] = self
         self.workflow_data["router"] = self
 
-        self.update = self._observers[MaxoUpdate] = SignalObserver[MaxoUpdate]()
+        self.update = self._observers[MaxoUpdate] = UpdateObserver[MaxoUpdate]()
         self.update.middleware.outer(ErrorMiddleware(self))
         self.update.middleware.outer(UpdateContextMiddleware())
 
@@ -100,8 +100,8 @@ class Dispatcher(Router):
         ctx["ctx"] = ctx
         return await self.trigger(ctx)
 
-    async def _feed_update_handler(self, ctx: Ctx) -> Any:
-        ctx["update"] = ctx["update"].update
+    async def _feed_update_handler(self, update: MaxoUpdate[Any], ctx: Ctx) -> Any:
+        ctx["update"] = update.update
         return await self.trigger(ctx)
 
     async def _emit_before_startup_handler(self) -> None:

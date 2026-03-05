@@ -16,28 +16,8 @@ from maxo.routing.updates.message_created import MessageCreated
 from maxo.types import Message, MessageBody, Recipient, User
 
 
-class MockBotInfo:
-    def __init__(self, user_id: int) -> None:
-        self.user_id = user_id
-
-
-class MockBotState:
-    def __init__(self, user_id: int) -> None:
-        self.info = MockBotInfo(user_id)
-
-
-class MockBot:
-    def __init__(self, user_id: int = 1) -> None:
-        self.state = MockBotState(user_id)
-
-
 @pytest.fixture
-def bot() -> MockBot:
-    return MockBot()
-
-
-@pytest.fixture
-def message_created_update() -> MessageCreated:
+def update() -> MessageCreated:
     return MessageCreated(
         message=Message(
             body=MessageBody(mid="test", seq=1),
@@ -52,13 +32,6 @@ def message_created_update() -> MessageCreated:
         ),
         timestamp=datetime.now(UTC),
     )
-
-
-@pytest.fixture
-def context(message_created_update: MessageCreated, bot: MockBot) -> Ctx:
-    ctx = Ctx({"update": message_created_update, "bot": bot})
-    ctx["ctx"] = ctx
-    return ctx
 
 
 async def handler(_: Any, ctx: Ctx) -> Any:
@@ -81,7 +54,7 @@ def middleware_factory(name: str) -> Callable[..., Any]:
 
 
 @pytest.mark.asyncio
-async def test_middleware_execution_order(context: Ctx) -> None:
+async def test_middleware_execution_order(ctx: Ctx) -> None:
     dp = Dispatcher()
 
     dp.message_created.handler(handler)
@@ -95,11 +68,11 @@ async def test_middleware_execution_order(context: Ctx) -> None:
     )
 
     await dp.feed_signal(BeforeStartup())
-    context["execution_order"] = []
-    result = await dp.trigger(context)
+    ctx["execution_order"] = []
+    result = await dp.trigger(ctx)
 
     assert result == "OK"
-    assert context["execution_order"] == [
+    assert ctx["execution_order"] == [
         "outer_1_pre",
         "outer_2_pre",
         "inner_1_pre",
@@ -113,7 +86,7 @@ async def test_middleware_execution_order(context: Ctx) -> None:
 
 
 @pytest.mark.asyncio
-async def test_middleware_stops_propagation(context: Ctx) -> None:
+async def test_middleware_stops_propagation(ctx: Ctx) -> None:
     dp = Dispatcher()
 
     async def stopping_middleware(
@@ -129,11 +102,11 @@ async def test_middleware_stops_propagation(context: Ctx) -> None:
     dp.message_created.handler(handler)
 
     await dp.feed_signal(BeforeStartup())
-    context["execution_order"] = []
-    result = await dp.trigger(context)
+    ctx["execution_order"] = []
+    result = await dp.trigger(ctx)
 
     assert result == "STOPPED"
-    assert context["execution_order"] == [
+    assert ctx["execution_order"] == [
         "outer_pre",
         "stopping_middleware",
         "outer_post",
@@ -141,7 +114,7 @@ async def test_middleware_stops_propagation(context: Ctx) -> None:
 
 
 @pytest.mark.asyncio
-async def test_outer_middleware_runs_if_filter_fails(context: Ctx) -> None:
+async def test_outer_middleware_runs_if_filter_fails(ctx: Ctx) -> None:
     dp = Dispatcher()
 
     class UpdateFilter(BaseFilter[MessageCreated]):
@@ -154,11 +127,11 @@ async def test_outer_middleware_runs_if_filter_fails(context: Ctx) -> None:
     dp.message_created.middleware.outer.add(middleware_factory("outer"))
 
     await dp.feed_signal(BeforeStartup())
-    context["execution_order"] = []
-    result = await dp.trigger(context)
+    ctx["execution_order"] = []
+    result = await dp.trigger(ctx)
 
     assert result is UNHANDLED
-    assert context["execution_order"] == [
+    assert ctx["execution_order"] == [
         "outer_pre",
         "filter",
         "outer_post",
@@ -166,7 +139,7 @@ async def test_outer_middleware_runs_if_filter_fails(context: Ctx) -> None:
 
 
 @pytest.mark.asyncio
-async def test_nested_router_middleware_execution(context: Ctx) -> None:
+async def test_nested_router_middleware_execution(ctx: Ctx) -> None:
     dp = Dispatcher()
     root_router = Router("root")
     child_router = Router("child")
@@ -181,11 +154,11 @@ async def test_nested_router_middleware_execution(context: Ctx) -> None:
     child_router.message_created.handler(handler)
 
     await dp.feed_signal(BeforeStartup())
-    context["execution_order"] = []
-    result = await dp.trigger(context)
+    ctx["execution_order"] = []
+    result = await dp.trigger(ctx)
 
     assert result == "OK"
-    assert context["execution_order"] == [
+    assert ctx["execution_order"] == [
         "dp_pre",
         "root_pre",
         "child_pre",
@@ -199,7 +172,7 @@ async def test_nested_router_middleware_execution(context: Ctx) -> None:
 
 
 @pytest.mark.asyncio
-async def test_one_call_per_event_with_routers(context: Ctx) -> None:
+async def test_one_call_per_event_with_routers(ctx: Ctx) -> None:
     async def outer_middleware(
         update: MessageCreated,
         ctx: Ctx,
@@ -226,10 +199,10 @@ async def test_one_call_per_event_with_routers(context: Ctx) -> None:
         return "OK"
 
     await dp.feed_signal(BeforeStartup())
-    context["calls"] = 0
-    context["handler_calls"] = 0
-    result = await dp.trigger(context)
+    ctx["calls"] = 0
+    ctx["handler_calls"] = 0
+    result = await dp.trigger(ctx)
 
     assert result == "OK"
-    assert context["calls"] == 1
-    assert context["handler_calls"] == 1
+    assert ctx["calls"] == 1
+    assert ctx["handler_calls"] == 1

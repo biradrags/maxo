@@ -1,0 +1,115 @@
+from datetime import UTC, datetime
+
+import pytest
+
+from maxo import Router
+from maxo.enums import ChatType
+from maxo.routing.dispatcher import Dispatcher
+from maxo.routing.signals import (
+    AfterShutdown,
+    AfterStartup,
+    BeforeShutdown,
+    BeforeStartup,
+)
+from maxo.routing.updates.message_created import MessageCreated
+from maxo.types import Message, MessageBody, Recipient, User
+
+
+@pytest.fixture
+def update() -> MessageCreated:
+    return MessageCreated(
+        message=Message(
+            body=MessageBody(mid="test", seq=1),
+            recipient=Recipient(chat_type=ChatType.DIALOG, chat_id=1),
+            timestamp=datetime.now(UTC),
+            sender=User(
+                user_id=1,
+                first_name="Test",
+                is_bot=False,
+                last_activity_time=datetime.now(UTC),
+            ),
+        ),
+        timestamp=datetime.now(UTC),
+    )
+
+
+@pytest.mark.asyncio
+async def test_dp_signals() -> None:
+    dp = Dispatcher()
+    order = []
+
+    @dp.before_startup()
+    async def before_startup() -> None:
+        order.append("before_startup")
+
+    @dp.after_startup()
+    async def after_startup() -> None:
+        order.append("after_startup")
+
+    @dp.before_shutdown()
+    async def before_shutdown() -> None:
+        order.append("before_shutdown")
+
+    @dp.after_shutdown()
+    async def after_shutdown() -> None:
+        order.append("after_shutdown")
+
+    await dp.feed_signal(BeforeStartup())
+    await dp.feed_signal(AfterStartup())
+    await dp.feed_signal(BeforeShutdown())
+    await dp.feed_signal(AfterShutdown())
+
+    assert order == [
+        "before_startup",
+        "after_startup",
+        "before_shutdown",
+        "after_shutdown",
+    ]
+
+
+@pytest.mark.asyncio
+async def test_included_router_signals() -> None:
+    dp = Dispatcher()
+    deep_router = Router()
+    deeper_router = Router()
+    deepest_router = Router()
+
+    dp.include(deep_router)
+    deep_router.include(deeper_router)
+    deeper_router.include(deepest_router)
+
+    order = []
+
+    @dp.before_startup()
+    @deep_router.before_startup()
+    @deeper_router.before_startup()
+    @deepest_router.before_startup()
+    async def before_startup() -> None:
+        order.append("before_startup")
+
+    @dp.after_startup()
+    @deep_router.after_startup()
+    async def after_startup() -> None:
+        order.append("after_startup")
+
+    @deep_router.before_shutdown()
+    @deeper_router.before_shutdown()
+    async def before_shutdown() -> None:
+        order.append("before_shutdown")
+
+    @deeper_router.after_shutdown()
+    @deepest_router.after_shutdown()
+    async def after_shutdown() -> None:
+        order.append("after_shutdown")
+
+    await dp.feed_signal(BeforeStartup())
+    await dp.feed_signal(AfterStartup())
+    await dp.feed_signal(BeforeShutdown())
+    await dp.feed_signal(AfterShutdown())
+
+    assert order == [
+        *(["before_startup"] * 4),
+        *(["after_startup"] * 2),
+        *(["before_shutdown"] * 2),
+        *(["after_shutdown"] * 2),
+    ]

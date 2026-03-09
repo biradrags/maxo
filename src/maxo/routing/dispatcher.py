@@ -32,6 +32,7 @@ class Dispatcher(Router):
         storage: BaseStorage | None = None,
         events_isolation: BaseEventIsolation | None = None,
         key_builder: BaseKeyBuilder | None = None,
+        disable_fsm: bool = False,
     ) -> None:
         super().__init__(self.__class__.__name__)
 
@@ -46,16 +47,21 @@ class Dispatcher(Router):
         self.update.handler(self._feed_update_handler)
 
         # State system settings
-        if key_builder is None:
-            key_builder = DefaultKeyBuilder()
+        if not disable_fsm:
+            if key_builder is None:
+                key_builder = DefaultKeyBuilder()
 
-        if storage is None:
-            storage = MemoryStorage(key_builder=key_builder)
+            if storage is None:
+                storage = MemoryStorage(key_builder=key_builder)
 
-        if events_isolation is None:
-            events_isolation = SimpleEventIsolation(key_builder=key_builder)
+            if events_isolation is None:
+                events_isolation = SimpleEventIsolation(key_builder=key_builder)
 
-        self.update.middleware.outer(FSMContextMiddleware(storage, events_isolation))
+            # Note that when FSM middleware is disabled, the event isolation is also disabled
+            # Because the isolation mechanism is a part of the FS
+            self.update.middleware.outer(
+                FSMContextMiddleware(storage, events_isolation),
+            )
 
         # Facade settings
         self.update.middleware.outer(FacadeMiddleware())

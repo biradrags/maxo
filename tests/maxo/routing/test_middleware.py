@@ -9,6 +9,7 @@ from maxo.routing.ctx import Ctx
 from maxo.routing.dispatcher import Dispatcher
 from maxo.routing.filters import AlwaysFalseFilter, AlwaysTrueFilter, BaseFilter
 from maxo.routing.interfaces import NextMiddleware
+from maxo.routing.middlewares.fsm_context import FSMContextMiddleware
 from maxo.routing.routers.simple import Router
 from maxo.routing.sentinels import UNHANDLED
 from maxo.routing.signals import BeforeStartup
@@ -206,3 +207,23 @@ async def test_one_call_per_event_with_routers(ctx: Ctx) -> None:
     assert result == "OK"
     assert ctx["calls"] == 1
     assert ctx["handler_calls"] == 1
+
+
+@pytest.mark.asyncio
+async def test_fsm_disabled() -> None:
+    dp = Dispatcher(disable_fsm=True)
+
+    assert not any(
+        isinstance(middleware, FSMContextMiddleware)
+        for middleware in dp.update.middleware.outer.middlewares
+    )
+
+
+@pytest.mark.asyncio
+async def test_fsm_enabled_by_default() -> None:
+    dp = Dispatcher()
+
+    assert any(
+        isinstance(m, FSMContextMiddleware)
+        for m in dp.update.middleware.outer.middlewares
+    )

@@ -17,7 +17,7 @@ _ID_SYMS = string.digits + string.ascii_letters
 
 
 def new_int_id() -> int:
-    return int(time.time()) % 100_000_000 + random.randint(0, 99) * 100_000_000
+    return int(time.time() * 1000) % 100_000_000 + random.randint(0, 99) * 100_000_000
 
 
 def id_to_str(int_id: int) -> str:

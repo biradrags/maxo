@@ -1,3 +1,4 @@
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -13,7 +14,7 @@ async def test_adapter():
     engine = MagicMock()
     engine.feed_request = AsyncMock()
 
-    async def handler(request: BoundRequest) -> None:
+    async def handler(request: BoundRequest[Any]) -> None:
         await engine.feed_request(request)
 
     app = FastAPI()

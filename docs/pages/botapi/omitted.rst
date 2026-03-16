@@ -178,6 +178,7 @@ Omitted в объектах ответа
 
     from maxo.routing.updates.message_created import MessageCreated
     from maxo.utils.facades import MessageCreatedFacade
+    from maxo.omit import is_defined
     from maxo.errors import AttributeIsEmptyError
 
     @dispatcher.message_created()

@@ -20,6 +20,16 @@ from maxo.utils.text_decorations import (
     remove_surrogates,
 )
 
+_MARKUP_MAP: dict[str, type] = {
+    MarkupElementType.STRONG: StrongMarkup,
+    MarkupElementType.EMPHASIZED: EmphasizedMarkup,
+    MarkupElementType.UNDERLINE: UnderlineMarkup,
+    MarkupElementType.STRIKETHROUGH: StrikethroughMarkup,
+    MarkupElementType.MONOSPACED: MonospacedMarkup,
+    MarkupElementType.LINK: LinkMarkup,
+    MarkupElementType.USER_MENTION: UserMentionMarkup,
+}
+
 NodeType = Any
 
 
@@ -98,16 +108,7 @@ class Text(Iterable[NodeType]):
         if self.type is None:
             raise ValueError("Node without type can't be rendered as entity")
 
-        markup_map = {
-            MarkupElementType.STRONG: StrongMarkup,
-            MarkupElementType.EMPHASIZED: EmphasizedMarkup,
-            MarkupElementType.UNDERLINE: UnderlineMarkup,
-            MarkupElementType.STRIKETHROUGH: StrikethroughMarkup,
-            MarkupElementType.MONOSPACED: MonospacedMarkup,
-            MarkupElementType.LINK: LinkMarkup,
-            MarkupElementType.USER_MENTION: UserMentionMarkup,
-        }
-        markup_class: type[MarkupElements] = markup_map.get(self.type, MarkupElement)
+        markup_class: type[MarkupElements] = _MARKUP_MAP.get(self.type, MarkupElement)
         return markup_class(
             type=self.type,
             from_=offset,
@@ -206,7 +207,7 @@ class Text(Iterable[NodeType]):
         position = 0
 
         for node in self._body:
-            node_size = len(node)
+            node_size = sizeof(node) if isinstance(node, str) else len(node)
             current_position = position
             position += node_size
             if position < start:
@@ -215,7 +216,12 @@ class Text(Iterable[NodeType]):
                 break
             a = max((0, start - current_position))
             b = min((node_size, stop - current_position))
-            new_node = node[a:b]
+
+            if isinstance(node, str):
+                new_node = remove_surrogates(add_surrogates(node)[a * 2 : b * 2])
+            else:
+                new_node = node[a:b]
+
             if not new_node:
                 continue
             nodes.append(new_node)
@@ -291,7 +297,8 @@ def _unparse_entities(
 ) -> Generator[NodeType, None, None]:
     if offset is None:
         offset = 0
-    length = length or len(text)
+    if length is None:
+        length = len(text)
 
     for index, entity in enumerate(entities):
         if entity.offset * 2 < offset:

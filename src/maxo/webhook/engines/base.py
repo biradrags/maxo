@@ -3,6 +3,8 @@ from abc import ABC, abstractmethod
 from json import JSONDecodeError
 from typing import Any
 
+from adaptix.load_error import LoadError
+
 from maxo import Bot, Dispatcher
 from maxo.bot.methods.base import MaxoMethod
 from maxo.routing.signals import MaxoUpdate
@@ -63,7 +65,7 @@ class WebhookEngine(ABC):
             **kwargs,
         }
 
-    async def handle_request(self, bound_request: BoundRequest) -> Any:
+    async def handle_request(self, bound_request: BoundRequest[Any]) -> Any:
         bot = self._get_bot_from_request(bound_request)
         if bot is None:
             return self.web_adapter.create_json_response(
@@ -88,7 +90,13 @@ class WebhookEngine(ABC):
                 payload={"detail": "Bad request"},
             )
 
-        update = MaxoUpdate(update=bot.retort.load(raw_update, Updates))
+        try:
+            update = MaxoUpdate(update=bot.retort.load(raw_update, Updates))
+        except LoadError:
+            return self.web_adapter.create_json_response(
+                status=400,
+                payload={"detail": "Bad request"},
+            )
 
         if self.handle_in_background:
             return await self._handle_request_background(bot=bot, update=update)

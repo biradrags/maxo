@@ -1,3 +1,5 @@
+from typing import Any
+
 from maxo import Bot
 from maxo.webhook.adapters.base_adapter import BoundRequest
 from maxo.webhook.security.base_check import SecurityCheck
@@ -19,7 +21,7 @@ class Security:
         self._secret_token = secret_token
         self._checks: tuple[SecurityCheck, ...] = checks
 
-    async def verify(self, bot: Bot, bound_request: BoundRequest) -> bool:
+    async def verify(self, bot: Bot, bound_request: BoundRequest[Any]) -> bool:
         """
         Verify the security of a webhook request.
 

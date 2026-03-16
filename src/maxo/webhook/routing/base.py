@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Any
 
 from yarl import URL
 
@@ -33,6 +34,6 @@ class TokenRouting(BaseRouting, ABC):
         self.param = param
 
     @abstractmethod
-    def extract_token(self, bound_request: BoundRequest) -> str | None:
+    def extract_token(self, bound_request: BoundRequest[Any]) -> str | None:
         """Extract the bot token from the incoming request."""
         raise NotImplementedError

@@ -128,23 +128,6 @@ TAG_PROVIDERS = concat_provider(
 )
 
 
-_retort: Retort | None = None
-
-
-def get_retort(
-    *,
-    defaults: BotDefaults | None = None,
-    warming_up: bool = True,
-) -> Retort:
-    global _retort
-
-    if _retort is not None:
-        return _retort
-
-    _retort = create_retort(defaults=defaults, warming_up=warming_up)
-    return _retort
-
-
 def create_retort(
     *,
     defaults: BotDefaults | None = None,

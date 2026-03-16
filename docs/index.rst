@@ -129,6 +129,7 @@ Contributors
    pages/event-handling/fsm
    pages/event-handling/facades
    pages/event-handling/errors
+   pages/event-handling/signals
    pages/event-handling/long-polling
 
 .. toctree::

@@ -83,7 +83,7 @@ class TextDecoration(ABC):
             offset = entity.offset * 2 + entity.length * 2
 
             sub_entities = list(
-                filter(lambda e: e.offset * 2 < (offset or 0), entities[index + 1 :]),
+                filter(lambda e: e.offset * 2 < offset, entities[index + 1 :]),
             )
             yield self.apply_entity(
                 entity,

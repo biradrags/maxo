@@ -10,7 +10,7 @@ from maxo.webhook.adapters.fastapi.adapter import FastApiWebAdapter
 
 
 @pytest.mark.asyncio
-async def test_adapter():
+async def test_adapter() -> None:
     engine = MagicMock()
     engine.feed_request = AsyncMock()
 

@@ -1,7 +1,7 @@
 import dataclasses
 import textwrap
 from collections.abc import Generator, Iterable, Iterator
-from typing import Any, ClassVar, Self
+from typing import Any, ClassVar, Self, TypeAlias
 
 from maxo.enums import MarkupElementType
 from maxo.types.emphasized_markup import EmphasizedMarkup
@@ -30,7 +30,7 @@ _MARKUP_MAP: dict[str, type] = {
     MarkupElementType.USER_MENTION: UserMentionMarkup,
 }
 
-NodeType = Any
+NodeType: TypeAlias = Any
 
 
 def sizeof(value: str) -> int:
@@ -309,7 +309,7 @@ def _unparse_entities(
         offset = entity.offset * 2 + entity.length * 2
 
         sub_entities = list(
-            filter(lambda e: e.offset * 2 < (offset or 0), entities[index + 1 :]),
+            filter(lambda e: e.offset * 2 < offset, entities[index + 1 :]),
         )
         yield _apply_entity(
             entity,

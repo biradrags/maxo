@@ -1,5 +1,6 @@
 import logging
 import os
+from collections.abc import MutableMapping
 from typing import Any
 
 from magic_filter import F
@@ -131,7 +132,7 @@ async def process_language(
 
 async def show_summary(
     facade: MessageCreatedFacade,
-    data: dict[str, Any],
+    data: MutableMapping[str, Any],
     positive: bool = True,
 ) -> None:
     name = data["name"]

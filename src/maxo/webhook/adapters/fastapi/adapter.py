@@ -1,4 +1,4 @@
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Mapping
 from ipaddress import IPv4Address, IPv6Address
 from typing import Any
 
@@ -6,6 +6,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
 from maxo.webhook.adapters.base_adapter import BoundRequest, WebAdapter
+from maxo.webhook.adapters.base_mapping import MappingABC
 from maxo.webhook.adapters.fastapi.mapping import (
     FastApiHeadersMapping,
     FastApiQueryMapping,
@@ -28,11 +29,11 @@ class FastApiBoundRequest(BoundRequest[Request]):
         return None
 
     @property
-    def headers(self) -> FastApiHeadersMapping:
+    def headers(self) -> MappingABC[Mapping[str, Any]]:
         return self._headers
 
     @property
-    def query_params(self) -> FastApiQueryMapping:
+    def query_params(self) -> MappingABC[Mapping[str, Any]]:
         return self._query_params
 
     @property
@@ -48,7 +49,7 @@ class FastApiWebAdapter(WebAdapter):
         self,
         app: FastAPI,
         path: str,
-        handler: Callable[[BoundRequest], Awaitable[Any]],
+        handler: Callable[[BoundRequest[Any]], Awaitable[Any]],
         on_startup: Callable[..., Awaitable[Any]] | None = None,
         on_shutdown: Callable[..., Awaitable[Any]] | None = None,
     ) -> None:

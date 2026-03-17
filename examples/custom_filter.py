@@ -16,7 +16,7 @@ class MyFilter(BaseFilter[MessageCreated]):
         self.my_text = my_text
 
     async def __call__(self, update: MessageCreated, ctx: Ctx) -> bool:
-        if update.message.body is None or update.message.body.text is None:
+        if update.message.body.text is None:
             return False
         return update.message.body.text == self.my_text
 

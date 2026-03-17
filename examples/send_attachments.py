@@ -29,8 +29,10 @@ async def attachments_handler(
         # Отправка через InputFile
         message = await facade.send_message(media=(file,))
 
+        sent_attachs = message.body.attachments or []
+
         # Отправка через AttachmetsRequests
-        requests = [attachment.to_request() for attachment in message.body.attachments]
+        requests = [attachment.to_request() for attachment in sent_attachs]
         await facade.bot.send_message(
             user_id=update_context.user_id,
             chat_id=update_context.chat_id,

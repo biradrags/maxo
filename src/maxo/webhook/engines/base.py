@@ -114,7 +114,7 @@ class WebhookEngine(ABC):
         self,
         bot: Bot,
         update: MaxoUpdate[Any],
-    ) -> dict[str, Any]:
+    ) -> Any:
         result = await self.dispatcher.feed_max_update(bot=bot, update=update)
 
         if not isinstance(result, MaxoMethod):

@@ -46,8 +46,6 @@ class ContainsTextFilter(BaseFilter[MessageCreated]):
         update: MessageCreated,
         ctx: Ctx,
     ) -> bool:
-        if update.message.body is None:
-            return False
         if update.message.body.text is None:
             return False
 

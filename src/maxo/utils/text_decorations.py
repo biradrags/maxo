@@ -9,6 +9,7 @@ from re import Pattern
 from typing import cast
 
 from maxo.enums import MarkupElementType
+from maxo.types.link_markup import LinkMarkup
 from maxo.types.markup_elements import MarkupElements
 from maxo.types.user_mention_markup import UserMentionMarkup
 
@@ -49,6 +50,7 @@ class TextDecoration(ABC):
             return self.link(value=text, link=f"max://user/{entity.user_id}")
 
         if entity.type == MarkupElementType.LINK:
+            entity: LinkMarkup
             return self.link(value=text, link=cast(str, entity.url))
 
         # This case is not possible because of `if` above,

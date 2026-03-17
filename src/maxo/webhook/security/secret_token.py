@@ -1,6 +1,7 @@
 import re
 from abc import abstractmethod
 from hmac import compare_digest
+from typing import Any
 
 from maxo import Bot
 from maxo.webhook.adapters.base_adapter import BoundRequest
@@ -40,7 +41,7 @@ class StaticSecretToken(SecretToken):
     async def verify(
         self,
         bot: Bot,
-        bound_request: BoundRequest,
+        bound_request: BoundRequest[Any],
     ) -> bool:
         incoming = bound_request.headers.get(self.secret_header)
         if incoming is None:

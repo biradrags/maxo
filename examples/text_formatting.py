@@ -40,13 +40,13 @@ async def start_handler(update: MessageCreated, facade: MessageCreatedFacade) ->
         "\n",
         Monospaced("Это моноширинный текст."),
         "\n",
-        Link(
-            "Это ссылка на библиотеку maxo.",
-            url="https://github.com/K1rL3s/maxo",
-        ),
+        Link("Это ссылка на библиотеку maxo.", url="https://github.com/K1rL3s/maxo"),
         "\n",
         "Это упоминание пользователя: ",
-        Mention(update.message.sender.fullname, user_id=update.message.sender.id),
+        Mention(
+            update.message.unsafe_sender.fullname,
+            user_id=update.message.unsafe_sender.id,
+        ),
         "\n\n",
         "Вы также можете использовать вспомогательные функции для создания списков:",
         "\n\n",

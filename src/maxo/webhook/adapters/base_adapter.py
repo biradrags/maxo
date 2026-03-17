@@ -55,7 +55,7 @@ class WebAdapter(ABC):
     """Abstraction for web framework adapters."""
 
     @abstractmethod
-    def bind(self, request: Any) -> BoundRequest:
+    def bind(self, request: Any) -> BoundRequest[Any]:
         """Bind request to BoundRequest."""
         raise NotImplementedError
 
@@ -64,7 +64,7 @@ class WebAdapter(ABC):
         self,
         app: Any,
         path: str,
-        handler: Callable[[BoundRequest], Awaitable[Any]],
+        handler: Callable[[BoundRequest[Any]], Awaitable[Any]],
         on_startup: Callable[..., Awaitable[Any]] | None = None,
         on_shutdown: Callable[..., Awaitable[Any]] | None = None,
     ) -> None:

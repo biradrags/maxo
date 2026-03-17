@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, cast
 
 from maxo import Bot
 from maxo.webhook.adapters.base_adapter import BoundRequest
@@ -18,4 +18,4 @@ class QueryRouting(TokenRouting):
         return self.url.update_query({self.param: bot.token}).human_repr()
 
     def extract_token(self, bound_request: BoundRequest[Any]) -> str | None:
-        return bound_request.query_params.get(self.param)
+        return cast(str | None, bound_request.query_params.get(self.param))

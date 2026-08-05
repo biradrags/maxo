@@ -1,7 +1,23 @@
 from pathlib import Path
 
 from maxo.enums import UploadType
-from maxo.utils.upload_media import BufferedInputFile, FSInputFile, InputFile
+from maxo.utils.upload_media import (
+    BufferedInputFile,
+    FSInputFile,
+    InputFile,
+    encode_multipart_filename,
+)
+
+
+def test_encode_multipart_filename_keeps_utf8() -> None:
+    # Multipart-парсер сервера MAX не декодирует percent-encoding -
+    # кириллица должна уйти сырым UTF-8, без изменений.
+    assert encode_multipart_filename("Отчёт Динамика.pdf") == "Отчёт Динамика.pdf"
+
+
+def test_encode_multipart_filename_escapes_unsafe_chars() -> None:
+    # `"`, CR и LF кодируются как в OkHttp и браузерах.
+    assert encode_multipart_filename('К"авычка\r\n.pdf') == "К%22авычка%0D%0A.pdf"
 
 
 async def test_buffered_input_file_factories() -> None:

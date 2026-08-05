@@ -32,13 +32,13 @@ import ssl
 from collections.abc import AsyncGenerator, Callable
 from typing import Any, BinaryIO, Never
 
-from aiohttp import ClientError, ClientSession, ClientTimeout, TCPConnector
+from aiohttp import ClientError, ClientSession, ClientTimeout, FormData, TCPConnector
 from aiohttp.hdrs import AUTHORIZATION, USER_AGENT
 from aiohttp.http import SERVER_SOFTWARE
 from anyio import open_file
 from unihttp.clients.aiohttp import AiohttpAsyncClient
 from unihttp.exceptions import NetworkError, RequestTimeoutError
-from unihttp.http import HTTPRequest, HTTPResponse
+from unihttp.http import HTTPRequest, HTTPResponse, UploadFile
 from unihttp.method import BaseMethod
 from unihttp.middlewares import AsyncMiddleware
 from unihttp.serialize import RequestDumper, ResponseLoader
@@ -135,6 +135,48 @@ class MaxApiClient(AiohttpAsyncClient):
         session = ClientSession(connector=connector)
         _apply_auth_headers(session, self._token)
         return session
+
+    def _build_form_data(self, request: HTTPRequest) -> FormData:
+        """
+        Копия базовой реализации, но с `FormData(quote_fields=False)`.
+
+        Сервер MAX не декодирует percent-encoding в `filename` из multipart
+        (символ `%` подменяется на `_`) - имя файла должно уйти сырым UTF-8,
+        как его шлют curl, браузеры и официальный SDK MAX.
+        """
+        form_data = FormData(quote_fields=False)
+
+        if request.form:
+            for key, value in request.form.items():
+                form_data.add_field(key, str(value))
+
+        for field_name, file_info in request.file.items():
+            if isinstance(file_info, tuple):
+                if len(file_info) == 2:  # noqa: PLR2004
+                    filename, content = file_info
+                    form_data.add_field(field_name, content, filename=filename)
+                else:
+                    filename, content, content_type = file_info
+                    form_data.add_field(
+                        field_name,
+                        content,
+                        filename=filename,
+                        content_type=content_type,
+                    )
+
+            elif isinstance(file_info, UploadFile):
+                filename, content, content_type = file_info.to_tuple()
+                form_data.add_field(
+                    field_name,
+                    content,
+                    filename=filename,
+                    content_type=content_type,
+                )
+
+            else:
+                form_data.add_field(field_name, file_info)
+
+        return form_data
 
     async def make_request(self, request: HTTPRequest) -> HTTPResponse:
         """Приводит транспортные ошибки aiohttp и unihttp к ошибкам `maxo`."""

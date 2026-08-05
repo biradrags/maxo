@@ -23,7 +23,7 @@ from maxo.types.photo_attachment_request import PhotoAttachmentRequest
 from maxo.types.upload_endpoint import UploadEndpoint
 from maxo.types.upload_media_result import UploadMediaResult
 from maxo.types.video_attachment_request import VideoAttachmentRequest
-from maxo.utils.upload_media import InputFile
+from maxo.utils.upload_media import InputFile, encode_multipart_filename
 
 MediaInput: TypeAlias = InputFile | MediaAttachmentsRequests
 MediaAttachmentFactory: TypeAlias = Callable[[str], MediaAttachmentsRequests]
@@ -166,7 +166,10 @@ class AttachmentsFacade(SubscriptionMethodsFacade):
         try:
             return await self.bot.upload_media(
                 upload_url=url,
-                file=UploadFile(file=await file.read(), filename=file.file_name),
+                file=UploadFile(
+                    file=await file.read(),
+                    filename=encode_multipart_filename(file.file_name),
+                ),
             )
         except RetvalReturnedServerException:
             return None

@@ -2,7 +2,6 @@ import json
 from collections.abc import AsyncGenerator, Iterable
 from typing import Any
 from unittest.mock import AsyncMock, patch
-from urllib.parse import unquote
 
 import pytest
 from aiohttp import ClientConnectionError
@@ -95,7 +94,10 @@ async def test_sends_chunks_with_correct_content_range() -> None:
     ranges = [call["headers"]["Content-Range"] for call in session.calls]
     assert ranges == ["bytes 0-3/10", "bytes 4-7/10", "bytes 8-9/10"]
     assert [call["data"] for call in session.calls] == [b"abcd", b"efgh", b"ij"]
-    assert 'filename="f.bin"' in session.calls[0]["headers"]["Content-Disposition"]
+    assert (
+        session.calls[0]["headers"]["Content-Disposition"]
+        == "attachment; filename=f.bin"
+    )
 
 
 async def test_single_chunk_small_file() -> None:
@@ -127,10 +129,12 @@ async def test_empty_file_raises() -> None:
         await _run(session, b"", 1024)
 
 
-async def test_content_disposition_is_latin1_safe() -> None:
+async def test_content_disposition_is_percent_encoded_without_quotes() -> None:
+    # Заголовочный парсер сервера MAX percent-декодирует значение, а кавычки
+    # НЕ снимает (они попадают в имя буквально) - имя должно уйти
+    # percent-encoded и без кавычек. Проверено живой пробой 2026-08-05.
     session = _FakeSession([_FakeResponse(200, b'{"token": "tok"}')])
-    file_name = 'файл "1".bin'
-    file = BufferedInputFile.file(b"hello", file_name)
+    file = BufferedInputFile.file(b"hello", "Отчёт Динамика.pdf")
 
     await resumable_upload(
         url="https://upload.example/upload.do",
@@ -141,9 +145,32 @@ async def test_content_disposition_is_latin1_safe() -> None:
     )
 
     disposition = session.calls[0]["headers"]["Content-Disposition"]
+    assert disposition == (
+        "attachment; filename="
+        "%D0%9E%D1%82%D1%87%D1%91%D1%82%20"
+        "%D0%94%D0%B8%D0%BD%D0%B0%D0%BC%D0%B8%D0%BA%D0%B0.pdf"
+    )
+
+
+async def test_content_disposition_is_header_safe() -> None:
+    # Кавычки, CR и LF уходят как %22 / %0D / %0A внутри percent-encoding:
+    # заголовок остаётся чистым ASCII, инъекция через имя файла невозможна.
+    session = _FakeSession([_FakeResponse(200, b'{"token": "tok"}')])
+    file = BufferedInputFile.file(b"hello", 'файл "1"\r\n.bin')
+
+    await resumable_upload(
+        url="https://upload.example/upload.do",
+        file=file,
+        session=session,  # type: ignore[arg-type]
+        response_loader=_Retort(),
+        json_loads=json.loads,
+    )
+
+    disposition = session.calls[0]["headers"]["Content-Disposition"]
+    assert disposition == (
+        "attachment; filename=%D1%84%D0%B0%D0%B9%D0%BB%20%221%22%0D%0A.bin"
+    )
     disposition.encode("latin-1")
-    encoded = disposition.removeprefix('attachment; filename="').removesuffix('"')
-    assert unquote(encoded) == file_name
 
 
 async def test_explicit_total_skips_size_call() -> None:

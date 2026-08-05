@@ -6,11 +6,12 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from adaptix import Retort
-from aiohttp import ClientConnectionError, ClientSession
+from aiohttp import ClientConnectionError, ClientSession, FormData
 from multidict import CIMultiDict
 from unihttp.clients.aiohttp import AiohttpAsyncClient
 from unihttp.exceptions import NetworkError, RequestTimeoutError
-from unihttp.http import HTTPResponse
+from unihttp.http import HTTPResponse, UploadFile
+from unihttp.http.request import HTTPRequest
 
 from maxo.bot.api_client import MaxApiClient
 from maxo.bot.methods import AddMembers
@@ -381,3 +382,57 @@ async def test_download_from_attachment_payload(api_client: MaxApiClient) -> Non
         await api_client.download(payload, destination=destination)
 
         assert destination.read() == b"test content"
+
+
+async def _multipart_bytes(form_data: FormData) -> bytes:
+    writer = form_data()
+
+    class _Sink:
+        def __init__(self) -> None:
+            self.buf = b""
+
+        async def write(self, chunk: bytes) -> None:
+            self.buf += chunk
+
+        async def write_eof(self) -> None:
+            return None
+
+        async def drain(self) -> None:
+            return None
+
+        def enable_compression(self, *args: object, **kwargs: object) -> None:
+            return None
+
+        def enable_chunking(self) -> None:
+            return None
+
+    sink = _Sink()
+    await writer.write(sink)  # type: ignore[arg-type]
+    return sink.buf
+
+
+async def test_build_form_data_keeps_utf8_filename(api_client: MaxApiClient) -> None:
+    # Сервер MAX не декодирует percent-encoding в filename из multipart
+    # (символ `%` подменяется на `_`) - имя должно уйти сырым UTF-8,
+    # как его шлют curl, браузеры и официальный SDK.
+    request = HTTPRequest(
+        url="https://upload.example/upload.do",
+        method="post",
+        header={},
+        path={},
+        query={},
+        body=None,
+        file={
+            "data": UploadFile(
+                b"%PDF-1.4",
+                filename="Отчёт Динамика.pdf",
+                content_type="application/pdf",
+            ),
+        },
+        form=None,
+    )
+
+    body = await _multipart_bytes(api_client._build_form_data(request))
+
+    assert 'filename="Отчёт Динамика.pdf"'.encode() in body
+    assert b"%D0" not in body

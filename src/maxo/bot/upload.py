@@ -119,8 +119,12 @@ async def resumable_upload(
         msg = "Нельзя загрузить пустой файл"
         raise ValueError(msg)
 
-    encoded_name = quote(file.file_name, safe="")
-    disposition = f'attachment; filename="{encoded_name}"'
+    # Заголовочный парсер сервера MAX не снимает кавычки (они попадают в имя
+    # буквально), но percent-декодирует значение как UTF-8 - поэтому имя идёт
+    # percent-encoded и БЕЗ кавычек, как в официальном Java SDK. Проверено
+    # живой пробой 2026-08-05; multipart-путь сервер парсит иначе, см.
+    # `encode_multipart_filename`.
+    disposition = f"attachment; filename={quote(file.file_name, safe='')}"
 
     offset = 0
     final_body = b""
